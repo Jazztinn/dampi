@@ -1,0 +1,211 @@
+.dampi-chat-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 68px;
+  height: 68px;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 18px 40px rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+
+.dampi-chat-fab__badge {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.dampi-chat-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dampi-chat-modal {
+  width: min(420px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dampi-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  background: #111111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dampi-chat-header h2 {
+  margin: 4px 0 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.dampi-chat-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.dampi-chat-close,
+.dampi-chat-secondary,
+.dampi-chat-primary,
+.dampi-chat-attachment button {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dampi-chat-close {
+  width: 38px;
+  height: 38px;
+  background: #ffffff;
+  color: #000000;
+}
+
+.dampi-chat-messages {
+  flex: 1;
+  overflow: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #0a0a0a;
+}
+
+.dampi-chat-message {
+  max-width: 85%;
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.dampi-chat-message--assistant {
+  align-self: flex-start;
+  background: #151515;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dampi-chat-message--user {
+  align-self: flex-end;
+  background: #ffffff;
+  color: #000000;
+}
+
+.dampi-chat-message__role {
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dampi-chat-message__text {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.dampi-chat-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 18px 14px;
+}
+
+.dampi-chat-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+}
+
+.dampi-chat-attachment button {
+  width: 24px;
+  height: 24px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.dampi-chat-composer {
+  padding: 16px 18px 18px;
+  background: #111111;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dampi-chat-input {
+  width: 100%;
+  resize: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  padding: 14px 16px;
+  font: inherit;
+  box-sizing: border-box;
+  background: #000000;
+  color: #ffffff;
+}
+
+.dampi-chat-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dampi-chat-secondary,
+.dampi-chat-primary {
+  padding: 12px 18px;
+  font-weight: 700;
+}
+
+.dampi-chat-secondary {
+  background: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dampi-chat-primary {
+  background: #ffffff;
+  color: #000000;
+}
+
+.dampi-chat-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .dampi-chat-overlay {
+    padding: 12px;
+    align-items: stretch;
+  }
+
+  .dampi-chat-modal {
+    width: 100%;
+    max-height: 100%;
+    border-radius: 24px;
+  }
+
+  .dampi-chat-fab {
+    right: 16px;
+    bottom: 16px;
+  }
+}

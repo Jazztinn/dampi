@@ -1,2 +1,0 @@
-# Dampi
-Pedia-care 

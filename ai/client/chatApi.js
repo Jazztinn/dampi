@@ -53,7 +53,7 @@ async function callChatApi(payload) {
       body: JSON.stringify(payload),
     });
   } catch {
-    const error = new Error('Backend proxy is not running. Start it from ai/server with npm run dev.');
+    const error = new Error('AI backend is not running. Start it from ai/server with npm run dev.');
     error.isNetworkError = true;
     throw error;
   }

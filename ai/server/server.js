@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const PROVIDER_API_KEY = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
 const AVAILABLE_MODELS = [
   'gemini-2.5-flash',
@@ -149,8 +149,8 @@ function getGenerationConfig(mode, prompt, purpose) {
   };
 }
 
-async function callGeminiModel(model, payload) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+async function callProviderModel(model, payload) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${PROVIDER_API_KEY}`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -185,12 +185,12 @@ async function callGeminiModel(model, payload) {
   }
 }
 
-async function callGeminiWithFallback(payload, models) {
+async function callModelWithFallback(payload, models) {
   let lastError = null;
 
   for (const model of models) {
     try {
-      return await callGeminiModel(model, payload);
+      return await callProviderModel(model, payload);
     } catch (error) {
       lastError = error;
 
@@ -213,7 +213,7 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  if (!API_KEY) {
+  if (!PROVIDER_API_KEY) {
     return res.status(500).json({ error: 'API key not configured on server' });
   }
 
@@ -260,7 +260,7 @@ app.post('/api/chat', async (req, res) => {
       payload.systemInstruction = { parts: [{ text: normalizedSystemPrompt }] };
     }
 
-    const result = await callGeminiWithFallback(payload, models);
+    const result = await callModelWithFallback(payload, models);
     res.json(result);
   } catch (error) {
     console.error('Proxy error:', error);

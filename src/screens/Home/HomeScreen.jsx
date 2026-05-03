@@ -15,7 +15,7 @@ const placeholderCards = [
   {
     eyebrow: 'AI',
     title: 'Assistant Ready',
-    body: 'The floating AI button is already wired up to the Gemini proxy from your extracted framework.',
+    body: 'The floating AI button is already wired up to the local Dampi assistant backend.',
   },
 ];
 

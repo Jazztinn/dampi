@@ -1,0 +1,185 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  padding: 0 16px;
+  padding-bottom: clamp(12px, 3vh, 24px);
+  padding-bottom: calc(clamp(12px, 3vh, 24px) + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  z-index: 20;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.bottom-nav::before {
+  display: none;
+}
+
+.bottom-nav::after {
+  display: none;
+}
+
+.nav-pill {
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,0.22) 0%, transparent 70%),
+    rgba(244, 123, 32, 0.68);
+  background-size: 100% 100%, 100% 100%;
+  backdrop-filter: blur(15px) saturate(1.6);
+  -webkit-backdrop-filter: blur(15px) saturate(1.6);
+  border-radius: 40px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 4px;
+  height: 58px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  position: relative;
+  box-shadow: 
+    inset 0 1px 4px rgba(255, 255, 255, 0.5),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.nav-pill-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  width: 290px;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.vine-overlay {
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%);
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.vine-down {
+  z-index: 1;
+  opacity: 0.5;
+}
+
+.vine-up {
+  z-index: 3;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  height: 42px;
+  width: 42px;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  transition: color 0.2s, background 0.2s;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-btn.active {
+  color: var(--orange);
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, transparent 70%),
+    rgba(255, 255, 255, 0.75);
+  background-size: 100% 100%, 100% 100%;
+  box-shadow: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 14px;
+  z-index: 10;
+}
+
+.nav-btn:not(.active):hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-fab-wrap {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+/* FAB Button - Opens Chat Modal */
+.nav-fab {
+  width: 58px;
+  height: 58px;
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,0.22) 0%, transparent 70%),
+    rgba(244, 123, 32, 0.68);
+  background-size: 100% 100%, 100% 100%;
+  backdrop-filter: blur(15px) saturate(1.6);
+  -webkit-backdrop-filter: blur(15px) saturate(1.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  transition: transform 0.2s;
+  position: relative;
+  z-index: 3;
+  box-shadow:
+    inset 0 1px 4px rgba(255, 255, 255, 0.5),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.nav-fab:hover {
+  transform: scale(1.08);
+}
+
+.dampi-icon {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.fab-chat {
+  display: none;
+}
+
+/* Dark Mode Bottom Nav Styles */
+:root.dark-mode .bottom-nav {
+  background: none;
+}
+
+:root.dark-mode .nav-pill {
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+:root.dark-mode .nav-fab {
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.get-started-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.get-started-btn:hover {
+  background-color: var(--primary-color-hover);
+}

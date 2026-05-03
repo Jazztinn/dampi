@@ -1,11 +1,22 @@
 :root {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #ffffff;
-  background: #000000;
+  font-family: "Work Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #2c1b12;
+  background: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --bg: #fff8f1;
+  --bg-low: #fff1e2;
+  --bg-dim: #f1e3d4;
+  --brown: #5b3424;
+  --brown-m: #9b6f57;
+  --orange: #f47b20;
+  --orange-l: #f7c48f;
+  --orange-m: #e68c44;
+  --outline-v: rgba(95, 51, 28, 0.14);
+  --primary-color: #f47b20;
+  --primary-color-hover: #d96e1e;
 }
 
 * {
@@ -20,9 +31,7 @@ body,
 }
 
 body {
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 40%),
-    #000000;
+  background: #ffffff;
 }
 
 button,
@@ -38,4 +47,14 @@ img {
 
 a {
   color: inherit;
+}
+
+#root {
+  position: relative;
+}
+
+.dampi-app {
+  position: relative;
+  min-height: 100vh;
+  background: #ffffff;
 }

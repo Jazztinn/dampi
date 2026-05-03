@@ -1,4 +1,4 @@
-import wordmark from '../../assets/dampi-wordmark.svg';
+import wordmark from '../../assets/dampi.svg';
 import './home-screen.css';
 
 const placeholderCards = [

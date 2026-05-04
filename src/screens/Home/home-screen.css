@@ -1,4 +1,272 @@
-.home-screen {
+.home-container {
+  background-color: #fcf8f2;
   min-height: 100vh;
-  background: #ffffff;
+  padding: 24px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1c1c1e;
+  overflow-x: hidden;
+}
+
+/* Header Section */
+.header-section {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-top: 20px;
+}
+
+.greeting {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.score-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+
+.score-number {
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.score-star {
+  color: #f4a6d4;
+  font-size: 2rem;
+  margin-top: 10px;
+}
+
+.score-label {
+  font-size: 0.85rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.info-icon {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.btn-emergency {
+  background-color: #1c1c1e;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-icon {
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Daily Highlights */
+.highlights-section {
+  margin-bottom: 40px;
+}
+
+.highlights-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.highlights-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.highlights-subtitle {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+}
+
+.show-all-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding-top: 4px;
+}
+
+/* Widgets Container */
+.widgets-container {
+  position: relative;
+  height: 350px; /* Adjust based on needed space for freeform layout */
+  width: 100%;
+}
+
+.widget {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #1c1c1e;
+}
+
+.widget-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.widget-value {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Specific Widgets */
+.widget-pills {
+  background-color: #fbe067;
+  width: 100px;
+  height: 100px;
+  top: 10px;
+  left: 30%;
+  clip-path: polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%);
+  z-index: 2;
+}
+
+.widget-habits {
+  background-color: #9ab973;
+  width: 100px;
+  height: 100px;
+  top: 30px;
+  right: 5%;
+  border-radius: 40% 60% 65% 35% / 40% 45% 55% 60%;
+  transform: rotate(-10deg);
+  z-index: 1;
+}
+
+.widget-water {
+  background-color: #aecdff;
+  width: 110px;
+  height: 110px;
+  top: 80px;
+  left: 5%;
+  border-radius: 50% 50% 0 50%;
+  transform: rotate(-45deg);
+  z-index: 3;
+}
+.widget-water .widget-title, .widget-water .widget-value {
+  transform: rotate(45deg); /* Counter-rotate text */
+}
+
+/* Heart is tricky, use wrapper for text */
+.widget-heart-wrapper {
+  position: absolute;
+  top: 150px;
+  left: 20%;
+  width: 120px;
+  height: 110px;
+  z-index: 4;
+}
+
+.widget-heart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #fba4d5;
+  border-radius: 0;
+}
+.widget-heart::before,
+.widget-heart::after {
+  content: "";
+  position: absolute;
+  background-color: #fba4d5;
+  width: 70px;
+  height: 110px;
+  border-radius: 70px 70px 0 0;
+}
+.widget-heart::before {
+  left: 50px;
+  transform: rotate(-45deg);
+  transform-origin: 0 100%;
+}
+.widget-heart::after {
+  left: 0;
+  transform: rotate(45deg);
+  transform-origin: 100% 100%;
+}
+/* Re-style text for heart to appear on top of pseudo-elements */
+.widget-heart .widget-title,
+.widget-heart .widget-value {
+  position: relative;
+  z-index: 1;
+  top: -10px;
+}
+/* To hide the square base of heart slightly and align */
+.widget-heart {
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-top: 15px;
+}
+
+.widget-mind {
+  background-color: #aecdff;
+  width: 120px;
+  height: 120px;
+  top: 180px;
+  right: 5%;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  z-index: 2;
+}
+
+.widget-sleep {
+  width: 100px;
+  height: 100px;
+  top: 240px;
+  left: 10%;
+  border-radius: 50%;
+  box-shadow: 25px 15px 0 0 #fbe067;
+  background-color: transparent;
+  z-index: 1;
+}
+.widget-sleep .widget-title,
+.widget-sleep .widget-value {
+  position: absolute;
+  right: -25px;
+  bottom: 25px;
 }

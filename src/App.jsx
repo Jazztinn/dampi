@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AppNavigator from './navigation/AppNavigator.jsx';
-import DampiFab from './components/ai/DampiFab.jsx';
 import DampiChatModal from './components/ai/DampiChatModal.jsx';
 
 export default function App() {
@@ -10,7 +9,6 @@ export default function App() {
   return (
     <div className="dampi-app">
       <AppNavigator onOpenAi={() => setChatOpen(true)} />
-      <DampiFab onOpenChat={() => setChatOpen(true)} />
       <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
     </div>
   );

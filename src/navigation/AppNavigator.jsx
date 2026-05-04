@@ -1,84 +1,78 @@
 import { useState } from 'react';
-import { ClipboardList, ShieldPlus, HeartHandshake } from 'lucide-react';
+import { Heart, Calendar, MessageSquare, User, Plus } from 'lucide-react';
 import SymptomGuideScreen from '../screens/SymptomGuide/SymptomGuideScreen.jsx';
 import HMOPortalScreen from '../screens/HMOPortal/HMOPortalScreen.jsx';
 import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialAssistanceScreen.jsx';
+import HomeScreen from '../screens/Home/HomeScreen.jsx';
+import './app-navigator.css';
 
 export default function AppNavigator({ onOpenAi }) {
-  const [currentScreen, setCurrentScreen] = useState('symptom');
+  const [currentScreen, setCurrentScreen] = useState('home');
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'symptom':
+      case 'home':
+        return <HomeScreen />;
+      case 'calendar':
         return <SymptomGuideScreen />;
-      case 'hmo':
+      case 'messages':
         return <HMOPortalScreen />;
-      case 'financial':
+      case 'profile':
         return <FinancialAssistanceScreen />;
       default:
-        return <SymptomGuideScreen />;
+        return <HomeScreen />;
     }
   };
 
-  const navContainerStyle = {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    display: 'flex',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderTop: '1px solid #e5e5e5',
-    paddingBottom: 'env(safe-area-inset-bottom)', // Adjust for modern mobile screens
-    height: '70px',
-    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
-    zIndex: 1000,
-  };
-
-  const buttonStyle = (screen) => ({
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'transparent',
-    border: 'none',
-    color: currentScreen === screen ? '#2563eb' : '#6b7280', // Active blue, inactive gray
-    cursor: 'pointer',
-    width: '100%',
-    height: '100%',
-    gap: '4px',
-  });
-
-  const labelStyle = (screen) => ({
-    fontSize: '0.75rem',
-    fontWeight: currentScreen === screen ? '600' : '400',
-  });
-
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb' }}>
-      
+    <div className="app-container">
       {/* Scrollable Content Area */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }}>
+      <div className="content-area">
         {renderScreen()}
       </div>
 
       {/* Bottom Navigation Bar */}
-      <nav style={navContainerStyle}>
-        <button style={buttonStyle('symptom')} onClick={() => setCurrentScreen('symptom')}>
-          <ClipboardList size={24} />
-          <span style={labelStyle('symptom')}>Gabay</span>
-        </button>
+      <nav className="bottom-nav-bar-container">
+        <div className="bottom-nav-bar">
+          <div className="nav-group left">
+            <button 
+              className={`nav-item ${currentScreen === 'home' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('home')}
+            >
+              <Heart size={24} strokeWidth={currentScreen === 'home' ? 2.5 : 2} />
+            </button>
+            <button 
+              className={`nav-item ${currentScreen === 'calendar' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('calendar')}
+            >
+              <Calendar size={24} strokeWidth={currentScreen === 'calendar' ? 2.5 : 2} />
+            </button>
+          </div>
 
-        <button style={buttonStyle('hmo')} onClick={() => setCurrentScreen('hmo')}>
-          <ShieldPlus size={24} />
-          <span style={labelStyle('hmo')}>Benepisyo</span>
-        </button>
+          {/* Center Floating Button */}
+          <div className="center-button-wrapper">
+            <button className="center-action-btn" onClick={() => onOpenAi?.('text')}>
+              <Plus size={28} color="black" strokeWidth={3} />
+            </button>
+            {/* Cutout illusion using pseudo-elements in CSS */}
+            <div className="cutout-background"></div>
+          </div>
 
-        <button style={buttonStyle('financial')} onClick={() => setCurrentScreen('financial')}>
-          <HeartHandshake size={24} />
-          <span style={labelStyle('financial')}>Tulong</span>
-        </button>
+          <div className="nav-group right">
+            <button 
+              className={`nav-item ${currentScreen === 'messages' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('messages')}
+            >
+              <MessageSquare size={24} strokeWidth={currentScreen === 'messages' ? 2.5 : 2} />
+            </button>
+            <button 
+              className={`nav-item ${currentScreen === 'profile' ? 'active' : ''}`}
+              onClick={() => setCurrentScreen('profile')}
+            >
+              <User size={24} strokeWidth={currentScreen === 'profile' ? 2.5 : 2} />
+            </button>
+          </div>
+        </div>
       </nav>
     </div>
   );

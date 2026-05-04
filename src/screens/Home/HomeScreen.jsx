@@ -1,4 +1,8 @@
 import './home-screen.css';
+
 export default function HomeScreen() {
-  return <div className="home-screen" />;
+  return (
+    <div className="home-container">
+    </div>
+  );
 }

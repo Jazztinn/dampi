@@ -574,7 +574,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
           </button>
           <div className="chat-header-title">
             <img src={dampiIcon} alt="Dampi" className="chat-header-logo" />
-            <span>Dampi</span>
+            <span></span>
           </div>
           <button className="chat-header-btn" onClick={requestClose}>
             <X size={20} />

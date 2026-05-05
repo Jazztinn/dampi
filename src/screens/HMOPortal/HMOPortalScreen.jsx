@@ -1,6 +1,80 @@
+import { Heart, Stethoscope, Pill, Eye, Activity } from 'lucide-react';
+import './hmo-portal.css';
+
+const BENEFITS = [
+  {
+    id: 1,
+    Icon: Stethoscope,
+    name: 'Outpatient Consultation',
+    desc: 'Lorem ipsum dolor sit amet consectetur',
+    limit: '₱500/visit',
+  },
+  {
+    id: 2,
+    Icon: Heart,
+    name: 'Emergency Care',
+    desc: 'Ut enim ad minim veniam quis nostrud',
+    limit: '₱10,000',
+  },
+  {
+    id: 3,
+    Icon: Pill,
+    name: 'Medicines',
+    desc: 'Duis aute irure dolor in reprehenderit',
+    limit: '₱2,000/mo',
+  },
+  {
+    id: 4,
+    Icon: Eye,
+    name: 'Annual Check-up',
+    desc: 'Excepteur sint occaecat cupidatat non',
+    limit: 'Included',
+  },
+];
+
 export default function HMOPortalScreen() {
   return (
-    <div className="hmo-portal-container">
+    <div className="hmo-portal">
+      <div className="hmo-portal__statusbar" />
+
+      <header className="hmo-portal__header">
+        <h1 className="hmo-portal__title">HMO Portal</h1>
+        <p className="hmo-portal__subtitle">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+      </header>
+
+      {/* Coverage status card */}
+      <div className="hmo-portal__coverage-card">
+        <p className="hmo-portal__coverage-label">PhilHealth / HMO Plan</p>
+        <p className="hmo-portal__coverage-status">Coverage Active</p>
+        <p className="hmo-portal__coverage-meta">
+          Valid until December 31, 2025 · ID: XXXX-XXXX-XXXX
+        </p>
+        <div className="hmo-portal__coverage-badge">
+          <span className="hmo-portal__coverage-dot" />
+          Active Member
+        </div>
+      </div>
+
+      {/* Benefits list */}
+      <p className="hmo-portal__section-title">Your Benefits</p>
+      <div className="hmo-portal__benefits">
+        {BENEFITS.map(({ id, Icon, name, desc, limit }) => (
+          <div key={id} className="hmo-portal__benefit-item">
+            <div className="hmo-portal__benefit-icon">
+              <Icon size={18} strokeWidth={2} />
+            </div>
+            <div className="hmo-portal__benefit-info">
+              <p className="hmo-portal__benefit-name">{name}</p>
+              <p className="hmo-portal__benefit-desc">{desc}</p>
+            </div>
+            <span className="hmo-portal__benefit-limit">{limit}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ height: '120px' }} />
     </div>
   );
 }

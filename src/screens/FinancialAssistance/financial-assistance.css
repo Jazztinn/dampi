@@ -1,0 +1,186 @@
+/* ── Profile / Financial Assistance Screen ────────────────── */
+
+.profile {
+  background: var(--dampi-cream);
+  min-height: 100vh;
+  padding: 0 20px;
+  color: var(--dampi-text);
+}
+
+.profile__statusbar {
+  height: 44px;
+}
+
+.profile__header {
+  padding: 8px 0 24px;
+}
+
+.profile__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--dampi-teal);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ── Avatar Section ── */
+.profile__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.profile__avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dampi-sage) 0%, var(--dampi-teal) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(77, 115, 108, 0.3);
+}
+
+.profile__avatar-initials {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.profile__name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--dampi-text);
+  margin: 0 0 2px;
+  text-align: center;
+}
+
+.profile__meta {
+  font-size: 0.78rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Info Rows ── */
+.profile__section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--dampi-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 12px;
+}
+
+.profile__info-list {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(77, 115, 108, 0.08);
+}
+
+.profile__info-row {
+  display: flex;
+  align-items: center;
+  padding: 15px 16px;
+  gap: 12px;
+  border-bottom: 1px solid rgba(146, 187, 179, 0.15);
+}
+
+.profile__info-row:last-child {
+  border-bottom: none;
+}
+
+.profile__info-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(146, 187, 179, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--dampi-teal);
+}
+
+.profile__info-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--dampi-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 2px;
+}
+
+.profile__info-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+  margin: 0;
+}
+
+/* ── Action Cards ── */
+.profile__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.profile__action-card {
+  background: #fff;
+  border: none;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(77, 115, 108, 0.07);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile__action-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(77, 115, 108, 0.13);
+}
+
+.profile__action-card:active {
+  transform: scale(0.97);
+}
+
+.profile__action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile__action-icon--sage { background: rgba(146, 187, 179, 0.2); color: var(--dampi-teal); }
+.profile__action-icon--warm { background: rgba(237, 161, 109, 0.15); color: var(--dampi-warm); }
+
+.profile__action-text {
+  flex: 1;
+}
+
+.profile__action-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+  margin: 0 0 3px;
+}
+
+.profile__action-desc {
+  font-size: 0.72rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+}

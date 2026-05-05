@@ -1,8 +1,10 @@
-import { Mail, Lock, ChevronRight } from 'lucide-react';
+import { Mail, Lock, ChevronRight, Phone, User } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CreateAccountScreen({ data, onNext }) {
   const [formData, setFormData] = useState({
+    fullName: data.fullName || '',
+    phone: data.phone || '',
     email: data.email || '',
     password: data.password || '',
   });
@@ -20,6 +22,9 @@ export default function CreateAccountScreen({ data, onNext }) {
     e.preventDefault();
     const newErrors = {};
 
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+
     if (!formData.email) newErrors.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email';
 
@@ -31,7 +36,12 @@ export default function CreateAccountScreen({ data, onNext }) {
       return;
     }
 
-    onNext(formData);
+    onNext({
+      ...formData,
+      fullName: formData.fullName.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email.trim(),
+    });
   };
 
   return (
@@ -42,6 +52,40 @@ export default function CreateAccountScreen({ data, onNext }) {
       </div>
 
       <form onSubmit={handleSubmit} className="onboarding-form">
+        <div className="form-group">
+          <label htmlFor="fullName">Parent or Guardian Name</label>
+          <div className="input-wrapper">
+            <User size={18} className="input-icon" />
+            <input
+              id="fullName"
+              type="text"
+              name="fullName"
+              placeholder="Juan Dela Cruz"
+              value={formData.fullName}
+              onChange={handleChange}
+              className={errors.fullName ? 'error' : ''}
+            />
+          </div>
+          {errors.fullName && <span className="error-text">{errors.fullName}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="phone">Phone Number</label>
+          <div className="input-wrapper">
+            <Phone size={18} className="input-icon" />
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              placeholder="+63 917 204 1138"
+              value={formData.phone}
+              onChange={handleChange}
+              className={errors.phone ? 'error' : ''}
+            />
+          </div>
+          {errors.phone && <span className="error-text">{errors.phone}</span>}
+        </div>
+
         <div className="form-group">
           <label htmlFor="email">Email Address</label>
           <div className="input-wrapper">

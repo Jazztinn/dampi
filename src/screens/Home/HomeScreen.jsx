@@ -76,7 +76,25 @@ const RECENT_LOGS = [
   },
 ];
 
-export default function HomeScreen({ onNavigateToSymptoms, onOpenAi }) {
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'DP';
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('');
+}
+
+function getFirstName(name = '') {
+  return name.trim().split(/\s+/)[0] || 'there';
+}
+
+function possessive(name) {
+  if (!name) return "Your child's";
+  return name.endsWith('s') ? `${name}'` : `${name}'s`;
+}
+
+export default function HomeScreen({ profile, child, onNavigateToSymptoms, onOpenAi }) {
+  const parentName = profile?.full_name || '';
+  const childName = child?.full_name || 'your child';
+
   const handleQuickAction = (id) => {
     if (id === 'symptom') {
       onNavigateToSymptoms?.();
@@ -97,14 +115,14 @@ export default function HomeScreen({ onNavigateToSymptoms, onOpenAi }) {
           <Search size={18} />
         </button>
         <div className="home__avatar" aria-label="User profile">
-          <span>JD</span>
+          <span>{getInitials(parentName)}</span>
         </div>
       </header>
 
       <section className="home__greeting-card">
         <div>
           <p className="home__eyebrow">Today</p>
-          <h1 className="home__greeting">Hi, Juan</h1>
+          <h1 className="home__greeting">Hi, {getFirstName(parentName)}</h1>
           <p className="home__date">{today}</p>
         </div>
         <div className="home__date-pill" aria-label="Current day">
@@ -119,7 +137,7 @@ export default function HomeScreen({ onNavigateToSymptoms, onOpenAi }) {
         </div>
         <div className="home__plan-copy">
           <p className="home__eyebrow">Care Plan</p>
-          <h2>Melani's check-in is almost complete.</h2>
+          <h2>{possessive(childName)} check-in is almost complete.</h2>
           <p>Log symptoms, confirm fluids, and note anything unusual before the next clinic visit.</p>
         </div>
         <button className="home__primary-cta" onClick={onNavigateToSymptoms}>

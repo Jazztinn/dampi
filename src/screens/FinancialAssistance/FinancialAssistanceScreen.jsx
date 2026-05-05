@@ -10,27 +10,6 @@ import {
 } from 'lucide-react';
 import './financial-assistance.css';
 
-const INFO_ROWS = [
-  {
-    id: 1,
-    Icon: Phone,
-    label: 'Contact',
-    value: '+63 917 204 1138',
-  },
-  {
-    id: 2,
-    Icon: MapPin,
-    label: 'Preferred Clinic',
-    value: 'Barangay Health Center, Manila',
-  },
-  {
-    id: 3,
-    Icon: Calendar,
-    label: 'Member Since',
-    value: 'January 2024',
-  },
-];
-
 const ACTIONS = [
   {
     id: 1,
@@ -55,7 +34,61 @@ const ACTIONS = [
   },
 ];
 
-export default function FinancialAssistanceScreen() {
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'DP';
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('');
+}
+
+function formatMemberSince(value) {
+  if (!value) return 'Recently joined';
+  return new Date(value).toLocaleDateString('en-PH', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function getAgeLabel(dateOfBirth) {
+  if (!dateOfBirth) return 'Age not set';
+
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let years = today.getFullYear() - birthDate.getFullYear();
+  const monthDelta = today.getMonth() - birthDate.getMonth();
+
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) {
+    years -= 1;
+  }
+
+  if (Number.isNaN(years) || years < 0) return 'Age not set';
+  return years === 1 ? '1 year old' : `${years} years old`;
+}
+
+export default function FinancialAssistanceScreen({ profile, child }) {
+  const fullName = profile?.full_name || 'Dampi Parent';
+  const childName = child?.full_name || 'Child profile';
+  const patientId = profile?.id ? `DMPI-${profile.id.slice(0, 8).toUpperCase()}` : 'DMPI-PENDING';
+  const infoRows = [
+    {
+      id: 1,
+      Icon: Phone,
+      label: 'Contact',
+      value: profile?.phone || 'Not provided',
+    },
+    {
+      id: 2,
+      Icon: MapPin,
+      label: 'Preferred Clinic',
+      value: 'Not set yet',
+    },
+    {
+      id: 3,
+      Icon: Calendar,
+      label: 'Member Since',
+      value: formatMemberSince(profile?.created_at),
+    },
+  ];
+
   return (
     <div className="profile">
       <div className="profile__statusbar" />
@@ -73,11 +106,11 @@ export default function FinancialAssistanceScreen() {
 
       <section className="profile__identity">
         <div className="profile__avatar">
-          <span>JD</span>
+          <span>{getInitials(fullName)}</span>
         </div>
         <div className="profile__identity-copy">
-          <p className="profile__name">Juan Dela Cruz</p>
-          <p className="profile__meta">Parent guardian · Patient ID: DMPI-0001</p>
+          <p className="profile__name">{fullName}</p>
+          <p className="profile__meta">Parent guardian · Patient ID: {patientId}</p>
         </div>
         <span className="profile__status">Verified</span>
       </section>
@@ -85,8 +118,8 @@ export default function FinancialAssistanceScreen() {
       <section className="profile__summary-grid">
         <article>
           <p>Child</p>
-          <strong>Melani</strong>
-          <span>5 years old</span>
+          <strong>{childName}</strong>
+          <span>{getAgeLabel(child?.date_of_birth)}</span>
         </article>
         <article>
           <p>Coverage</p>
@@ -98,7 +131,7 @@ export default function FinancialAssistanceScreen() {
       <section>
         <p className="profile__section-title">Personal information</p>
         <div className="profile__info-list">
-          {INFO_ROWS.map(({ id, Icon, label, value }) => (
+          {infoRows.map(({ id, Icon, label, value }) => (
             <article key={id} className="profile__info-row">
               <div className="profile__info-icon">
                 <Icon size={16} strokeWidth={2} />

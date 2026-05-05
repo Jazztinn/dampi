@@ -102,6 +102,31 @@ a {
   background: transparent;
 }
 
+.app-state {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--dampi-text-muted);
+  font-weight: 700;
+}
+
+.app-error {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2000;
+  max-width: 398px;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: #fff;
+  color: #c0392b;
+  box-shadow: var(--shadow-lg);
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 button {
   -webkit-tap-highlight-color: transparent;
 }

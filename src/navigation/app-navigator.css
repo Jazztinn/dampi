@@ -1,116 +1,39 @@
+/* ── App Shell ────────────────────────────────────────────── */
+
 .app-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #fcf8f2; /* Matches home screen background */
+  background-color: var(--dampi-cream);
   overflow: hidden;
+
+  /* Center the mobile frame on desktop */
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Subtle border on desktop to frame the mobile shell */
+@media (min-width: 500px) {
+  .app-container {
+    box-shadow: 0 0 0 1px rgba(77, 115, 108, 0.1),
+                0 20px 60px rgba(77, 115, 108, 0.12);
+  }
 }
 
 .content-area {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 100px; /* Space for the bottom nav */
+  overflow-x: hidden;
+  padding-bottom: 100px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-/* Bottom Navigation Bar Container */
-.bottom-nav-bar-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  padding: 0 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  z-index: 1000;
-  pointer-events: none; /* Let clicks pass through outside the bar */
+/* Hide scrollbar visually while keeping scroll behaviour */
+.content-area::-webkit-scrollbar {
+  display: none;
 }
-
-/* The Black Pill Bar */
-.bottom-nav-bar {
-  background-color: #1c1c1e;
-  border-radius: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 400px; /* Restrict width on larger screens */
-  height: 72px;
-  padding: 0 20px;
-  position: relative;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-  pointer-events: auto; /* Re-enable clicks for the bar */
-}
-
-.nav-group {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-/* Base Nav Item */
-.nav-item {
-  background: transparent;
-  border: none;
-  color: #6b6b70; /* Inactive grey */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  transition: color 0.2s ease;
-}
-
-.nav-item.active {
-  color: white; /* Active white */
-}
-
-.nav-item:hover {
-  color: #a0a0a5;
-}
-
-/* Center Button Cutout Effect */
-.center-button-wrapper {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 14px; /* Lift the button up slightly */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-/* The Black bump behind the pink button */
-.cutout-background {
-  position: absolute;
-  width: 72px;
-  height: 72px;
-  background-color: #1c1c1e;
-  border-radius: 50%;
-  z-index: -1;
-  bottom: -6px; /* Align with the nav bar to create seamless bump */
-}
-
-/* The Pink Action Button */
-.center-action-btn {
-  width: 56px;
-  height: 56px;
-  background-color: #fba4d5; /* Pink color from design */
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(251, 164, 213, 0.4);
-  transition: transform 0.2s ease;
-}
-
-.center-action-btn:hover {
-  transform: scale(1.05);
-}
-
-.center-action-btn:active {
-  transform: scale(0.95);
+.content-area {
+  scrollbar-width: none;
 }

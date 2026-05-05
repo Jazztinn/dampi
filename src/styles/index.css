@@ -1,22 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap');
+
 :root {
   font-family: "Work Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: #2c1b12;
-  background: #ffffff;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --bg: #fff8f1;
-  --bg-low: #fff1e2;
-  --bg-dim: #f1e3d4;
+
+  /* Dampi Brand Colors */
+  --dampi-sage: #92BBB3;
+  --dampi-cream: #FFFAF6;
+  --dampi-teal: #4D736C;
+  --dampi-warm: #EDA16D;
+  --dampi-text: #2A3B38;
+  --dampi-text-muted: #6B8580;
+  --dampi-emergency: #E8897A;
+  --dampi-white: #FFFFFF;
+
+  /* Legacy aliases (keep for any existing code) */
+  --bg: #FFFAF6;
+  --bg-low: #F0EBE3;
+  --bg-dim: #E8E0D6;
   --brown: #5b3424;
   --brown-m: #9b6f57;
-  --orange: #f47b20;
+  --orange: #EDA16D;
   --orange-l: #f7c48f;
   --orange-m: #e68c44;
-  --outline-v: rgba(95, 51, 28, 0.14);
-  --primary-color: #f47b20;
-  --primary-color-hover: #d96e1e;
+  --outline-v: rgba(77, 115, 108, 0.14);
+  --primary-color: #4D736C;
+  --primary-color-hover: #3a5a54;
+
+  color: var(--dampi-text);
+  background: var(--dampi-cream);
 }
 
 * {
@@ -31,7 +46,7 @@ body,
 }
 
 body {
-  background: #ffffff;
+  background: var(--dampi-cream);
 }
 
 button,
@@ -56,5 +71,5 @@ a {
 .dampi-app {
   position: relative;
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--dampi-cream);
 }

@@ -1,4 +1,5 @@
 import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
 
 const INFO_ROWS = [
@@ -39,14 +40,10 @@ const ACTIONS = [
   },
 ];
 
-export default function FinancialAssistanceScreen() {
+export default function FinancialAssistanceScreen({ onBack }) {
   return (
     <div className="profile">
-      <div className="profile__statusbar" />
-
-      <header className="profile__header">
-        <h1 className="profile__title">My Profile</h1>
-      </header>
+      <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
       {/* Avatar + identity */}
       <div className="profile__identity">

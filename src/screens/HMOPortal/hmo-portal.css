@@ -7,27 +7,6 @@
   color: var(--dampi-text);
 }
 
-.hmo-portal__statusbar {
-  height: 44px;
-}
-
-.hmo-portal__header {
-  padding: 8px 0 20px;
-}
-
-.hmo-portal__title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--dampi-teal);
-  margin: 0 0 4px;
-  letter-spacing: -0.02em;
-}
-
-.hmo-portal__subtitle {
-  font-size: 0.8rem;
-  color: var(--dampi-text-muted);
-  margin: 0;
-}
 
 /* ── Coverage Card ── */
 .hmo-portal__coverage-card {

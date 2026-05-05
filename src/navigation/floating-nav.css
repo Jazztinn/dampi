@@ -3,7 +3,9 @@
 .floating-nav {
   position: fixed;
   bottom: 24px;
-  left: 16px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   z-index: 1000;
 
   display: flex;
@@ -18,16 +20,15 @@
               0 2px 8px rgba(77, 115, 108, 0.2);
 
   overflow: hidden;
-  transition: width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-radius 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition: width 0.32s ease-out,
+              border-radius 0.32s ease-out,
               box-shadow 0.25s ease;
 
-  /* Prevent any content clipping during animation */
   will-change: width;
 }
 
 .floating-nav.is-expanded {
-  width: 312px;
+  width: min(320px, calc(100% - 32px));
   border-radius: 28px;
   box-shadow: 0 12px 40px rgba(77, 115, 108, 0.45),
               0 4px 12px rgba(77, 115, 108, 0.25);
@@ -62,16 +63,16 @@
 }
 
 .floating-nav__logo-img {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
-  /* Make SVG white so it reads on the teal background */
   filter: brightness(0) invert(1);
-  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* No spin — scale subtly instead */
+  transition: transform 0.22s ease;
 }
 
 .floating-nav.is-expanded .floating-nav__logo-img {
-  transform: rotate(360deg);
+  transform: scale(1.08);
 }
 
 /* ── Nav Items Rail ───────────────────────────────────────── */
@@ -82,25 +83,25 @@
   gap: 2px;
   padding-right: 10px;
 
-  /* Hidden until expanded */
   opacity: 0;
-  transform: translateX(-8px);
+  transform: translateX(-6px);
   pointer-events: none;
-  transition: opacity 0.22s ease 0s,
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0s;
+  transition: opacity 0.2s ease 0s,
+              transform 0.22s ease 0s;
 }
 
 .floating-nav.is-expanded .floating-nav__rail {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
-  transition: opacity 0.22s ease 0.18s,
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.14s;
+  transition: opacity 0.2s ease 0.16s,
+              transform 0.22s ease 0.12s;
 }
 
 /* ── Individual Nav Item ──────────────────────────────────── */
 
 .floating-nav__item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,7 +114,7 @@
 
   padding: 8px 10px;
   border-radius: 16px;
-  min-width: 58px;
+  min-width: 60px;
 
   transition: background 0.18s ease,
               color 0.18s ease,
@@ -135,6 +136,19 @@
   color: #ffffff;
 }
 
+/* Active dot indicator */
+.floating-nav__item.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+
 .floating-nav__item-icon {
   display: flex;
   align-items: center;
@@ -151,13 +165,12 @@
   line-height: 1;
 }
 
-/* ── Backdrop (click-outside to close) ───────────────────── */
+/* ── Backdrop ─────────────────────────────────────────────── */
 
 .floating-nav__backdrop {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: transparent;
-  /* invisible tap target */
+  background: rgba(0, 0, 0, 0.06);
   pointer-events: auto;
 }

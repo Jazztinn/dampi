@@ -7,21 +7,6 @@
   color: var(--dampi-text);
 }
 
-.profile__statusbar {
-  height: 44px;
-}
-
-.profile__header {
-  padding: 8px 0 24px;
-}
-
-.profile__title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--dampi-teal);
-  margin: 0;
-  letter-spacing: -0.02em;
-}
 
 /* ── Avatar Section ── */
 .profile__identity {

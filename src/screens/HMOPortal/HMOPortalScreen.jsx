@@ -1,4 +1,5 @@
 import { Heart, Stethoscope, Pill, Eye, Activity } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './hmo-portal.css';
 
 const BENEFITS = [
@@ -32,17 +33,10 @@ const BENEFITS = [
   },
 ];
 
-export default function HMOPortalScreen() {
+export default function HMOPortalScreen({ onBack }) {
   return (
     <div className="hmo-portal">
-      <div className="hmo-portal__statusbar" />
-
-      <header className="hmo-portal__header">
-        <h1 className="hmo-portal__title">HMO Portal</h1>
-        <p className="hmo-portal__subtitle">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
-      </header>
+      <TopNavBar variant="inner" title="HMO Portal" onBack={onBack} />
 
       {/* Coverage status card */}
       <div className="hmo-portal__coverage-card">

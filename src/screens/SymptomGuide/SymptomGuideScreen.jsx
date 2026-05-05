@@ -1,4 +1,5 @@
 import { Search, ChevronRight } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './symptom-guide.css';
 
 const CATEGORIES = [
@@ -32,17 +33,10 @@ const CATEGORIES = [
   },
 ];
 
-export default function SymptomGuideScreen() {
+export default function SymptomGuideScreen({ onBack }) {
   return (
     <div className="symptom-guide">
-      <div className="symptom-guide__statusbar" />
-
-      <header className="symptom-guide__header">
-        <h1 className="symptom-guide__title">Symptom Guide</h1>
-        <p className="symptom-guide__subtitle">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
-      </header>
+      <TopNavBar variant="inner" title="Symptom Guide" onBack={onBack} />
 
       {/* Search bar */}
       <div className="symptom-guide__search">

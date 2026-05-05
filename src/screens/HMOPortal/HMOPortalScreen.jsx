@@ -1,4 +1,12 @@
-import { Heart, Stethoscope, Pill, Eye, Activity } from 'lucide-react';
+import {
+  CalendarCheck,
+  FileText,
+  Heart,
+  Pill,
+  ShieldCheck,
+  Stethoscope,
+  WalletCards,
+} from 'lucide-react';
 import './hmo-portal.css';
 
 const BENEFITS = [
@@ -6,30 +14,36 @@ const BENEFITS = [
     id: 1,
     Icon: Stethoscope,
     name: 'Outpatient Consultation',
-    desc: 'Lorem ipsum dolor sit amet consectetur',
-    limit: '₱500/visit',
+    desc: 'Pediatric checkups and follow-up visits',
+    limit: 'PHP 500/visit',
   },
   {
     id: 2,
     Icon: Heart,
     name: 'Emergency Care',
-    desc: 'Ut enim ad minim veniam quis nostrud',
-    limit: '₱10,000',
+    desc: 'ER support for urgent pediatric symptoms',
+    limit: 'PHP 10,000',
   },
   {
     id: 3,
     Icon: Pill,
     name: 'Medicines',
-    desc: 'Duis aute irure dolor in reprehenderit',
-    limit: '₱2,000/mo',
+    desc: 'Covered prescriptions after consult',
+    limit: 'PHP 2,000/mo',
   },
   {
     id: 4,
-    Icon: Eye,
-    name: 'Annual Check-up',
-    desc: 'Excepteur sint occaecat cupidatat non',
-    limit: 'Included',
+    Icon: FileText,
+    name: 'Claims Documents',
+    desc: 'LOA, receipts, and reimbursement checklist',
+    limit: 'Ready',
   },
+];
+
+const METRICS = [
+  { label: 'Available', value: '82%', helper: 'Plan balance' },
+  { label: 'Visits', value: '3', helper: 'Remaining this month' },
+  { label: 'Claims', value: '1', helper: 'Pending review' },
 ];
 
 export default function HMOPortalScreen() {
@@ -38,43 +52,67 @@ export default function HMOPortalScreen() {
       <div className="hmo-portal__statusbar" />
 
       <header className="hmo-portal__header">
-        <h1 className="hmo-portal__title">HMO Portal</h1>
-        <p className="hmo-portal__subtitle">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </p>
+        <div>
+          <p className="hmo-portal__eyebrow">Coverage</p>
+          <h1>HMO Portal</h1>
+          <p>Keep benefits, clinic requirements, and documents in one parent-friendly view.</p>
+        </div>
+        <button className="hmo-portal__icon-btn" aria-label="Coverage card">
+          <WalletCards size={19} />
+        </button>
       </header>
 
-      {/* Coverage status card */}
-      <div className="hmo-portal__coverage-card">
+      <section className="hmo-portal__coverage-card">
+        <div className="hmo-portal__coverage-icon">
+          <ShieldCheck size={28} />
+        </div>
         <p className="hmo-portal__coverage-label">PhilHealth / HMO Plan</p>
-        <p className="hmo-portal__coverage-status">Coverage Active</p>
-        <p className="hmo-portal__coverage-meta">
-          Valid until December 31, 2025 · ID: XXXX-XXXX-XXXX
-        </p>
-        <div className="hmo-portal__coverage-badge">
+        <h2>Coverage Active</h2>
+        <p>Valid until December 31, 2026 · ID: DMPI-2048</p>
+        <span className="hmo-portal__coverage-badge">
           <span className="hmo-portal__coverage-dot" />
           Active Member
-        </div>
-      </div>
+        </span>
+      </section>
 
-      {/* Benefits list */}
-      <p className="hmo-portal__section-title">Your Benefits</p>
-      <div className="hmo-portal__benefits">
-        {BENEFITS.map(({ id, Icon, name, desc, limit }) => (
-          <div key={id} className="hmo-portal__benefit-item">
-            <div className="hmo-portal__benefit-icon">
-              <Icon size={18} strokeWidth={2} />
-            </div>
-            <div className="hmo-portal__benefit-info">
-              <p className="hmo-portal__benefit-name">{name}</p>
-              <p className="hmo-portal__benefit-desc">{desc}</p>
-            </div>
-            <span className="hmo-portal__benefit-limit">{limit}</span>
-          </div>
+      <section className="hmo-portal__metrics">
+        {METRICS.map(({ label, value, helper }) => (
+          <article key={label} className="hmo-portal__metric-card">
+            <p>{label}</p>
+            <strong>{value}</strong>
+            <span>{helper}</span>
+          </article>
         ))}
-      </div>
+      </section>
 
-      <div style={{ height: '120px' }} />
+      <section className="hmo-portal__visit-card">
+        <CalendarCheck size={22} />
+        <div>
+          <p className="hmo-portal__eyebrow">Next step</p>
+          <h2>Bring LOA and previous symptom log.</h2>
+          <p>Recommended before the next pediatric consultation.</p>
+        </div>
+      </section>
+
+      <section>
+        <p className="hmo-portal__section-title">Your benefits</p>
+        <div className="hmo-portal__benefits">
+          {BENEFITS.map(({ id, Icon, name, desc, limit }) => (
+            <article key={id} className="hmo-portal__benefit-item">
+              <div className="hmo-portal__benefit-icon">
+                <Icon size={18} strokeWidth={2} />
+              </div>
+              <div className="hmo-portal__benefit-info">
+                <p className="hmo-portal__benefit-name">{name}</p>
+                <p className="hmo-portal__benefit-desc">{desc}</p>
+              </div>
+              <span className="hmo-portal__benefit-limit">{limit}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <div className="hmo-portal__bottom-space" aria-hidden="true" />
     </div>
   );
 }

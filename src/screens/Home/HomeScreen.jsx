@@ -1,17 +1,18 @@
 import {
-  ClipboardList,
-  Calendar,
-  MapPin,
-  AlertCircle,
-  ChevronRight,
-  Stethoscope,
-  Droplets,
-  Wind,
-  Clock,
   AlertTriangle,
+  Calendar,
+  ChevronRight,
+  ClipboardList,
+  Droplets,
+  HeartPulse,
+  MapPin,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  Stethoscope,
   Thermometer,
+  Wind,
 } from 'lucide-react';
-import { useState } from 'react';
 import './home-screen.css';
 
 const today = new Date().toLocaleDateString('en-PH', {
@@ -24,124 +25,123 @@ const QUICK_ACTIONS = [
   {
     id: 'symptom',
     Icon: ClipboardList,
-    label: 'Symptom Log',
-    sub: 'Record symptoms now',
-    bg: 'var(--dampi-sage)',
-    color: '#fff',
+    label: 'Log Symptoms',
+    sub: 'Fever, cough, rash, pain',
+    tone: 'sage',
   },
   {
-    id: 'queue',
-    Icon: Calendar,
-    label: 'View Queue',
-    sub: 'Check wait time',
-    bg: 'var(--dampi-teal)',
-    color: '#fff',
+    id: 'hmo',
+    Icon: ShieldCheck,
+    label: 'Check Coverage',
+    sub: 'Benefits and limits',
+    tone: 'blue',
   },
   {
     id: 'clinic',
     Icon: MapPin,
-    label: 'Find Clinic',
-    sub: 'Nearest centers',
-    bg: 'var(--dampi-warm)',
-    color: '#fff',
+    label: 'Find Care',
+    sub: 'Nearby clinic options',
+    tone: 'warm',
   },
   {
-    id: 'emergency',
-    Icon: AlertCircle,
-    label: 'Emergency',
-    sub: 'Urgent assistance',
-    bg: 'var(--dampi-emergency)',
-    color: '#fff',
+    id: 'ask',
+    Icon: MessageCircle,
+    label: 'Ask Dampi',
+    sub: 'Prepare better questions',
+    tone: 'green',
   },
 ];
 
-const HEALTH_TIPS = [
-  {
-    id: 1,
-    Icon: Droplets,
-    title: 'Panatilihing Rehidratado',
-    body: 'Bigyan ng mainit na handog (mainit na tubig, mansanilya) ang bata para manatiling lagpas sa kalusugan.',
-    lang: 'tl',
-  },
-  {
-    id: 2,
-    Icon: Thermometer,
-    title: 'Sukat ang Temperatura',
-    body: 'Gumamit ng thermometer para sa tumpak na pagsusukat. Normal: 36.5–37.5°C',
-    lang: 'tl',
-  },
-  {
-    id: 3,
-    Icon: Wind,
-    title: 'Magsanayong Pagsasarado',
-    body: 'Panatilihing malayo sa malamig na hangin. Suot na damit para sa init.',
-    lang: 'tl',
-  },
+const HEALTH_STATS = [
+  { label: 'Temp', value: '37.2', unit: 'C', helper: 'Normal range', tone: 'sage' },
+  { label: 'Fluids', value: '5', unit: 'cups', helper: 'Target: 6 cups', tone: 'blue' },
+  { label: 'Sleep', value: '8.5', unit: 'hrs', helper: 'Resting well', tone: 'green' },
+  { label: 'Risk', value: 'Low', unit: '', helper: 'No red flags', tone: 'warm' },
 ];
 
 const RECENT_LOGS = [
   {
     id: 1,
-    date: 'Kahapon, 2:30 PM',
-    symptoms: ['Lagnat', 'Ubo'],
-    status: 'completed',
+    when: 'Today, 8:20 AM',
+    title: 'Mild cough and runny nose',
+    meta: 'No fever logged · monitor fluids',
+    status: 'Stable',
   },
   {
     id: 2,
-    date: 'Linggo, 10:15 AM',
-    symptoms: ['Sipon', 'Tigdas'],
-    status: 'completed',
+    when: 'Yesterday, 6:40 PM',
+    title: 'Temperature check',
+    meta: '37.8 C · reduced after rest',
+    status: 'Reviewed',
   },
 ];
 
-export default function HomeScreen({ onNavigateToSymptoms }) {
-  const [expandedLog, setExpandedLog] = useState(null);
+export default function HomeScreen({ onNavigateToSymptoms, onOpenAi }) {
+  const handleQuickAction = (id) => {
+    if (id === 'symptom') {
+      onNavigateToSymptoms?.();
+      return;
+    }
+
+    if (id === 'ask') {
+      onOpenAi?.();
+    }
+  };
 
   return (
     <div className="home">
-      {/* ── Status bar spacer ── */}
       <div className="home__statusbar" />
 
-      {/* ── Header ── */}
-      <header className="home__header">
-        <div className="home__greeting-block">
-          <p className="home__greeting">Magandang Umaga!</p>
-          <p className="home__date">{today}</p>
-        </div>
+      <header className="home__topbar">
+        <button className="home__icon-button" aria-label="Search care resources">
+          <Search size={18} />
+        </button>
         <div className="home__avatar" aria-label="User profile">
-          <span className="home__avatar-initials">JD</span>
+          <span>JD</span>
         </div>
       </header>
 
-      {/* ── Primary CTA: Log Symptoms ── */}
-      <section className="home__primary-action">
-        <div className="home__primary-blob" aria-hidden="true" />
-        <div className="home__primary-content">
-          <p className="home__primary-label">Symptom Tracker</p>
-          <h2 className="home__primary-title">Paano ang iyong bata ngayon?</h2>
-          <p className="home__primary-sub">I-record ang mga symptom bago pumunta sa doktor.</p>
-          <button className="home__primary-cta" onClick={onNavigateToSymptoms}>
-            <ClipboardList size={18} strokeWidth={2} />
-            Simulan ang Log
-            <ChevronRight size={16} strokeWidth={2.5} />
-          </button>
+      <section className="home__greeting-card">
+        <div>
+          <p className="home__eyebrow">Today</p>
+          <h1 className="home__greeting">Hi, Juan</h1>
+          <p className="home__date">{today}</p>
+        </div>
+        <div className="home__date-pill" aria-label="Current day">
+          <Calendar size={15} />
+          <span>{new Date().getDate()}</span>
         </div>
       </section>
 
-      {/* ── Quick Actions ── */}
+      <section className="home__plan-card">
+        <div className="home__plan-progress" aria-label="Daily care plan 72 percent complete">
+          <span>72%</span>
+        </div>
+        <div className="home__plan-copy">
+          <p className="home__eyebrow">Care Plan</p>
+          <h2>Melani's check-in is almost complete.</h2>
+          <p>Log symptoms, confirm fluids, and note anything unusual before the next clinic visit.</p>
+        </div>
+        <button className="home__primary-cta" onClick={onNavigateToSymptoms}>
+          Start Log
+          <ChevronRight size={17} />
+        </button>
+      </section>
+
       <section className="home__section">
         <div className="home__section-header">
-          <h3 className="home__section-title">Quick Actions</h3>
+          <h2>Quick actions</h2>
+          <span>2 min</span>
         </div>
         <div className="home__actions-grid">
-          {QUICK_ACTIONS.map(({ id, Icon, label, sub, bg, color }) => (
+          {QUICK_ACTIONS.map(({ id, Icon, label, sub, tone }) => (
             <button
               key={id}
-              className="home__action-card"
-              style={{ '--card-bg': bg, '--card-color': color }}
+              className={`home__action-card home__action-card--${tone}`}
+              onClick={() => handleQuickAction(id)}
             >
               <span className="home__action-icon-wrap">
-                <Icon size={22} strokeWidth={2} color={color} />
+                <Icon size={20} />
               </span>
               <span className="home__action-label">{label}</span>
               <span className="home__action-sub">{sub}</span>
@@ -150,76 +150,70 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
         </div>
       </section>
 
-      {/* ── Recent Symptom Logs ── */}
       <section className="home__section">
         <div className="home__section-header">
-          <h3 className="home__section-title">Nakaraang Mga Log</h3>
+          <h2>Child health board</h2>
+          <span>Updated</span>
         </div>
-
-        {RECENT_LOGS.length > 0 ? (
-          <div className="home__logs-stack">
-            {RECENT_LOGS.map(({ id, date, symptoms, status }) => (
-              <div
-                key={id}
-                className="home__log-card"
-                onClick={() => setExpandedLog(expandedLog === id ? null : id)}
-              >
-                <div className="home__log-header">
-                  <div className="home__log-meta">
-                    <Clock size={14} className="home__log-icon" />
-                    <span className="home__log-date">{date}</span>
-                  </div>
-                  <div className={`home__log-status home__log-status--${status}`}>
-                    {status === 'completed' ? '✓' : '○'}
-                  </div>
-                </div>
-                <div className="home__log-symptoms">
-                  {symptoms.map((s, i) => (
-                    <span key={i} className="home__symptom-tag">{s}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="home__empty-state">
-            <p>Walang nakaraang log pa. Simulan ang unang log ngayon.</p>
-          </div>
-        )}
-      </section>
-
-      {/* ── Health Tips ── */}
-      <section className="home__section">
-        <div className="home__section-header">
-          <h3 className="home__section-title">Mga Tip para sa Kalusugan</h3>
-        </div>
-
-        <div className="home__tips-grid">
-          {HEALTH_TIPS.map(({ id, Icon, title, body }) => (
-            <div key={id} className="home__tip-card">
-              <div className="home__tip-icon">
-                <Icon size={18} strokeWidth={1.8} />
-              </div>
-              <h4 className="home__tip-title">{title}</h4>
-              <p className="home__tip-body">{body}</p>
-            </div>
+        <div className="home__stats-grid">
+          {HEALTH_STATS.map(({ label, value, unit, helper, tone }) => (
+            <article key={label} className={`home__stat-card home__stat-card--${tone}`}>
+              <p>{label}</p>
+              <strong>
+                {value}
+                {unit && <small>{unit}</small>}
+              </strong>
+              <span>{helper}</span>
+            </article>
           ))}
         </div>
       </section>
 
-      {/* ── Emergency Info ── */}
       <section className="home__section">
-        <div className="home__emergency-banner">
-          <AlertTriangle size={20} />
-          <div className="home__emergency-content">
-            <h4 className="home__emergency-title">Kailangan ng Agarang Tulong?</h4>
-            <p className="home__emergency-sub">Tumawag sa 911 o pumunta sa pinakamalapit na emergency room.</p>
+        <div className="home__section-header">
+          <h2>Recent logs</h2>
+          <span>Stable</span>
+        </div>
+        <div className="home__logs-stack">
+          {RECENT_LOGS.map(({ id, when, title, meta, status }) => (
+            <article key={id} className="home__log-card">
+              <div>
+                <p className="home__log-when">{when}</p>
+                <h3>{title}</h3>
+                <p>{meta}</p>
+              </div>
+              <span>{status}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="home__section">
+        <div className="home__tips-card">
+          <div className="home__tip-icons" aria-hidden="true">
+            <Thermometer size={17} />
+            <Droplets size={17} />
+            <Wind size={17} />
+            <HeartPulse size={17} />
+          </div>
+          <div>
+            <p className="home__eyebrow">Parent note</p>
+            <h2>Watch for breathing effort, dehydration, or persistent fever.</h2>
+            <p>Kung hirap huminga, antukin, or hindi umiinom, seek urgent care right away.</p>
           </div>
         </div>
       </section>
 
-      {/* ── Bottom padding for floating nav ── */}
-      <div style={{ height: '120px' }} />
+      <section className="home__emergency-banner">
+        <AlertTriangle size={20} />
+        <div>
+          <h2>Emergency signs need direct care.</h2>
+          <p>Call 911 or go to the nearest emergency room for severe symptoms.</p>
+        </div>
+        <Stethoscope size={24} aria-hidden="true" />
+      </section>
+
+      <div className="home__bottom-space" aria-hidden="true" />
     </div>
   );
 }

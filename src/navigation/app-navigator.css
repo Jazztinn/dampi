@@ -4,7 +4,9 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--dampi-cream);
+  background:
+    linear-gradient(155deg, rgba(146, 187, 179, 0.18) 0%, transparent 32%),
+    linear-gradient(180deg, #fffdfb 0%, var(--dampi-cream) 100%);
   overflow: hidden;
 
   /* Center the mobile frame on desktop */
@@ -18,6 +20,7 @@
   .app-container {
     box-shadow: 0 0 0 1px rgba(77, 115, 108, 0.1),
                 0 20px 60px rgba(77, 115, 108, 0.12);
+    border-radius: 28px;
   }
 }
 

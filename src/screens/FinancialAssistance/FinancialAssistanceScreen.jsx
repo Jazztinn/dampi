@@ -1,4 +1,13 @@
-import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
+import {
+  Calendar,
+  ChevronRight,
+  FileCheck,
+  FileText,
+  HandCoins,
+  MapPin,
+  Phone,
+  UserCircle,
+} from 'lucide-react';
 import './financial-assistance.css';
 
 const INFO_ROWS = [
@@ -6,13 +15,13 @@ const INFO_ROWS = [
     id: 1,
     Icon: Phone,
     label: 'Contact',
-    value: '+63 XXX XXX XXXX',
+    value: '+63 917 204 1138',
   },
   {
     id: 2,
     Icon: MapPin,
-    label: 'Address',
-    value: 'Lorem Ipsum St., Dolor, Manila',
+    label: 'Preferred Clinic',
+    value: 'Barangay Health Center, Manila',
   },
   {
     id: 3,
@@ -26,16 +35,23 @@ const ACTIONS = [
   {
     id: 1,
     iconClass: 'sage',
-    Icon: FileText,
+    Icon: HandCoins,
     title: 'Financial Assistance',
-    desc: 'Lorem ipsum dolor sit amet consectetur adipiscing',
+    desc: 'Check subsidy options and required documents.',
   },
   {
     id: 2,
     iconClass: 'warm',
     Icon: FileText,
     title: 'Document Requests',
-    desc: 'Ut enim ad minim veniam quis nostrud exercitation',
+    desc: 'Prepare certificates, receipts, and clinic forms.',
+  },
+  {
+    id: 3,
+    iconClass: 'blue',
+    Icon: FileCheck,
+    title: 'Claim Readiness',
+    desc: 'Review what is missing before filing.',
   },
 ];
 
@@ -45,56 +61,76 @@ export default function FinancialAssistanceScreen() {
       <div className="profile__statusbar" />
 
       <header className="profile__header">
-        <h1 className="profile__title">My Profile</h1>
+        <div>
+          <p className="profile__eyebrow">Family profile</p>
+          <h1>My Profile</h1>
+          <p>Keep care contacts, coverage, and assistance steps ready.</p>
+        </div>
+        <button className="profile__icon-btn" aria-label="Profile settings">
+          <UserCircle size={20} />
+        </button>
       </header>
 
-      {/* Avatar + identity */}
-      <div className="profile__identity">
+      <section className="profile__identity">
         <div className="profile__avatar">
-          <span className="profile__avatar-initials">JD</span>
+          <span>JD</span>
         </div>
-        <div>
+        <div className="profile__identity-copy">
           <p className="profile__name">Juan Dela Cruz</p>
-          <p className="profile__meta">
-            Lorem ipsum · Patient ID: DMPI-0001
-          </p>
+          <p className="profile__meta">Parent guardian · Patient ID: DMPI-0001</p>
         </div>
-      </div>
+        <span className="profile__status">Verified</span>
+      </section>
 
-      {/* Info rows */}
-      <p className="profile__section-title">Personal Information</p>
-      <div className="profile__info-list">
-        {INFO_ROWS.map(({ id, Icon, label, value }) => (
-          <div key={id} className="profile__info-row">
-            <div className="profile__info-icon">
-              <Icon size={16} strokeWidth={2} />
-            </div>
-            <div>
-              <p className="profile__info-label">{label}</p>
-              <p className="profile__info-value">{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <section className="profile__summary-grid">
+        <article>
+          <p>Child</p>
+          <strong>Melani</strong>
+          <span>5 years old</span>
+        </article>
+        <article>
+          <p>Coverage</p>
+          <strong>Active</strong>
+          <span>HMO + public aid</span>
+        </article>
+      </section>
 
-      {/* Action cards */}
-      <p className="profile__section-title">Assistance</p>
-      <div className="profile__actions">
-        {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
-          <button key={id} className="profile__action-card">
-            <div className={`profile__action-icon profile__action-icon--${iconClass}`}>
-              <Icon size={20} strokeWidth={2} />
-            </div>
-            <div className="profile__action-text">
-              <p className="profile__action-title">{title}</p>
-              <p className="profile__action-desc">{desc}</p>
-            </div>
-            <ChevronRight size={18} color="var(--dampi-text-muted)" strokeWidth={2} />
-          </button>
-        ))}
-      </div>
+      <section>
+        <p className="profile__section-title">Personal information</p>
+        <div className="profile__info-list">
+          {INFO_ROWS.map(({ id, Icon, label, value }) => (
+            <article key={id} className="profile__info-row">
+              <div className="profile__info-icon">
+                <Icon size={16} strokeWidth={2} />
+              </div>
+              <div>
+                <p className="profile__info-label">{label}</p>
+                <p className="profile__info-value">{value}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
-      <div style={{ height: '120px' }} />
+      <section>
+        <p className="profile__section-title">Assistance</p>
+        <div className="profile__actions">
+          {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
+            <button key={id} className="profile__action-card">
+              <div className={`profile__action-icon profile__action-icon--${iconClass}`}>
+                <Icon size={20} strokeWidth={2} />
+              </div>
+              <div className="profile__action-text">
+                <p className="profile__action-title">{title}</p>
+                <p className="profile__action-desc">{desc}</p>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" strokeWidth={2} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="profile__bottom-space" aria-hidden="true" />
     </div>
   );
 }

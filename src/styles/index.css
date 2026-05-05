@@ -17,8 +17,33 @@
   --dampi-emergency: #E8897A;
   --dampi-white: #FFFFFF;
 
+  /* DESIGN.md aliases */
+  --brand: var(--dampi-sage);
+  --primary: var(--dampi-teal);
+  --primary-hover: #3A5A54;
+  --accent: var(--dampi-warm);
+  --danger: var(--dampi-emergency);
+  --bg: var(--dampi-cream);
+  --card: var(--dampi-white);
+  --text: var(--dampi-text);
+  --text-muted: var(--dampi-text-muted);
+  --sage-12: rgba(146, 187, 179, 0.12);
+  --sage-15: rgba(146, 187, 179, 0.15);
+  --sage-20: rgba(146, 187, 179, 0.20);
+  --sage-35: rgba(146, 187, 179, 0.35);
+  --teal-10: rgba(77, 115, 108, 0.10);
+  --warm-15: rgba(237, 161, 109, 0.15);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px rgba(77, 115, 108, 0.12);
+  --shadow-md: 0 4px 12px rgba(77, 115, 108, 0.15);
+  --shadow-lg: 0 8px 24px rgba(77, 115, 108, 0.20);
+  --shadow-xl: 0 12px 32px rgba(77, 115, 108, 0.30);
+  --shadow-cta: 0 4px 12px rgba(77, 115, 108, 0.25);
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+
   /* Legacy aliases (keep for any existing code) */
-  --bg: #FFFAF6;
   --bg-low: #F0EBE3;
   --bg-dim: #E8E0D6;
   --brown: #5b3424;
@@ -46,7 +71,10 @@ body,
 }
 
 body {
-  background: var(--dampi-cream);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(146, 187, 179, 0.18), transparent 30%),
+    radial-gradient(circle at 90% 18%, rgba(237, 161, 109, 0.12), transparent 28%),
+    linear-gradient(180deg, #fffdf9 0%, var(--dampi-cream) 100%);
 }
 
 button,
@@ -71,5 +99,27 @@ a {
 .dampi-app {
   position: relative;
   min-height: 100vh;
-  background: var(--dampi-cream);
+  background: transparent;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

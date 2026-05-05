@@ -2,76 +2,68 @@
 
 .floating-nav {
   position: fixed;
-  bottom: 24px;
-  left: 16px;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
 
   display: flex;
   align-items: center;
+  gap: 4px;
 
   height: 56px;
   width: 56px;
-  border-radius: 28px;
+  max-width: calc(100% - 24px);
+  padding: 6px;
+  border-radius: 999px;
 
-  background-color: var(--dampi-teal);
-  box-shadow: 0 6px 24px rgba(77, 115, 108, 0.38),
-              0 2px 8px rgba(77, 115, 108, 0.2);
+  background-color: var(--primary);
+  box-shadow: var(--shadow-xl);
 
   overflow: hidden;
-  transition: width 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-radius 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+  transition: width 0.3s cubic-bezier(0.34, 1, 0.64, 1),
               box-shadow 0.25s ease;
 
-  /* Prevent any content clipping during animation */
   will-change: width;
 }
 
 .floating-nav.is-expanded {
-  width: 312px;
-  border-radius: 28px;
-  box-shadow: 0 12px 40px rgba(77, 115, 108, 0.45),
-              0 4px 12px rgba(77, 115, 108, 0.25);
+  width: min(368px, calc(100% - 24px));
+  box-shadow: 0 14px 38px rgba(77, 115, 108, 0.34);
 }
 
 /* ── Logo Button ──────────────────────────────────────────── */
 
 .floating-nav__logo-btn {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.14);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
-  border-radius: 28px;
-  transition: background 0.18s ease;
+  padding: 8px;
+  border-radius: 999px;
+  transition: background 0.18s ease, transform 0.16s ease;
   position: relative;
   z-index: 2;
 }
 
 .floating-nav__logo-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .floating-nav__logo-btn:active {
-  background: rgba(255, 255, 255, 0.2);
   transform: scale(0.94);
 }
 
 .floating-nav__logo-img {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
-  /* Make SVG white so it reads on the teal background */
   filter: brightness(0) invert(1);
-  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.floating-nav.is-expanded .floating-nav__logo-img {
-  transform: rotate(360deg);
 }
 
 /* ── Nav Items Rail ───────────────────────────────────────── */
@@ -79,23 +71,22 @@
 .floating-nav__rail {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding-right: 10px;
+  gap: 4px;
+  min-width: 0;
+  padding-left: 2px;
 
-  /* Hidden until expanded */
   opacity: 0;
-  transform: translateX(-8px);
+  transform: translateX(-6px);
   pointer-events: none;
-  transition: opacity 0.22s ease 0s,
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0s;
+  transition: opacity 0.18s ease,
+              transform 0.22s cubic-bezier(0.34, 1, 0.64, 1);
 }
 
 .floating-nav.is-expanded .floating-nav__rail {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
-  transition: opacity 0.22s ease 0.18s,
-              transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.14s;
+  transition-delay: 0.08s;
 }
 
 /* ── Individual Nav Item ──────────────────────────────────── */
@@ -104,16 +95,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  gap: 2px;
 
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.68);
   cursor: pointer;
 
-  padding: 8px 10px;
-  border-radius: 16px;
-  min-width: 58px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  min-width: 54px;
+  height: 44px;
 
   transition: background 0.18s ease,
               color 0.18s ease,
@@ -121,7 +114,7 @@
 }
 
 .floating-nav__item:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.14);
   color: rgba(255, 255, 255, 0.9);
   transform: translateY(-1px);
 }
@@ -133,6 +126,7 @@
 .floating-nav__item.is-active {
   background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .floating-nav__item-icon {
@@ -160,4 +154,19 @@
   background: transparent;
   /* invisible tap target */
   pointer-events: auto;
+}
+
+@media (max-width: 360px) {
+  .floating-nav.is-expanded {
+    width: calc(100% - 16px);
+  }
+
+  .floating-nav__item {
+    min-width: 48px;
+    padding-inline: 6px;
+  }
+
+  .floating-nav__item-label {
+    font-size: 0.52rem;
+  }
 }

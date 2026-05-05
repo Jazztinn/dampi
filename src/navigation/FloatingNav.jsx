@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { House, ClipboardList, Shield, User } from 'lucide-react';
+import { House, ClipboardList, ShieldCheck, UserCircle } from 'lucide-react';
 import dampiLogo from '../assets/dampi.svg';
 import './floating-nav.css';
 
 const NAV_ITEMS = [
-  { id: 'home',     Icon: House,         label: 'Home'     },
+  { id: 'home',     Icon: House,       label: 'Home'     },
   { id: 'symptoms', Icon: ClipboardList, label: 'Symptoms' },
-  { id: 'hmo',      Icon: Shield,        label: 'HMO'      },
-  { id: 'profile',  Icon: User,          label: 'Profile'  },
+  { id: 'hmo',      Icon: ShieldCheck, label: 'HMO'      },
+  { id: 'profile',  Icon: UserCircle,  label: 'Profile'  },
 ];
 
 export default function FloatingNav({ currentScreen, onNavigate }) {
@@ -50,7 +50,7 @@ export default function FloatingNav({ currentScreen, onNavigate }) {
         </button>
 
         {/* Nav items rail (hidden when collapsed) */}
-        <div className="floating-nav__rail" role="list">
+        <div className="floating-nav__rail" role="list" aria-hidden={!expanded}>
           {NAV_ITEMS.map(({ id, Icon, label }) => (
             <button
               key={id}
@@ -58,6 +58,7 @@ export default function FloatingNav({ currentScreen, onNavigate }) {
               onClick={() => handleItemClick(id)}
               aria-label={label}
               aria-current={currentScreen === id ? 'page' : undefined}
+              tabIndex={expanded ? 0 : -1}
               role="listitem"
             >
               <span className="floating-nav__item-icon">

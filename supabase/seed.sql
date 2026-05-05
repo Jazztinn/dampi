@@ -1,0 +1,2 @@
+-- Seed data placeholder for local development.
+-- Add insert statements here after the first schema migration exists.

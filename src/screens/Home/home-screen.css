@@ -1,272 +1,396 @@
-.home-container {
-  background-color: #fcf8f2;
+/* ── Home Screen ──────────────────────────────────────────── */
+
+.home {
+  background-color: var(--dampi-cream);
   min-height: 100vh;
-  padding: 24px 20px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: #1c1c1e;
-  overflow-x: hidden;
+  padding: 0 20px;
+  color: var(--dampi-text);
 }
 
-/* Header Section */
-.header-section {
-  text-align: center;
-  margin-bottom: 24px;
-  padding-top: 20px;
-}
-
-.greeting {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.score-container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 4px;
-}
-
-.score-number {
-  font-size: 5rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -2px;
-}
-
-.score-star {
-  color: #f4a6d4;
-  font-size: 2rem;
-  margin-top: 10px;
-}
-
-.score-label {
-  font-size: 0.85rem;
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: -4px;
-}
-
-.info-icon {
-  font-size: 0.9rem;
-  color: #999;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.btn-emergency {
-  background-color: #1c1c1e;
-  color: white;
-  border: none;
-  border-radius: 24px;
-  padding: 12px 20px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.btn-icon {
-  background-color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 50%;
-  width: 44px;
+/* ── Status bar spacer ── */
+.home__statusbar {
   height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #333;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: var(--dampi-cream);
 }
 
-/* Daily Highlights */
-.highlights-section {
-  margin-bottom: 40px;
-}
-
-.highlights-header {
+/* ── Header ── */
+.home__header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  justify-content: space-between;
+  padding: 4px 0 20px;
 }
 
-.highlights-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
+.home__greeting {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--dampi-teal);
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
-.highlights-subtitle {
+.home__date {
   font-size: 0.8rem;
-  color: #666;
+  font-weight: 500;
+  color: var(--dampi-text-muted);
   margin: 0;
 }
 
-.show-all-btn {
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding-top: 4px;
-}
-
-/* Widgets Container */
-.widgets-container {
-  position: relative;
-  height: 350px; /* Adjust based on needed space for freeform layout */
-  width: 100%;
-}
-
-.widget {
-  position: absolute;
+.home__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dampi-sage) 0%, var(--dampi-teal) 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  color: #1c1c1e;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(77, 115, 108, 0.25);
 }
 
-.widget-title {
+.home__avatar-initials {
+  font-size: 0.75rem;
   font-weight: 700;
-  font-size: 0.9rem;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+/* ── Hero Card ── */
+.home__hero-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid var(--dampi-warm);
+  box-shadow: 0 4px 24px rgba(77, 115, 108, 0.1),
+              0 1px 4px rgba(77, 115, 108, 0.06);
+}
+
+/* Organic blob decoration */
+.home__hero-blob {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 110px;
+  height: 110px;
+  background: var(--dampi-sage);
+  opacity: 0.22;
+  border-radius: 62% 38% 70% 30% / 45% 55% 45% 55%;
+  pointer-events: none;
+}
+
+/* Second smaller blob */
+.home__hero-blob::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: var(--dampi-warm);
+  opacity: 0.35;
+  border-radius: 50% 60% 40% 70% / 60% 40% 70% 40%;
+}
+
+.home__hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 75%;
+}
+
+.home__hero-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dampi-warm);
+  margin: 0 0 8px;
+}
+
+.home__hero-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--dampi-text);
+  margin: 0 0 8px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.home__hero-sub {
+  font-size: 0.8rem;
+  color: var(--dampi-text-muted);
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+.home__hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--dampi-teal);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.18s ease, transform 0.15s ease,
+              box-shadow 0.18s ease;
+  box-shadow: 0 4px 12px rgba(77, 115, 108, 0.35);
+}
+
+.home__hero-cta:hover {
+  background: #3a5a54;
+  box-shadow: 0 6px 18px rgba(77, 115, 108, 0.45);
+  transform: translateY(-1px);
+}
+
+.home__hero-cta:active {
+  transform: scale(0.96);
+}
+
+/* ── Section Chrome ── */
+.home__section {
+  margin-bottom: 28px;
+}
+
+.home__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.home__section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.home__see-all {
+  background: none;
+  border: none;
+  color: var(--dampi-teal);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.home__see-all:hover {
+  opacity: 1;
+}
+
+/* ── Quick Actions Grid ── */
+.home__actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.home__action-card {
+  background: var(--card-bg, var(--dampi-sage));
+  color: var(--card-color, #fff);
+  border: none;
+  border-radius: 20px;
+  padding: 18px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  cursor: pointer;
+  text-align: left;
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Subtle decorative circle on each card */
+.home__action-card::before {
+  content: '';
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+}
+
+.home__action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+.home__action-card:active {
+  transform: scale(0.96);
+}
+
+.home__action-icon-wrap {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.home__action-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
   line-height: 1.2;
 }
 
-.widget-value {
-  font-size: 0.75rem;
-  opacity: 0.8;
+.home__action-sub {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
 }
 
-/* Specific Widgets */
-.widget-pills {
-  background-color: #fbe067;
-  width: 100px;
-  height: 100px;
-  top: 10px;
-  left: 30%;
-  clip-path: polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%);
-  z-index: 2;
+/* ── Upcoming Visit Card ── */
+.home__visit-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 16px rgba(77, 115, 108, 0.09),
+              0 1px 4px rgba(77, 115, 108, 0.05);
 }
 
-.widget-habits {
-  background-color: #9ab973;
-  width: 100px;
-  height: 100px;
-  top: 30px;
-  right: 5%;
-  border-radius: 40% 60% 65% 35% / 40% 45% 55% 60%;
-  transform: rotate(-10deg);
-  z-index: 1;
-}
-
-.widget-water {
-  background-color: #aecdff;
-  width: 110px;
-  height: 110px;
-  top: 80px;
-  left: 5%;
-  border-radius: 50% 50% 0 50%;
-  transform: rotate(-45deg);
-  z-index: 3;
-}
-.widget-water .widget-title, .widget-water .widget-value {
-  transform: rotate(45deg); /* Counter-rotate text */
-}
-
-/* Heart is tricky, use wrapper for text */
-.widget-heart-wrapper {
-  position: absolute;
-  top: 150px;
-  left: 20%;
-  width: 120px;
-  height: 110px;
-  z-index: 4;
-}
-
-.widget-heart {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #fba4d5;
-  border-radius: 0;
-}
-.widget-heart::before,
-.widget-heart::after {
-  content: "";
-  position: absolute;
-  background-color: #fba4d5;
-  width: 70px;
-  height: 110px;
-  border-radius: 70px 70px 0 0;
-}
-.widget-heart::before {
-  left: 50px;
-  transform: rotate(-45deg);
-  transform-origin: 0 100%;
-}
-.widget-heart::after {
-  left: 0;
-  transform: rotate(45deg);
-  transform-origin: 100% 100%;
-}
-/* Re-style text for heart to appear on top of pseudo-elements */
-.widget-heart .widget-title,
-.widget-heart .widget-value {
-  position: relative;
-  z-index: 1;
-  top: -10px;
-}
-/* To hide the square base of heart slightly and align */
-.widget-heart {
-  background-color: transparent;
+.home__visit-date-badge {
+  background: var(--dampi-sage);
+  border-radius: 14px;
+  width: 52px;
+  height: 60px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding-top: 15px;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 1px;
 }
 
-.widget-mind {
-  background-color: #aecdff;
-  width: 120px;
-  height: 120px;
-  top: 180px;
-  right: 5%;
-  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-  z-index: 2;
+.home__visit-month {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-transform: uppercase;
+  line-height: 1;
 }
 
-.widget-sleep {
-  width: 100px;
-  height: 100px;
-  top: 240px;
-  left: 10%;
-  border-radius: 50%;
-  box-shadow: 25px 15px 0 0 #fbe067;
-  background-color: transparent;
-  z-index: 1;
+.home__visit-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
-.widget-sleep .widget-title,
-.widget-sleep .widget-value {
-  position: absolute;
-  right: -25px;
-  bottom: 25px;
+
+.home__visit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home__visit-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+  margin: 0 0 3px;
+}
+
+.home__visit-detail {
+  font-size: 0.75rem;
+  color: var(--dampi-teal);
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.home__visit-location {
+  font-size: 0.72rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home__visit-status {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--dampi-teal);
+  background: rgba(146, 187, 179, 0.2);
+  border-radius: 10px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Health Tips Horizontal Scroll ── */
+.home__tips-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.home__tips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.home__tip-card {
+  background: rgba(146, 187, 179, 0.12);
+  border-radius: 20px;
+  padding: 18px 16px;
+  min-width: 160px;
+  max-width: 180px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  border: 1px solid rgba(146, 187, 179, 0.3);
+}
+
+.home__tip-icon-wrap {
+  width: 36px;
+  height: 36px;
+  background: rgba(77, 115, 108, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.home__tip-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+  margin: 0 0 6px;
+}
+
+.home__tip-body {
+  font-size: 0.72rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  line-height: 1.55;
 }

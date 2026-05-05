@@ -1,0 +1,33 @@
+.top-navigation-bar {
+  position: absolute; /* Changed to absolute to float over the content */
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 20px 0 20px;
+  background-color: transparent;
+  z-index: 100;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.top-navigation-icons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: env(safe-area-inset-top, 10px);
+  pointer-events: auto; /* Re-enable clicks on the icons */
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  transition: opacity 0.2s ease;
+}
+
+.icon-btn:hover {
+  opacity: 0.7;
+}

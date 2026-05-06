@@ -8,6 +8,8 @@ import {
   Thermometer,
   Wind,
 } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './symptom-guide.css';
 
 const CATEGORIES = [
@@ -62,6 +64,10 @@ export default function SymptomGuideScreen() {
           <AlertCircle size={19} />
         </button>
       </header>
+export default function SymptomGuideScreen({ onBack }) {
+  return (
+    <div className="symptom-guide">
+      <TopNavBar variant="inner" title="Symptom Guide" onBack={onBack} />
 
       <section className="symptom-guide__hero">
         <div className="symptom-guide__risk-ring" aria-label="Low risk guidance">

@@ -7,6 +7,8 @@ import {
   Stethoscope,
   WalletCards,
 } from 'lucide-react';
+import { Heart, Stethoscope, Pill, Eye, Activity } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './hmo-portal.css';
 
 const BENEFITS = [
@@ -61,6 +63,10 @@ export default function HMOPortalScreen() {
           <WalletCards size={19} />
         </button>
       </header>
+export default function HMOPortalScreen({ onBack }) {
+  return (
+    <div className="hmo-portal">
+      <TopNavBar variant="inner" title="HMO Portal" onBack={onBack} />
 
       <section className="hmo-portal__coverage-card">
         <div className="hmo-portal__coverage-icon">

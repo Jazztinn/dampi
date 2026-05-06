@@ -8,6 +8,8 @@ import {
   Phone,
   UserCircle,
 } from 'lucide-react';
+import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
 
 const ACTIONS = [
@@ -103,6 +105,10 @@ export default function FinancialAssistanceScreen({ profile, child }) {
           <UserCircle size={20} />
         </button>
       </header>
+export default function FinancialAssistanceScreen({ onBack }) {
+  return (
+    <div className="profile">
+      <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
       <section className="profile__identity">
         <div className="profile__avatar">

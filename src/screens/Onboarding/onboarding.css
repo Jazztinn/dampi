@@ -13,6 +13,7 @@
 .onboarding-progress {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 8px;
   margin: 0;
 }
@@ -362,7 +363,7 @@
   }
 
   .onboarding-progress {
-    margin: 32px 0 48px;
+    margin: 0;
   }
 
   .onboarding-screen {

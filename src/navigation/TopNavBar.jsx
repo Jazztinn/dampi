@@ -20,7 +20,7 @@ export default function TopNavBar({ variant, title, onBack, extra, transparent }
   if (variant === 'inner') {
     return (
       <div className={`top-nav top-nav--inner${transparent ? ' top-nav--transparent' : ''}`}>
-        <div style={{ visibility: onBack ? 'visible' : 'hidden' }}>
+        <div className="top-nav__left" style={{ visibility: onBack ? 'visible' : 'hidden' }}>
           <button className="top-nav__back" onClick={onBack} aria-label="Go back">
             <ChevronLeft size={20} strokeWidth={2.5} />
           </button>

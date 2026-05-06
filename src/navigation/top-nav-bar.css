@@ -77,6 +77,12 @@
   background: transparent !important;
 }
 
+.top-nav__left {
+  display: flex;
+  align-items: center;
+  min-width: 28px;
+}
+
 .top-nav__back {
   display: flex;
   align-items: center;

@@ -17,6 +17,7 @@ const __dirname = path.dirname(__filename);
 });
 
 const app = express();
+const HOST = process.env.HOST || '127.0.0.1';
 const PORT = process.env.PORT || 3001;
 const PROVIDER_API_KEY = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
@@ -268,6 +269,6 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Dampi AI proxy running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Dampi AI proxy running on http://${HOST}:${PORT}`);
 });

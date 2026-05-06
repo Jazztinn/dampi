@@ -45,7 +45,11 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
     : 'Add a child profile to start tracking family health.';
   const avatar = (
     <div className="topbar-avatar" aria-label="Profile">
-      <span>{getInitials(profile?.full_name)}</span>
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="topbar-avatar__image" />
+      ) : (
+        <span>{getInitials(profile?.full_name)}</span>
+      )}
     </div>
   );
 

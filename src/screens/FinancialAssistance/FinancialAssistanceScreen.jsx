@@ -1,5 +1,7 @@
-import { Phone, Calendar, Baby, FileText, ChevronRight, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Phone, Calendar, Baby, FileText, ChevronRight, LogOut, ImagePlus } from 'lucide-react';
 import TopNavBar, { getInitials } from '../../navigation/TopNavBar.jsx';
+import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './financial-assistance.css';
 
 const ACTIONS = [
@@ -34,8 +36,11 @@ function formatRole(role) {
     : 'Caregiver';
 }
 
-export default function FinancialAssistanceScreen({ profile, child, children = [], onBack, onSignOut }) {
+export default function FinancialAssistanceScreen({ profile, child, children = [], onBack, onSignOut, onProfileChange }) {
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
   const fullName = profile?.full_name || 'Dampi caregiver';
+  const avatarInputId = profile?.id ? `profile-avatar-${profile.id}` : 'profile-avatar-input';
   const childCount = children.length || (child ? 1 : 0);
   const primaryChildName = child?.full_name || children[0]?.full_name || 'No child profile';
   const infoRows = [
@@ -59,14 +64,92 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
     },
   ];
 
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file || !profile?.id || uploadingAvatar) return;
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Choose an image file for your profile photo.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setAvatarError('');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const objectPath = `${profile.id}/${crypto.randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(objectPath, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(objectPath);
+
+      const avatarUrl = `${data.publicUrl}?v=${Date.now()}`;
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', profile.id)
+        .select('*')
+        .single();
+
+      if (updateError) throw updateError;
+
+      onProfileChange?.(updatedProfile);
+    } catch (error) {
+      setAvatarError(error.message || 'Unable to update your profile photo.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarKeyDown = (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+
+    event.preventDefault();
+    document.getElementById(avatarInputId)?.click();
+  };
+
   return (
     <div className="profile">
       <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
       <div className="profile__identity">
-        <div className="profile__avatar">
-          <span className="profile__avatar-initials">{getInitials(profile?.full_name)}</span>
-        </div>
+        <label
+          className={`profile__avatar${uploadingAvatar ? ' profile__avatar--loading' : ''}`}
+          htmlFor={avatarInputId}
+          onKeyDown={handleAvatarKeyDown}
+          role="button"
+          tabIndex={0}
+        >
+          <input
+            id={avatarInputId}
+            className="profile__avatar-input"
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            disabled={uploadingAvatar}
+          />
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="" className="profile__avatar-image" />
+          ) : (
+            <span className="profile__avatar-initials">{getInitials(profile?.full_name)}</span>
+          )}
+          <span className="profile__avatar-overlay" aria-hidden="true">
+            <ImagePlus size={20} strokeWidth={2.2} />
+          </span>
+          <span className="sr-only">Add profile photo</span>
+        </label>
         <div>
           <p className="profile__name">{fullName}</p>
           <p className="profile__meta">
@@ -74,6 +157,8 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
           </p>
         </div>
       </div>
+
+      {avatarError && <div className="profile__upload-error" role="status">{avatarError}</div>}
 
       <p className="profile__section-title">Personal Information</p>
       <div className="profile__info-list">

@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import BottomNav from '../components/BottomNav.jsx';
 import HomeScreen from '../screens/Home/HomeScreen.jsx';
-import SymptomGuideScreen from '../screens/SymptomGuide/SymptomGuideScreen.jsx';
+import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
 import HMOPortalScreen from '../screens/HMOPortal/HMOPortalScreen.jsx';
 import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialAssistanceScreen.jsx';
 import './app-navigator.css';
 
 const SCREENS = {
   home: HomeScreen,
-  symptoms: SymptomGuideScreen,
+  symptoms: FamilyScreen,
   hmo: HMOPortalScreen,
   profile: FinancialAssistanceScreen,
 };

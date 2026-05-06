@@ -29,20 +29,42 @@ function clearPendingOnboarding() {
 }
 
 export default function OnboardingFlow({ onComplete }) {
-  const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    password: '',
-    childName: '',
-    childDOB: '',
-    childGender: '',
-    familyEmail: '',
+  const [step, setStep] = useState(() => {
+    const saved = window.localStorage.getItem('dampi.onboardingStep');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [formData, setFormData] = useState(() => {
+    const saved = window.localStorage.getItem('dampi.onboardingData');
+    return saved ? JSON.parse(saved) : {
+      fullName: '',
+      phone: '',
+      email: '',
+      password: '',
+      childName: '',
+      childDOB: '',
+      childGender: '',
+      familyEmail: '',
+    };
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState(null);
+
+  // Persist state changes
+  useEffect(() => {
+    window.localStorage.setItem('dampi.onboardingStep', step.toString());
+  }, [step]);
+
+  useEffect(() => {
+    const { password: _pw, ...safeData } = formData;
+    window.localStorage.setItem('dampi.onboardingData', JSON.stringify(safeData));
+  }, [formData]);
+
+  const clearPersistence = () => {
+    window.localStorage.removeItem('dampi.onboardingStep');
+    window.localStorage.removeItem('dampi.onboardingData');
+    clearPendingOnboarding();
+  };
 
   const persistOnboardingAccount = async (supabase, user, data) => {
     const { error: profileError } = await supabase
@@ -111,7 +133,7 @@ export default function OnboardingFlow({ onComplete }) {
 
     if (updateProfileError) throw updateProfileError;
 
-    clearPendingOnboarding();
+    clearPersistence();
     setPendingConfirmation(null);
     onComplete && onComplete({ profile, child });
     return true;
@@ -289,7 +311,7 @@ export default function OnboardingFlow({ onComplete }) {
               <button
                 className="onboarding-secondary"
                 onClick={() => {
-                  clearPendingOnboarding();
+                  clearPersistence();
                   setPendingConfirmation(null);
                   setSubmitError('');
                 }}

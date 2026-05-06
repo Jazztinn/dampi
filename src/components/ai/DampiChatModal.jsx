@@ -569,14 +569,19 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
         {/* Header */}
         <div className="chat-modal-header">
-          <button className="chat-header-btn" onClick={() => setShowHistory((v) => !v)}>
+          <button className="chat-header-btn" onClick={() => setShowHistory((v) => !v)} aria-label={showHistory ? "Close chat history" : "Open chat history"}>
             <Menu size={20} />
           </button>
           <div className="chat-header-title">
-            <img src={dampiIcon} alt="Dampi" className="chat-header-logo" />
-            <span></span>
+            <span className="chat-header-logo-wrap">
+              <img src={dampiIcon} alt="Dampi" className="chat-header-logo" />
+            </span>
+            <span className="chat-header-copy">
+              <span className="chat-header-eyebrow">Care Assistant</span>
+              <span className="chat-header-name">Dampi</span>
+            </span>
           </div>
-          <button className="chat-header-btn" onClick={requestClose}>
+          <button className="chat-header-btn" onClick={requestClose} aria-label="Close chat">
             <X size={20} />
           </button>
         </div>
@@ -585,7 +590,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         {showHistory ? (
           <div className="chat-history-panel">
             <div className="chat-history-top">
-              <span className="chat-history-title">Your Chats</span>
+              <div>
+                <span className="chat-history-eyebrow">Conversations</span>
+                <span className="chat-history-title">Your Chats</span>
+              </div>
               <button className="chat-history-new-btn" onClick={handleNewChat} title="New chat">
                 <Plus size={16} />
               </button>

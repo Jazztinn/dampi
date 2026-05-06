@@ -13,7 +13,7 @@ const SCREENS = {
   profile:  FinancialAssistanceScreen,
 };
 
-export default function AppNavigator({ onOpenAi }) {
+export default function AppNavigator({ profile, child, onOpenAi }) {
   const [currentScreen, setCurrentScreen] = useState('home');
 
   const Screen = SCREENS[currentScreen] ?? HomeScreen;
@@ -22,9 +22,10 @@ export default function AppNavigator({ onOpenAi }) {
     <div className="app-container">
       <div className="content-area">
         <Screen
+          profile={profile}
+          child={child}
           onOpenAi={onOpenAi}
           onNavigateToSymptoms={() => setCurrentScreen('symptoms')}
-          onBack={() => setCurrentScreen('home')}
         />
       </div>
       <BottomNav

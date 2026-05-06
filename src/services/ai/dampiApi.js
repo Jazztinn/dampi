@@ -1,6 +1,6 @@
 import { CHAT_SYSTEM_PROMPT } from '../../constants/dampiAi.js';
 
-const API_PROXY = (import.meta.env.VITE_AI_PROXY_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_PROXY = (import.meta.env.VITE_AI_PROXY_URL || '').replace(/\/$/, '');
 
 function normalizeMode(mode) {
   return mode === 'fast' || mode === 'auto' ? mode : 'default';
@@ -53,7 +53,7 @@ async function callChatApi(payload) {
       body: JSON.stringify(payload),
     });
   } catch {
-    const error = new Error('Backend not running. Start proxy: cd ai/server && npm run dev');
+    const error = new Error('Backend not running. Start both dev servers with `just dev`.');
     error.isNetworkError = true;
     throw error;
   }

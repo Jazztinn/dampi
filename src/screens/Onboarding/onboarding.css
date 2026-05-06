@@ -256,6 +256,13 @@
   transform: scale(0.98);
 }
 
+.onboarding-cta:disabled,
+.onboarding-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
 .onboarding-secondary {
   background: transparent;
   color: var(--dampi-teal);

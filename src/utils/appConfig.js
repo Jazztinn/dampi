@@ -15,7 +15,7 @@ export const NAV_TABS = [
  * Floating Action Button configuration.
  */
 export const FAB_CONFIG = {
-  show: false,
+  show: true,
   showQuickInput: true,
   quickInputPlaceholder: "Ask Dampi…",
   quickReplies: [

@@ -1,11 +1,11 @@
 import { ChevronLeft } from 'lucide-react';
 import './top-nav-bar.css';
 
-function getFirstName(fullName) {
+export function getFirstName(fullName) {
   return fullName?.trim().split(/\s+/)[0] || '';
 }
 
-function getInitials(fullName) {
+export function getInitials(fullName) {
   const parts = fullName?.trim().split(/\s+/).filter(Boolean) || [];
   if (!parts.length) return 'D';
 
@@ -16,35 +16,27 @@ function getInitials(fullName) {
     .toUpperCase();
 }
 
-export default function TopNavBar({ variant = 'inner', title, profile, onBack }) {
-  if (variant === 'home') {
-    const firstName = getFirstName(profile?.full_name);
-    const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
-
+export default function TopNavBar({ variant, title, onBack, extra, transparent }) {
+  if (variant === 'inner') {
     return (
-      <div className="top-nav top-nav--home">
-        <div className="top-nav__greeting">
-          <p className="top-nav__hi">{greeting}</p>
-          <p className="top-nav__sub">Let's check on your family</p>
-        </div>
-        <div className="top-nav__avatar" aria-label="Profile">
-          <span className="top-nav__avatar-initials">{getInitials(profile?.full_name)}</span>
-        </div>
+      <div className="top-nav top-nav--inner">
+        <button className="top-nav__back" onClick={onBack} aria-label="Go back">
+          <ChevronLeft size={20} strokeWidth={2.5} />
+        </button>
+        <p className="top-nav__title">{title ?? ''}</p>
+        <div className="top-nav__filler" aria-hidden="true" />
       </div>
     );
   }
 
   return (
-    <div className="top-nav top-nav--inner">
-      <button
-        className="top-nav__back"
-        onClick={onBack}
-        aria-label="Go back"
-      >
-        <ChevronLeft size={20} strokeWidth={2.5} />
-      </button>
-      <p className="top-nav__title">{title ?? ''}</p>
-      <div className="top-nav__filler" aria-hidden="true" />
+    <div className={`topbar${transparent ? ' topbar--transparent' : ''}`}>
+      <div className="topbar-left">
+        <span className="topbar-wordmark">dampi</span>
+      </div>
+      <div className="topbar-right">
+        {extra}
+      </div>
     </div>
   );
 }

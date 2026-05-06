@@ -4,7 +4,7 @@ import {
   Thermometer,
   Wind,
 } from 'lucide-react';
-import TopNavBar from '../../navigation/TopNavBar.jsx';
+import TopNavBar, { getFirstName, getInitials } from '../../navigation/TopNavBar.jsx';
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
 import './home-screen.css';
 
@@ -18,7 +18,7 @@ const today = new Date().toLocaleDateString('en-US', {
 
 const HEALTH_TIPS = [
   { id: 1, Icon: Droplets, title: 'Stay Hydrated', body: 'Offer warm fluids to help your child stay healthy and comfortable.' },
-  { id: 2, Icon: Thermometer, title: 'Check Temperature', body: 'Use a thermometer for accurate readings. Normal range: 36.5–37.5 °C.' },
+  { id: 2, Icon: Thermometer, title: 'Check Temperature', body: 'Use a thermometer for accurate readings. Normal range: 36.5-37.5 C.' },
   { id: 3, Icon: Wind, title: 'Fresh Air', body: 'Keep rooms ventilated and dress warmly, but avoid overheating.' },
 ];
 
@@ -27,7 +27,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
 }
 
 export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms }) {
-  const childCount = children.length;
+  const childCount = children.length || (child ? 1 : 0);
   const completedProfileItems = [
     Boolean(profile?.full_name),
     Boolean(profile?.phone),
@@ -36,29 +36,35 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
   const totalProfileItems = 3;
   const progressPct = Math.round((completedProfileItems / totalProfileItems) * 100);
   const ringOffset = RING_C * (1 - progressPct / 100);
+  const firstName = getFirstName(profile?.full_name);
+  const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
   const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
   const progressDetail = `${completedProfileItems} of ${totalProfileItems} profile items complete`;
   const childSummary = childCount > 0
     ? `Tracking ${childCount} ${pluralize(childCount, 'child', 'children')}, starting with ${firstChildName}.`
     : 'Add a child profile to start tracking family health.';
+  const avatar = (
+    <div className="topbar-avatar" aria-label="Profile">
+      <span>{getInitials(profile?.full_name)}</span>
+    </div>
+  );
 
   return (
     <div className="home">
-      {/* Gradient sits behind TopNavBar — both are in normal flow */}
       <div className="home__header-bg" aria-hidden="true" />
 
-      <TopNavBar variant="home" profile={profile} />
+      <TopNavBar transparent extra={avatar} />
 
-      {/* Progress card overlapping the header */}
+      <div className="home__greeting">
+        <p className="home__greeting-hi">{greeting}</p>
+        <p className="home__greeting-sub">Let's check on your family</p>
+      </div>
+
       <section className="home__progress-card">
         <div className="home__progress-row">
           <div className="home__ring-wrap">
             <svg viewBox="0 0 120 120" width="110" height="110">
-              <circle
-                cx="60" cy="60" r={RING_R}
-                fill="none" strokeWidth="10"
-                className="home__ring-track"
-              />
+              <circle cx="60" cy="60" r={RING_R} fill="none" strokeWidth="10" className="home__ring-track" />
               <circle
                 cx="60" cy="60" r={RING_R}
                 fill="none" strokeWidth="10"
@@ -97,7 +103,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
         </div>
       </section>
 
-      {/* Health Overview Carousel */}
       <section className="home__section home__section--carousel">
         <div className="home__section-header">
           <h3 className="home__section-title">Health Overview</h3>
@@ -105,7 +110,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
         <DashboardMetricsCarousel />
       </section>
 
-      {/* Recent logs */}
       <section className="home__section">
         <div className="home__section-header">
           <h3 className="home__section-title">Recent Logs</h3>
@@ -121,7 +125,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
         </div>
       </section>
 
-      {/* Health tips */}
       <section className="home__section">
         <div className="home__section-header">
           <h3 className="home__section-title">Health Tips</h3>
@@ -139,7 +142,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
         </div>
       </section>
 
-      {/* Emergency banner */}
       <section className="home__section">
         <div className="home__emergency">
           <AlertTriangle size={20} />

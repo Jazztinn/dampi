@@ -1,5 +1,5 @@
-import { Phone, Calendar, Baby, FileText, ChevronRight } from 'lucide-react';
-import TopNavBar from '../../navigation/TopNavBar.jsx';
+import { Phone, Calendar, Baby, FileText, ChevronRight, LogOut } from 'lucide-react';
+import TopNavBar, { getInitials } from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
 
 const ACTIONS = [
@@ -19,17 +19,6 @@ const ACTIONS = [
   },
 ];
 
-function getInitials(fullName) {
-  const parts = fullName?.trim().split(/\s+/).filter(Boolean) || [];
-  if (!parts.length) return 'D';
-
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-}
-
 function formatDate(date) {
   if (!date) return 'Not available';
 
@@ -45,7 +34,7 @@ function formatRole(role) {
     : 'Caregiver';
 }
 
-export default function FinancialAssistanceScreen({ profile, child, children = [], onBack }) {
+export default function FinancialAssistanceScreen({ profile, child, children = [], onBack, onSignOut }) {
   const fullName = profile?.full_name || 'Dampi caregiver';
   const childCount = children.length || (child ? 1 : 0);
   const primaryChildName = child?.full_name || children[0]?.full_name || 'No child profile';
@@ -74,7 +63,6 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
     <div className="profile">
       <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
-      {/* Avatar + identity */}
       <div className="profile__identity">
         <div className="profile__avatar">
           <span className="profile__avatar-initials">{getInitials(profile?.full_name)}</span>
@@ -87,7 +75,6 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
         </div>
       </div>
 
-      {/* Info rows */}
       <p className="profile__section-title">Personal Information</p>
       <div className="profile__info-list">
         {infoRows.map(({ id, Icon, label, value }) => (
@@ -103,7 +90,6 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
         ))}
       </div>
 
-      {/* Action cards */}
       <p className="profile__section-title">Assistance</p>
       <div className="profile__actions">
         {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
@@ -118,6 +104,13 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
             <ChevronRight size={18} color="var(--dampi-text-muted)" strokeWidth={2} />
           </button>
         ))}
+      </div>
+
+      <div className="profile__sign-out-row">
+        <button className="profile__sign-out-btn" onClick={onSignOut}>
+          <LogOut size={18} strokeWidth={2} />
+          Sign Out
+        </button>
       </div>
     </div>
   );

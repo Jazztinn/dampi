@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import AppNavigator from './navigation/AppNavigator.jsx';
 import OnboardingFlow from './screens/Onboarding/OnboardingFlow.jsx';
+import AuthLandingScreen from './screens/Auth/AuthLandingScreen.jsx';
+import LoginScreen from './screens/Auth/LoginScreen.jsx';
 import DampiChatModal from './components/ai/DampiChatModal.jsx';
 import { getSupabaseBrowserClient } from './lib/supabase.js';
 
@@ -31,6 +33,8 @@ async function loadOnboardingAccount(supabase, session) {
 export default function App() {
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [account, setAccount] = useState(null);
+  const [hasSession, setHasSession] = useState(false);
+  const [authView, setAuthView] = useState('landing');
   const [accountError, setAccountError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
   const [tasks, setTasks] = useState({});
@@ -47,7 +51,10 @@ export default function App() {
         if (error) throw error;
         if (!active) return;
 
-        const nextAccount = await loadOnboardingAccount(supabase, data.session);
+        const session = data.session;
+        setHasSession(!!session);
+
+        const nextAccount = await loadOnboardingAccount(supabase, session);
         if (!active) return;
 
         setAccount(nextAccount);
@@ -55,6 +62,7 @@ export default function App() {
       } catch (error) {
         if (active) {
           setAccount(null);
+          setHasSession(false);
           setAccountError(error.message || 'Unable to load your Dampi account.');
         }
       } finally {
@@ -64,9 +72,21 @@ export default function App() {
       if (!active || !supabase) return;
 
       const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (!active) return;
+
         try {
+          setHasSession(!!session);
+
+          if (!session) {
+            setAccount(null);
+            setAuthView('landing');
+            setAccountError('');
+            return;
+          }
+
           const nextAccount = await loadOnboardingAccount(supabase, session);
           if (!active) return;
+
           setAccount(nextAccount);
           setAccountError('');
         } catch (error) {
@@ -92,6 +112,17 @@ export default function App() {
     setAccountError('');
   };
 
+  const handleSignOut = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch {
+      setAccount(null);
+      setHasSession(false);
+      setAuthView('landing');
+    }
+  };
+
   if (loadingAccount) {
     return (
       <div className="dampi-app app-state">
@@ -100,20 +131,44 @@ export default function App() {
     );
   }
 
+  if (account) {
+    return (
+      <div className="dampi-app">
+        <AppNavigator
+          profile={account.profile}
+          child={account.child}
+          children={account.children}
+          onOpenAi={() => setChatOpen(true)}
+          onSignOut={handleSignOut}
+        />
+        <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
+        {accountError && <div className="app-error">{accountError}</div>}
+      </div>
+    );
+  }
+
+  if (hasSession) {
+    return (
+      <div className="dampi-app">
+        <OnboardingFlow onComplete={handleOnboardingComplete} />
+        {accountError && <div className="app-error">{accountError}</div>}
+      </div>
+    );
+  }
+
   return (
     <div className="dampi-app">
-      {!account ? (
+      {authView === 'login' && (
+        <LoginScreen onBack={() => setAuthView('landing')} />
+      )}
+      {authView === 'onboarding' && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
-      ) : (
-        <>
-          <AppNavigator
-            profile={account.profile}
-            child={account.child}
-            children={account.children}
-            onOpenAi={() => setChatOpen(true)}
-          />
-          <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
-        </>
+      )}
+      {authView === 'landing' && (
+        <AuthLandingScreen
+          onNew={() => setAuthView('onboarding')}
+          onExisting={() => setAuthView('login')}
+        />
       )}
       {accountError && <div className="app-error">{accountError}</div>}
     </div>

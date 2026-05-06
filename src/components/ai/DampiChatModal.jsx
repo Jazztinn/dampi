@@ -3,7 +3,7 @@ import { X, Menu, ChevronDown, Plus, Loader2, Send, FileText, Search, LayoutGrid
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
-import { callDampiChat } from "../../services/ai/dampiApi.js";
+import { callDampiChat, streamDampiChat } from "../../services/ai/dampiApi.js";
 import { CHAT_SYSTEM_PROMPT, CHAT_STRUCTURED_RESPONSE_PROMPT, CHAT_CONTEXT_CONFIG } from "../../constants/dampiAi.js";
 import "../../styles/dampi-chat.css";
 
@@ -419,9 +419,18 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
 
     try {
-      const response = await callDampiChat(historyForApi, requestText, {
+      const response = await streamDampiChat(historyForApi, requestText, {
         attachments: currentAttachments,
         systemPrompt: chatSystemPrompt,
+        onEvent: (event) => {
+          if (event.type !== "text" || !event.text) return;
+
+          setMessages((prev) => prev.map((message) => (
+            message.id === pendingId
+              ? { ...message, text: `${message.text || ""}${event.text}` }
+              : message
+          )), chatIdAtSend);
+        },
       });
 
       const responseText = typeof response === "string" ? response : response?.text;
@@ -670,7 +679,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                     ))}
                   </div>
                 )}
-                {msg.pending ? <Loader2 size={18} className="spin" /> : (
+                {msg.pending && !msg.text ? <Loader2 size={18} className="spin" /> : (
                   <>
                     <div className="chat-markdown">
                       <ReactMarkdown
@@ -682,6 +691,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                         {msg.text || ""}
                       </ReactMarkdown>
                     </div>
+                    {msg.pending && <Loader2 size={14} className="spin" />}
                     {Array.isArray(msg.questions) && msg.questions.length > 0 && (
                       <div className="chat-ai-questions">
                         {msg.questions.map((question, qIdx) => {

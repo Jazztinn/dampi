@@ -8,8 +8,6 @@ import {
   Phone,
   UserCircle,
 } from 'lucide-react';
-import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
-import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
 
 const ACTIONS = [
@@ -39,7 +37,10 @@ const ACTIONS = [
 function getInitials(name = '') {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return 'DP';
-  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('');
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
 }
 
 function formatMemberSince(value) {
@@ -70,6 +71,7 @@ export default function FinancialAssistanceScreen({ profile, child }) {
   const fullName = profile?.full_name || 'Dampi Parent';
   const childName = child?.full_name || 'Child profile';
   const patientId = profile?.id ? `DMPI-${profile.id.slice(0, 8).toUpperCase()}` : 'DMPI-PENDING';
+
   const infoRows = [
     {
       id: 1,
@@ -105,10 +107,6 @@ export default function FinancialAssistanceScreen({ profile, child }) {
           <UserCircle size={20} />
         </button>
       </header>
-export default function FinancialAssistanceScreen({ onBack }) {
-  return (
-    <div className="profile">
-      <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
       <section className="profile__identity">
         <div className="profile__avatar">
@@ -116,7 +114,7 @@ export default function FinancialAssistanceScreen({ onBack }) {
         </div>
         <div className="profile__identity-copy">
           <p className="profile__name">{fullName}</p>
-          <p className="profile__meta">Parent guardian · Patient ID: {patientId}</p>
+          <p className="profile__meta">Parent guardian - Patient ID: {patientId}</p>
         </div>
         <span className="profile__status">Verified</span>
       </section>

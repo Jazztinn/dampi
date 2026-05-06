@@ -33,6 +33,52 @@ const FAST_MODELS = AVAILABLE_MODELS.slice(0, 3);
 const FULL_MODELS = ['gemini-2.5-pro', 'gemini-pro-latest', 'gemini-2.5-flash'];
 const VALID_MODES = new Set(['fast', 'auto', 'default']);
 const VALID_PURPOSES = new Set(['chat', 'title']);
+const STRUCTURED_CHAT_SCHEMA = {
+  type: 'OBJECT',
+  required: ['message', 'createTasks', 'askQuestions'],
+  propertyOrdering: ['message', 'createTasks', 'askQuestions'],
+  properties: {
+    message: {
+      type: 'STRING',
+    },
+    createTasks: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        required: ['title', 'date'],
+        propertyOrdering: ['title', 'date', 'time', 'desc', 'tag'],
+        properties: {
+          title: { type: 'STRING' },
+          date: { type: 'STRING' },
+          time: { type: 'STRING' },
+          desc: { type: 'STRING' },
+          tag: {
+            type: 'STRING',
+            enum: ['Billing', 'Technical', 'General', 'Urgent', 'Other'],
+          },
+        },
+      },
+    },
+    askQuestions: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        required: ['question'],
+        propertyOrdering: ['id', 'question', 'options', 'allowFreeText', 'inputPlaceholder'],
+        properties: {
+          id: { type: 'STRING' },
+          question: { type: 'STRING' },
+          options: {
+            type: 'ARRAY',
+            items: { type: 'STRING' },
+          },
+          allowFreeText: { type: 'BOOLEAN' },
+          inputPlaceholder: { type: 'STRING' },
+        },
+      },
+    },
+  },
+};
 
 function isComplexPrompt(text) {
   if (!text) return false;
@@ -144,10 +190,51 @@ function getGenerationConfig(mode, prompt, purpose) {
 
   const useFastProfile = mode === 'fast' || (mode === 'auto' && !isComplexPrompt(prompt));
 
-  return {
+  const generationConfig = {
     maxOutputTokens: useFastProfile ? 600 : 1000,
     temperature: useFastProfile ? 0.5 : 0.8,
   };
+
+  if (purpose === 'chat') {
+    generationConfig.responseMimeType = 'application/json';
+    generationConfig.responseSchema = STRUCTURED_CHAT_SCHEMA;
+  }
+
+  return generationConfig;
+}
+
+function stripJsonFence(text) {
+  const trimmed = String(text || '').trim();
+  const fenceMatch = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  return fenceMatch ? fenceMatch[1].trim() : trimmed;
+}
+
+function normalizeStructuredChatResponse(rawText) {
+  try {
+    const parsed = JSON.parse(stripJsonFence(rawText));
+
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Structured response was not an object');
+    }
+
+    const message = typeof parsed.message === 'string' ? parsed.message.trim() : '';
+
+    return {
+      text: message || 'Done.',
+      taskActions: {
+        createTasks: Array.isArray(parsed.createTasks) ? parsed.createTasks : [],
+        askQuestions: Array.isArray(parsed.askQuestions) ? parsed.askQuestions : [],
+      },
+    };
+  } catch {
+    return {
+      text: typeof rawText === 'string' ? rawText : '',
+      taskActions: {
+        createTasks: [],
+        askQuestions: [],
+      },
+    };
+  }
 }
 
 async function callProviderModel(model, payload) {
@@ -262,6 +349,14 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const result = await callModelWithFallback(payload, models);
+
+    if (normalizedPurpose === 'chat') {
+      return res.json({
+        ...normalizeStructuredChatResponse(result.text),
+        model: result.model,
+      });
+    }
+
     res.json(result);
   } catch (error) {
     console.error('Proxy error:', error);

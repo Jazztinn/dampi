@@ -73,6 +73,10 @@
   background: var(--dampi-cream);
 }
 
+.top-nav--transparent {
+  background: transparent !important;
+}
+
 .top-nav__back {
   display: flex;
   align-items: center;
@@ -88,7 +92,8 @@
 .top-nav__back:hover  { opacity: 0.65; }
 .top-nav__back:active { opacity: 0.4; transform: translateX(-1px); }
 
-.top-nav__title {
+.top-nav__title,
+.top-nav__center {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--dampi-text);
@@ -96,6 +101,9 @@
   letter-spacing: -0.01em;
   text-align: center;
   flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .top-nav__filler {

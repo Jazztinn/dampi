@@ -19,11 +19,19 @@ export function getInitials(fullName) {
 export default function TopNavBar({ variant, title, onBack, extra, transparent }) {
   if (variant === 'inner') {
     return (
-      <div className="top-nav top-nav--inner">
-        <button className="top-nav__back" onClick={onBack} aria-label="Go back">
-          <ChevronLeft size={20} strokeWidth={2.5} />
-        </button>
-        <p className="top-nav__title">{title ?? ''}</p>
+      <div className={`top-nav top-nav--inner${transparent ? ' top-nav--transparent' : ''}`}>
+        <div style={{ visibility: onBack ? 'visible' : 'hidden' }}>
+          <button className="top-nav__back" onClick={onBack} aria-label="Go back">
+            <ChevronLeft size={20} strokeWidth={2.5} />
+          </button>
+        </div>
+        
+        {typeof title === 'string' ? (
+          <p className="top-nav__title">{title}</p>
+        ) : (
+          <div className="top-nav__center">{title}</div>
+        )}
+        
         <div className="top-nav__filler" aria-hidden="true" />
       </div>
     );

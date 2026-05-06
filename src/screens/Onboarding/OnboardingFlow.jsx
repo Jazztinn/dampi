@@ -328,14 +328,18 @@ export default function OnboardingFlow({ onComplete }) {
 
   return (
     <div className="onboarding-flow">
-      {step > 0 && <TopNavBar variant="inner" title={steps[step].label} onBack={handleBack} />}
-
-      {/* Progress indicator */}
-      <div className="onboarding-progress">
-        {steps.map((s, i) => (
-          <div key={s.id} className={`onboarding-dot ${i <= step ? 'active' : ''}`} />
-        ))}
-      </div>
+      <TopNavBar
+        variant="inner"
+        transparent={true}
+        title={
+          <div className="onboarding-progress">
+            {steps.map((s, i) => (
+              <div key={s.id} className={`onboarding-dot ${i <= step ? 'active' : ''}`} />
+            ))}
+          </div>
+        }
+        onBack={step > 0 ? handleBack : null}
+      />
 
       {/* Screen */}
       <div className="onboarding-screen">{screens[step]}</div>

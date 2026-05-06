@@ -2,12 +2,14 @@ import { useState } from 'react';
 import BottomNav from '../components/BottomNav.jsx';
 import HomeScreen from '../screens/Home/HomeScreen.jsx';
 import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
+import DocumentsScreen from '../screens/Documents/DocumentsScreen.jsx';
 import HMOPortalScreen from '../screens/HMOPortal/HMOPortalScreen.jsx';
 import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialAssistanceScreen.jsx';
 import './app-navigator.css';
 
 const SCREENS = {
   home: HomeScreen,
+  documents: DocumentsScreen,
   symptoms: FamilyScreen,
   hmo: HMOPortalScreen,
   profile: FinancialAssistanceScreen,

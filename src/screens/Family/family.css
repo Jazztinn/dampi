@@ -425,3 +425,48 @@
 
 .family__sheet-cta:hover:not(:disabled) { background: var(--primary-hover); }
 .family__sheet-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Invite row actions (resend / revoke) ── */
+.family__invite-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.family__action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.family__action-btn--ghost {
+  background: rgba(77, 115, 108, 0.08);
+  color: var(--dampi-teal);
+}
+
+.family__action-btn--ghost:hover {
+  background: rgba(77, 115, 108, 0.15);
+}
+
+.family__action-btn--danger {
+  background: rgba(232, 100, 80, 0.10);
+  color: #b04030;
+}
+
+.family__action-btn--danger:hover {
+  background: rgba(232, 100, 80, 0.20);
+}
+
+/* ── "Families I Care For" section spacing ── */
+.family__section-title--spaced {
+  margin-top: 24px;
+}

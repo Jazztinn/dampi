@@ -4,6 +4,7 @@ import OnboardingFlow from './screens/Onboarding/OnboardingFlow.jsx';
 import AuthLandingScreen from './screens/Auth/AuthLandingScreen.jsx';
 import LoginScreen from './screens/Auth/LoginScreen.jsx';
 import DampiChatModal from './components/ai/DampiChatModal.jsx';
+import AcceptInviteScreen from './screens/AcceptInvite/AcceptInviteScreen.jsx';
 import { getSupabaseBrowserClient } from './lib/supabase.js';
 
 async function loadOnboardingAccount(supabase, session) {
@@ -38,6 +39,10 @@ export default function App() {
   const [accountError, setAccountError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
   const [tasks, setTasks] = useState({});
+  const [pendingInviteToken, setPendingInviteToken] = useState(() => {
+    const urlToken = new URLSearchParams(window.location.search).get('invite');
+    return urlToken || localStorage.getItem('dampi.pendingInviteToken') || null;
+  });
 
   useEffect(() => {
     let active = true;
@@ -107,6 +112,20 @@ export default function App() {
     };
   }, []);
 
+  // Persist invite token to localStorage so it survives email-confirmation redirects
+  useEffect(() => {
+    if (pendingInviteToken) {
+      localStorage.setItem('dampi.pendingInviteToken', pendingInviteToken);
+    } else {
+      localStorage.removeItem('dampi.pendingInviteToken');
+    }
+  }, [pendingInviteToken]);
+
+  const clearInviteToken = () => {
+    window.history.replaceState({}, '', window.location.pathname);
+    setPendingInviteToken(null);
+  };
+
   const handleOnboardingComplete = ({ profile, child }) => {
     setAccount({ profile, child, children: child ? [child] : [] });
     setAccountError('');
@@ -131,6 +150,19 @@ export default function App() {
     );
   }
 
+  if (pendingInviteToken && !loadingAccount) {
+    return (
+      <div className="dampi-app">
+        <AcceptInviteScreen
+          token={pendingInviteToken}
+          hasSession={hasSession}
+          onAccepted={clearInviteToken}
+          onDismiss={clearInviteToken}
+        />
+      </div>
+    );
+  }
+
   if (account) {
     return (
       <div className="dampi-app">
@@ -147,24 +179,17 @@ export default function App() {
     );
   }
 
-  if (hasSession) {
-    return (
-      <div className="dampi-app">
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
-        {accountError && <div className="app-error">{accountError}</div>}
-      </div>
-    );
-  }
+  const showOnboarding = hasSession || authView === 'onboarding';
 
   return (
     <div className="dampi-app">
-      {authView === 'login' && (
+      {!showOnboarding && authView === 'login' && (
         <LoginScreen onBack={() => setAuthView('landing')} />
       )}
-      {authView === 'onboarding' && (
+      {showOnboarding && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
-      {authView === 'landing' && (
+      {!showOnboarding && authView === 'landing' && (
         <AuthLandingScreen
           onNew={() => setAuthView('onboarding')}
           onExisting={() => setAuthView('login')}

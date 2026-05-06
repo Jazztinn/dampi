@@ -1,0 +1,329 @@
+/* ── Accept Invite Screen ── */
+
+.accept-invite {
+  min-height: 100dvh;
+  background: var(--dampi-cream, #f8f5f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.accept-invite__card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(77, 115, 108, 0.10);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ── */
+.accept-invite__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.accept-invite__logo {
+  width: 36px;
+  height: 36px;
+  background: var(--dampi-teal, #4d736c);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.accept-invite__app-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dampi-teal, #4d736c);
+  letter-spacing: -0.01em;
+}
+
+/* ── Generic state (loading / accepting) ── */
+.accept-invite__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 8px;
+  color: var(--dampi-text-muted, #7c8b89);
+  text-align: center;
+}
+
+.accept-invite__state--error {
+  color: #b04030;
+}
+
+.accept-invite__state--success {
+  color: var(--dampi-teal, #4d736c);
+}
+
+.accept-invite__state-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dampi-text, #1a2826);
+  margin: 0;
+}
+
+.accept-invite__state--error .accept-invite__state-title {
+  color: #b04030;
+}
+
+.accept-invite__state--success .accept-invite__state-title {
+  color: var(--dampi-teal, #4d736c);
+}
+
+.accept-invite__state-desc {
+  font-size: 0.875rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.accept-invite__state-label {
+  font-size: 0.875rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  margin: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.accept-invite__spinner {
+  animation: spin 0.9s linear infinite;
+  color: var(--dampi-teal, #4d736c);
+}
+
+/* ── Preview ── */
+.accept-invite__preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.accept-invite__preview-avatar {
+  width: 56px;
+  height: 56px;
+  background: rgba(77, 115, 108, 0.10);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-teal, #4d736c);
+}
+
+.accept-invite__preview-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--dampi-text, #1a2826);
+  margin: 4px 0 0;
+}
+
+.accept-invite__preview-desc {
+  font-size: 0.9rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.accept-invite__preview-email {
+  font-size: 0.78rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  background: var(--dampi-cream, #f8f5f0);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 0;
+}
+
+/* ── Auth sub-section ── */
+.accept-invite__auth {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accept-invite__auth-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dampi-text, #1a2826);
+  margin: 0;
+}
+
+.accept-invite__auth-subtitle {
+  font-size: 0.82rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  margin: 0 0 12px;
+}
+
+/* ── Form ── */
+.accept-invite__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.accept-invite__mode-toggle {
+  display: flex;
+  background: var(--dampi-cream, #f8f5f0);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.accept-invite__mode-btn {
+  flex: 1;
+  padding: 7px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: transparent;
+  color: var(--dampi-text-muted, #7c8b89);
+  transition: background 0.15s, color 0.15s;
+}
+
+.accept-invite__mode-btn--active {
+  background: #fff;
+  color: var(--dampi-teal, #4d736c);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.accept-invite__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.accept-invite__field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--dampi-text, #1a2826);
+}
+
+.accept-invite__input-wrap {
+  position: relative;
+}
+
+.accept-invite__input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--dampi-text-muted, #7c8b89);
+  pointer-events: none;
+}
+
+.accept-invite__input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1.5px solid #e2ded8;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--dampi-text, #1a2826);
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.accept-invite__input:focus {
+  border-color: var(--dampi-teal, #4d736c);
+}
+
+.accept-invite__input--error {
+  border-color: #e57373;
+}
+
+.accept-invite__input--locked {
+  background: var(--dampi-cream, #f8f5f0);
+  color: var(--dampi-text-muted, #7c8b89);
+  cursor: not-allowed;
+}
+
+.accept-invite__hint {
+  font-size: 0.73rem;
+  color: var(--dampi-text-muted, #7c8b89);
+}
+
+.accept-invite__error {
+  font-size: 0.75rem;
+  color: #c0392b;
+}
+
+.accept-invite__submit-error {
+  font-size: 0.8rem;
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.07);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0;
+}
+
+/* ── CTAs ── */
+.accept-invite__cta {
+  width: 100%;
+  padding: 13px;
+  background: var(--dampi-teal, #4d736c);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.accept-invite__cta:hover:not(:disabled) {
+  background: #3d5f59;
+}
+
+.accept-invite__cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.accept-invite__cta--ghost {
+  background: transparent;
+  color: var(--dampi-teal, #4d736c);
+  border: 1.5px solid var(--dampi-teal, #4d736c);
+}
+
+.accept-invite__cta--ghost:hover {
+  background: rgba(77, 115, 108, 0.07);
+}
+
+.accept-invite__back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--dampi-text-muted, #7c8b89);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 0;
+  margin-top: 2px;
+}
+
+.accept-invite__back-link:hover {
+  color: var(--dampi-text, #1a2826);
+}

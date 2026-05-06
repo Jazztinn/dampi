@@ -178,10 +178,11 @@ export default function OnboardingFlow({ onComplete }) {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
 
-        const user = sessionData.session?.user || null;
+        let user = sessionData.session?.user || null;
 
         if (user?.email && user.email.toLowerCase() !== email.toLowerCase()) {
-          throw new Error(`A different account is already signed in as ${user.email}.`);
+          await supabase.auth.signOut();
+          user = null;
         }
 
         if (!user) {

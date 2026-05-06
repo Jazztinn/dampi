@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Mail, Baby, Calendar, Plus, X, ChevronRight, UserPlus } from 'lucide-react';
+import { Users, Mail, Baby, Calendar, Plus, X, ChevronRight, UserPlus, RotateCcw, Trash2 } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './family.css';
@@ -194,6 +194,18 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
         }
         return;
       }
+
+      // Fire email via edge function (non-blocking — invite row already saved)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await supabase.functions.invoke('send-caregiver-invite', {
+          body: { inviteId: data.id },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+      } catch {
+        // Email delivery failure is non-fatal; user can resend from the invite list
+      }
+
       onAdd(data);
     } catch (err) {
       setSubmitError(err.message || 'Could not send invite.');
@@ -260,6 +272,7 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
 export default function FamilyScreen({ profile, children: initialChildren = [], onBack }) {
   const [localChildren, setLocalChildren] = useState(initialChildren);
   const [invites, setInvites] = useState([]);
+  const [caregiverFamilies, setCaregiverFamilies] = useState([]);
   const [loadingInvites, setLoadingInvites] = useState(true);
   const [showAddChild, setShowAddChild] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -267,6 +280,7 @@ export default function FamilyScreen({ profile, children: initialChildren = [], 
   useEffect(() => {
     if (!profile?.id) { setLoadingInvites(false); return; }
     const supabase = getSupabaseBrowserClient();
+
     supabase
       .from('caregiver_invites')
       .select('*')
@@ -275,6 +289,14 @@ export default function FamilyScreen({ profile, children: initialChildren = [], 
       .then(({ data, error }) => {
         if (!error && data) setInvites(data);
         setLoadingInvites(false);
+      });
+
+    supabase
+      .from('caregiver_access')
+      .select('*, children(id, full_name, date_of_birth, gender), profiles!guardian_profile_id(full_name)')
+      .eq('caregiver_profile_id', profile.id)
+      .then(({ data }) => {
+        if (data) setCaregiverFamilies(data);
       });
   }, [profile?.id]);
 
@@ -286,6 +308,29 @@ export default function FamilyScreen({ profile, children: initialChildren = [], 
   const handleInviteAdded = (invite) => {
     setInvites((prev) => [invite, ...prev]);
     setShowInvite(false);
+  };
+
+  const handleRevoke = async (invite) => {
+    const supabase = getSupabaseBrowserClient();
+    if (invite.status === 'accepted') {
+      await supabase.from('caregiver_access').delete().eq('invite_id', invite.id);
+    }
+    const { error } = await supabase
+      .from('caregiver_invites')
+      .update({ status: 'revoked' })
+      .eq('id', invite.id);
+    if (!error) {
+      setInvites((prev) => prev.map((i) => i.id === invite.id ? { ...i, status: 'revoked' } : i));
+    }
+  };
+
+  const handleResend = async (invite) => {
+    const supabase = getSupabaseBrowserClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.functions.invoke('send-caregiver-invite', {
+      body: { inviteId: invite.id },
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
   };
 
   return (
@@ -350,9 +395,52 @@ export default function FamilyScreen({ profile, children: initialChildren = [], 
                 )}
               </div>
               <StatusBadge status={inv.status} />
+              {inv.status !== 'revoked' && (
+                <div className="family__invite-actions">
+                  {inv.status === 'pending' && (
+                    <button
+                      className="family__action-btn family__action-btn--ghost"
+                      onClick={() => handleResend(inv)}
+                      title="Resend invite email"
+                    >
+                      <RotateCcw size={12} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  <button
+                    className="family__action-btn family__action-btn--danger"
+                    onClick={() => handleRevoke(inv)}
+                    title={inv.status === 'accepted' ? 'Remove access' : 'Revoke invite'}
+                  >
+                    <Trash2 size={12} strokeWidth={2.5} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Families I Care For ── */}
+      {caregiverFamilies.length > 0 && (
+        <>
+          <p className="family__section-title family__section-title--spaced">Families I Care For</p>
+          <div className="family__children-list">
+            {caregiverFamilies.map((access) => (
+              <div key={access.id} className="family__child-card">
+                <div className="family__child-avatar">
+                  <Baby size={18} strokeWidth={2} />
+                </div>
+                <div className="family__child-info">
+                  <p className="family__child-name">{access.children?.full_name}</p>
+                  <p className="family__child-meta">
+                    Guardian: {access.profiles?.full_name}
+                  </p>
+                </div>
+                <GenderChip gender={access.children?.gender} />
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {showAddChild && (

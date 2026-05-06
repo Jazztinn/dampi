@@ -95,11 +95,14 @@
 }
 
 .doc-scroll-spacer {
-  /* 
-    This forces the .content-area to have a long scrollbar 
-    so the user can scroll through the animation.
-  */
-  height: 300vh; 
+  /* Height is set dynamically in the component to allow scrolling through cards */
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 -15px 40px rgba(0,0,0,0.15);
 }
 
 /* Custom UI Elements (replacing Tailwind) */

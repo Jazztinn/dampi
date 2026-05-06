@@ -1,18 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './documents.css';
 
-const cardData = [
-  { id: 1, label: "Buy or rent", color: "#facc15" },
-  { id: 2, label: "Weekends", color: "#22c55e" },
-  { id: 3, label: "Groceries", color: "#38bdf8" },
-  { id: 4, label: "Market tips", color: "#f87171" },
-  { id: 5, label: "Sharing", color: "#f472b6", number: "10", hasSpheres: true },
-  { id: 6, label: "Retail", color: "#fbbf24" },
-  { id: 7, label: "Dining", color: "#4ade80" }
-];
+const COLORS = ["#facc15", "#22c55e", "#38bdf8", "#f87171", "#f472b6", "#fbbf24", "#4ade80"];
+const LABELS = ["Invoice", "Contract", "Receipt", "Proposal", "Report", "Memo", "Prescription", "Lab Result"];
 
 export default function DocumentsScreen({ onBack }) {
+  const [cards, setCards] = useState([
+    { id: 'create-btn', label: "Create document", color: "#facc15", hasSpheres: true }
+  ]);
   const cardsRef = useRef([]);
 
   useEffect(() => {
@@ -20,16 +16,18 @@ export default function DocumentsScreen({ onBack }) {
     const scrollContainer = document.querySelector('.content-area');
     if (!scrollContainer) return;
 
+    // Enable scroll snapping on the container to snap to the invisible spacer divs
+    scrollContainer.style.scrollSnapType = 'y mandatory';
+
     const updateCards = () => {
       const scrollY = scrollContainer.scrollTop;
       const height = scrollContainer.clientHeight;
       const maxScroll = scrollContainer.scrollHeight - height;
       
-      // If content isn't tall enough yet, don't break
-      if (maxScroll <= 0) return;
-
-      const scrollProgress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
-      const totalCards = cardData.length;
+      const totalCards = cards.length;
+      
+      // If content isn't tall enough yet, don't break. Force 0 progress.
+      const scrollProgress = maxScroll > 0 ? Math.min(Math.max(scrollY / maxScroll, 0), 1) : 0;
       
       // Reverse focal flow: active card goes backwards as we scroll down
       const activeCardFloat = (totalCards - 1) - (scrollProgress * (totalCards - 1));
@@ -75,10 +73,25 @@ export default function DocumentsScreen({ onBack }) {
     updateCards();
 
     return () => {
+      scrollContainer.style.scrollSnapType = '';
       scrollContainer.removeEventListener('scroll', updateCards);
       window.removeEventListener('resize', updateCards);
     };
-  }, []);
+  }, [cards.length]);
+
+  const handleCardClick = (card) => {
+    if (card.id === 'create-btn') {
+      const newCard = {
+        id: Date.now(),
+        label: LABELS[Math.floor(Math.random() * LABELS.length)],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        hasSpheres: Math.random() > 0.5,
+      };
+      
+      // Prepend to the array so the "Create document" card stays at the very bottom (front of stack at 0 scroll)
+      setCards(prev => [newCard, ...prev]);
+    }
+  };
 
   return (
     <div className="documents-screen">
@@ -89,12 +102,13 @@ export default function DocumentsScreen({ onBack }) {
 
       <div className="sticky-viewport">
         <div id="stack" className="stack-container">
-          {cardData.map((card, i) => (
+          {cards.map((card, i) => (
             <div
               key={card.id}
               ref={el => cardsRef.current[i] = el}
               className="doc-card"
               style={{ backgroundColor: card.color }}
+              onClick={() => handleCardClick(card)}
             >
               <h2 className="doc-card-label">{card.label}</h2>
               
@@ -114,7 +128,14 @@ export default function DocumentsScreen({ onBack }) {
         </div>
       </div>
 
-      <div className="doc-scroll-spacer"></div>
+      <div className="doc-scroll-spacer">
+        {/* Invisible snap points to force precise scroll intervals */}
+        {cards.map((c, i) => (
+          <div key={i} style={{ height: 'calc(100vh - 140px)', scrollSnapAlign: 'start' }} />
+        ))}
+        {/* Extra padding at bottom to ensure the last snap point can be reached smoothly */}
+        <div style={{ height: '140px' }} />
+      </div>
     </div>
   );
 }

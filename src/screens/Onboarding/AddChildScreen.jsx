@@ -49,7 +49,7 @@ export default function AddChildScreen({ data, onNext }) {
               id="childName"
               type="text"
               name="childName"
-              placeholder="e.g., Maria"
+              placeholder="Child's full name"
               value={formData.childName}
               onChange={handleChange}
               className={errors.childName ? 'error' : ''}

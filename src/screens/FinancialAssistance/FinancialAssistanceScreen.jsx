@@ -1,27 +1,6 @@
-import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
+import { Phone, Calendar, Baby, FileText, ChevronRight } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
-
-const INFO_ROWS = [
-  {
-    id: 1,
-    Icon: Phone,
-    label: 'Contact',
-    value: '+63 XXX XXX XXXX',
-  },
-  {
-    id: 2,
-    Icon: MapPin,
-    label: 'Address',
-    value: 'Lorem Ipsum St., Dolor, Manila',
-  },
-  {
-    id: 3,
-    Icon: Calendar,
-    label: 'Member Since',
-    value: 'January 2024',
-  },
-];
 
 const ACTIONS = [
   {
@@ -29,18 +8,68 @@ const ACTIONS = [
     iconClass: 'sage',
     Icon: FileText,
     title: 'Financial Assistance',
-    desc: 'Lorem ipsum dolor sit amet consectetur adipiscing',
+    desc: 'Review available support options for your household.',
   },
   {
     id: 2,
     iconClass: 'warm',
     Icon: FileText,
     title: 'Document Requests',
-    desc: 'Ut enim ad minim veniam quis nostrud exercitation',
+    desc: 'Prepare documents tied to your Dampi profile.',
   },
 ];
 
-export default function FinancialAssistanceScreen({ onBack }) {
+function getInitials(fullName) {
+  const parts = fullName?.trim().split(/\s+/).filter(Boolean) || [];
+  if (!parts.length) return 'D';
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+function formatDate(date) {
+  if (!date) return 'Not available';
+
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function formatRole(role) {
+  return role
+    ? role.replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+    : 'Caregiver';
+}
+
+export default function FinancialAssistanceScreen({ profile, child, children = [], onBack }) {
+  const fullName = profile?.full_name || 'Dampi caregiver';
+  const childCount = children.length || (child ? 1 : 0);
+  const primaryChildName = child?.full_name || children[0]?.full_name || 'No child profile';
+  const infoRows = [
+    {
+      id: 'contact',
+      Icon: Phone,
+      label: 'Contact',
+      value: profile?.phone || 'Not provided',
+    },
+    {
+      id: 'children',
+      Icon: Baby,
+      label: childCount === 1 ? 'Child Profile' : 'Child Profiles',
+      value: childCount > 1 ? `${childCount} children linked` : primaryChildName,
+    },
+    {
+      id: 'member-since',
+      Icon: Calendar,
+      label: 'Member Since',
+      value: formatDate(profile?.created_at),
+    },
+  ];
+
   return (
     <div className="profile">
       <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
@@ -48,12 +77,12 @@ export default function FinancialAssistanceScreen({ onBack }) {
       {/* Avatar + identity */}
       <div className="profile__identity">
         <div className="profile__avatar">
-          <span className="profile__avatar-initials">JD</span>
+          <span className="profile__avatar-initials">{getInitials(profile?.full_name)}</span>
         </div>
         <div>
-          <p className="profile__name">Juan Dela Cruz</p>
+          <p className="profile__name">{fullName}</p>
           <p className="profile__meta">
-            Lorem ipsum · Patient ID: DMPI-0001
+            {formatRole(profile?.role)}
           </p>
         </div>
       </div>
@@ -61,7 +90,7 @@ export default function FinancialAssistanceScreen({ onBack }) {
       {/* Info rows */}
       <p className="profile__section-title">Personal Information</p>
       <div className="profile__info-list">
-        {INFO_ROWS.map(({ id, Icon, label, value }) => (
+        {infoRows.map(({ id, Icon, label, value }) => (
           <div key={id} className="profile__info-row">
             <div className="profile__info-icon">
               <Icon size={16} strokeWidth={2} />

@@ -92,6 +92,13 @@
   line-height: 1.3;
 }
 
+.home__progress-child {
+  font-size: 0.76rem;
+  color: var(--dampi-text-muted);
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+
 .home__progress-date {
   font-size: 0.75rem;
   color: var(--dampi-text-muted);
@@ -320,6 +327,27 @@
   background: rgba(146, 187, 179, 0.12);
   padding: 3px 8px;
   border-radius: 6px;
+}
+
+.home__empty-card {
+  background: #fff;
+  border: 1px dashed rgba(77, 115, 108, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.home__empty-title {
+  color: var(--dampi-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 5px;
+}
+
+.home__empty-body {
+  color: var(--dampi-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* ── Tips horizontal scroll ── */

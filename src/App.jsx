@@ -16,18 +16,16 @@ async function loadOnboardingAccount(supabase, session) {
   if (profileError) throw profileError;
   if (!profile?.onboarding_completed) return null;
 
-  const { data: child, error: childError } = await supabase
+  const { data: children, error: childrenError } = await supabase
     .from('children')
     .select('*')
     .eq('primary_guardian_id', session.user.id)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: true });
 
-  if (childError) throw childError;
-  if (!child) return null;
+  if (childrenError) throw childrenError;
+  if (!children?.length) return null;
 
-  return { profile, child };
+  return { profile, child: children[0], children };
 }
 
 export default function App() {
@@ -90,7 +88,7 @@ export default function App() {
   }, []);
 
   const handleOnboardingComplete = ({ profile, child }) => {
-    setAccount({ profile, child });
+    setAccount({ profile, child, children: child ? [child] : [] });
     setAccountError('');
   };
 
@@ -111,6 +109,7 @@ export default function App() {
           <AppNavigator
             profile={account.profile}
             child={account.child}
+            children={account.children}
             onOpenAi={() => setChatOpen(true)}
           />
           <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />

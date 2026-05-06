@@ -1,5 +1,4 @@
 import {
-  Clock,
   AlertTriangle,
   Droplets,
   Thermometer,
@@ -9,20 +8,13 @@ import TopNavBar from '../../navigation/TopNavBar.jsx';
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
 import './home-screen.css';
 
-const PROGRESS_PCT = 85;
 const RING_R = 54;
 const RING_C = 2 * Math.PI * RING_R;
-const RING_OFFSET = RING_C * (1 - PROGRESS_PCT / 100);
 
 const today = new Date().toLocaleDateString('en-US', {
   month: 'long',
   day: 'numeric',
 });
-
-const RECENT_LOGS = [
-  { id: 1, child: 'Sofia', date: 'Yesterday, 2:30 PM', symptoms: ['Fever', 'Cough'], severity: 'moderate' },
-  { id: 2, child: 'Miguel', date: 'Sunday, 10:15 AM', symptoms: ['Runny Nose', 'Rashes'], severity: 'mild' },
-];
 
 const HEALTH_TIPS = [
   { id: 1, Icon: Droplets, title: 'Stay Hydrated', body: 'Offer warm fluids to help your child stay healthy and comfortable.' },
@@ -30,13 +22,32 @@ const HEALTH_TIPS = [
   { id: 3, Icon: Wind, title: 'Fresh Air', body: 'Keep rooms ventilated and dress warmly, but avoid overheating.' },
 ];
 
-export default function HomeScreen({ onNavigateToSymptoms }) {
+function pluralize(count, singular, plural = `${singular}s`) {
+  return count === 1 ? singular : plural;
+}
+
+export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms }) {
+  const childCount = children.length;
+  const completedProfileItems = [
+    Boolean(profile?.full_name),
+    Boolean(profile?.phone),
+    childCount > 0,
+  ].filter(Boolean).length;
+  const totalProfileItems = 3;
+  const progressPct = Math.round((completedProfileItems / totalProfileItems) * 100);
+  const ringOffset = RING_C * (1 - progressPct / 100);
+  const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
+  const progressDetail = `${completedProfileItems} of ${totalProfileItems} profile items complete`;
+  const childSummary = childCount > 0
+    ? `Tracking ${childCount} ${pluralize(childCount, 'child', 'children')}, starting with ${firstChildName}.`
+    : 'Add a child profile to start tracking family health.';
+
   return (
     <div className="home">
       {/* Gradient sits behind TopNavBar — both are in normal flow */}
       <div className="home__header-bg" aria-hidden="true" />
 
-      <TopNavBar variant="home" />
+      <TopNavBar variant="home" profile={profile} />
 
       {/* Progress card overlapping the header */}
       <section className="home__progress-card">
@@ -53,33 +64,34 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
                 fill="none" strokeWidth="10"
                 strokeLinecap="round"
                 strokeDasharray={RING_C}
-                strokeDashoffset={RING_OFFSET}
+                strokeDashoffset={ringOffset}
                 transform="rotate(-90 60 60)"
                 className="home__ring-fill"
               />
             </svg>
-            <span className="home__ring-label">{PROGRESS_PCT}%</span>
+            <span className="home__ring-label">{progressPct}%</span>
           </div>
           <div className="home__progress-info">
             <p className="home__progress-eyebrow">Your Progress</p>
-            <p className="home__progress-detail">3 of 4 profiles complete</p>
+            <p className="home__progress-detail">{progressDetail}</p>
+            <p className="home__progress-child">{childSummary}</p>
             <p className="home__progress-date">{today}</p>
           </div>
         </div>
 
         <div className="home__stats-row">
           <div className="home__stat">
-            <span className="home__stat-value">2</span>
+            <span className="home__stat-value">{childCount}</span>
             <span className="home__stat-label">Children</span>
           </div>
           <div className="home__stat-divider" />
           <div className="home__stat">
-            <span className="home__stat-value">12</span>
+            <span className="home__stat-value">0</span>
             <span className="home__stat-label">Total Logs</span>
           </div>
           <div className="home__stat-divider" />
           <div className="home__stat">
-            <span className="home__stat-value">May 8</span>
+            <span className="home__stat-value">None</span>
             <span className="home__stat-label">Next Visit</span>
           </div>
         </div>
@@ -97,28 +109,15 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
       <section className="home__section">
         <div className="home__section-header">
           <h3 className="home__section-title">Recent Logs</h3>
-          <button className="home__see-all">View all</button>
+          <button className="home__see-all" onClick={onNavigateToSymptoms}>Add log</button>
         </div>
         <div className="home__logs">
-          {RECENT_LOGS.map(({ id, child, date, symptoms, severity }) => (
-            <div key={id} className={`home__log-card home__log-card--${severity}`}>
-              <div className="home__log-top">
-                <div className="home__log-who">
-                  <div className="home__log-avatar">{child[0]}</div>
-                  <div>
-                    <p className="home__log-name">{child}</p>
-                    <p className="home__log-date"><Clock size={12} /> {date}</p>
-                  </div>
-                </div>
-                <span className={`home__badge home__badge--${severity}`}>{severity}</span>
-              </div>
-              <div className="home__log-tags">
-                {symptoms.map((s, i) => (
-                  <span key={i} className="home__tag">{s}</span>
-                ))}
-              </div>
-            </div>
-          ))}
+          <div className="home__empty-card">
+            <p className="home__empty-title">No symptom logs yet</p>
+            <p className="home__empty-body">
+              Logs will appear here after a symptom log table is added and connected.
+            </p>
+          </div>
         </div>
       </section>
 

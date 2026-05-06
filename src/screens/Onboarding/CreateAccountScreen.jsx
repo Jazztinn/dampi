@@ -60,7 +60,7 @@ export default function CreateAccountScreen({ data, onNext }) {
               id="fullName"
               type="text"
               name="fullName"
-              placeholder="Juan Dela Cruz"
+              placeholder="Parent or guardian name"
               value={formData.fullName}
               onChange={handleChange}
               className={errors.fullName ? 'error' : ''}
@@ -77,7 +77,7 @@ export default function CreateAccountScreen({ data, onNext }) {
               id="phone"
               type="tel"
               name="phone"
-              placeholder="+63 917 204 1138"
+              placeholder="+63 mobile number"
               value={formData.phone}
               onChange={handleChange}
               className={errors.phone ? 'error' : ''}
@@ -94,7 +94,7 @@ export default function CreateAccountScreen({ data, onNext }) {
               id="email"
               type="email"
               name="email"
-              placeholder="you@example.com"
+              placeholder="Email address"
               value={formData.email}
               onChange={handleChange}
               className={errors.email ? 'error' : ''}
@@ -111,7 +111,7 @@ export default function CreateAccountScreen({ data, onNext }) {
               id="password"
               type="password"
               name="password"
-              placeholder="••••••••"
+              placeholder="Create a password"
               value={formData.password}
               onChange={handleChange}
               className={errors.password ? 'error' : ''}

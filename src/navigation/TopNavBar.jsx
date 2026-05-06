@@ -18,11 +18,6 @@ export default function TopNavBar({ variant = 'inner', title, onBack }) {
 
   return (
     <div className="top-nav top-nav--inner">
-      <div className="top-nav__dots" aria-hidden="true">
-        <span className="top-nav__dot top-nav__dot--close" />
-        <span className="top-nav__dot top-nav__dot--minimize" />
-        <span className="top-nav__dot top-nav__dot--expand" />
-      </div>
       <button
         className="top-nav__back"
         onClick={onBack}

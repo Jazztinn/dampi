@@ -68,8 +68,6 @@ export default function SymptomGuideScreen({ onBack }) {
           </button>
         ))}
       </div>
-
-      <div style={{ height: '120px' }} />
     </div>
   );
 }

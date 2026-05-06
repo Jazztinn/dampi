@@ -20,6 +20,11 @@ export default function AppNavigator({ onOpenAi }) {
 
   return (
     <div className="app-container">
+      <FloatingNav
+        currentScreen={currentScreen}
+        onNavigate={setCurrentScreen}
+      />
+
       <div className="content-area">
         <Screen
           onOpenAi={onOpenAi}
@@ -27,11 +32,6 @@ export default function AppNavigator({ onOpenAi }) {
           onBack={() => setCurrentScreen('home')}
         />
       </div>
-
-      <FloatingNav
-        currentScreen={currentScreen}
-        onNavigate={setCurrentScreen}
-      />
     </div>
   );
 }

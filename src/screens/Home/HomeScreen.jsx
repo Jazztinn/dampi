@@ -44,9 +44,7 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
   return (
     <div className="home">
       {/* Gradient sits behind TopNavBar — both are in normal flow */}
-      <div className="home__header-bg" aria-hidden="true">
-        <div className="home__header-blob" />
-      </div>
+      <div className="home__header-bg" aria-hidden="true" />
 
       <TopNavBar variant="home" />
 
@@ -176,8 +174,6 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
           </div>
         </div>
       </section>
-
-      <div style={{ height: '100px' }} />
     </div>
   );
 }

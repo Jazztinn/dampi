@@ -90,8 +90,6 @@ export default function FinancialAssistanceScreen({ onBack }) {
           </button>
         ))}
       </div>
-
-      <div style={{ height: '120px' }} />
     </div>
   );
 }

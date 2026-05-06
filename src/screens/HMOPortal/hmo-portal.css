@@ -7,40 +7,13 @@
   color: var(--dampi-text);
 }
 
-
 /* ── Coverage Card ── */
+
 .hmo-portal__coverage-card {
   background: var(--dampi-sage);
-  border-radius: 24px;
-  padding: 22px 20px;
+  border-radius: 14px;
+  padding: 20px;
   margin-bottom: 24px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Decorative circle accent */
-.hmo-portal__coverage-card::before {
-  content: '';
-  position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  pointer-events: none;
-}
-
-.hmo-portal__coverage-card::after {
-  content: '';
-  position: absolute;
-  bottom: -20px;
-  right: 40px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  pointer-events: none;
 }
 
 .hmo-portal__coverage-label {
@@ -48,12 +21,12 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.7);
   margin: 0 0 6px;
 }
 
 .hmo-portal__coverage-status {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: #fff;
   margin: 0 0 4px;
@@ -62,67 +35,62 @@
 
 .hmo-portal__coverage-meta {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 14px;
 }
 
 .hmo-portal__coverage-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 20px;
-  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  padding: 4px 10px;
   font-size: 0.72rem;
   font-weight: 700;
   color: #fff;
 }
 
 .hmo-portal__coverage-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #fff;
-  animation: hmo-pulse 2s infinite;
-}
-
-@keyframes hmo-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
 /* ── Benefits List ── */
+
 .hmo-portal__section-title {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--dampi-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
 }
 
 .hmo-portal__benefits {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 28px;
 }
 
 .hmo-portal__benefit-item {
   background: #fff;
-  border-radius: 16px;
-  padding: 15px 16px;
+  border-radius: 12px;
+  padding: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 1px 8px rgba(77, 115, 108, 0.07);
+  border: 1px solid rgba(77, 115, 108, 0.06);
 }
 
 .hmo-portal__benefit-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: rgba(146, 187, 179, 0.15);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(146, 187, 179, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,7 +103,7 @@
 }
 
 .hmo-portal__benefit-name {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--dampi-text);
   margin: 0 0 2px;

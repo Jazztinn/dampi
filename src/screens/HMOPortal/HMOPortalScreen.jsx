@@ -67,8 +67,6 @@ export default function HMOPortalScreen({ onBack }) {
           </div>
         ))}
       </div>
-
-      <div style={{ height: '120px' }} />
     </div>
   );
 }

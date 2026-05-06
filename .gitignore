@@ -1,7 +1,9 @@
 node_modules/
 .env
 .env.local
+.env.local.bak
 ai/server/.env
 ai/server/.env.local
 supabase/.branches
 supabase/.temp
+dist/

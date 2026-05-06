@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Users, Mail, Baby, Calendar, Plus, X, ChevronRight, UserPlus, RotateCcw, Trash2 } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
@@ -51,6 +51,7 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const submitLock = useRef(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,12 +61,15 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting || submitLock.current) return;
+
     const newErrors = {};
     if (!formData.full_name.trim()) newErrors.full_name = 'Name is required';
     if (!formData.date_of_birth) newErrors.date_of_birth = 'Date of birth is required';
     if (!formData.gender) newErrors.gender = 'Gender is required';
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
 
+    submitLock.current = true;
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -79,6 +83,7 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
       onAdd(data);
     } catch (err) {
       setSubmitError(err.message || 'Could not add child.');
+      submitLock.current = false;
     } finally {
       setSubmitting(false);
     }
@@ -162,9 +167,12 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
   const [emailError, setEmailError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const submitLock = useRef(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting || submitLock.current) return;
+
     setEmailError('');
     setSubmitError('');
 
@@ -173,6 +181,7 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
       return;
     }
 
+    submitLock.current = true;
     setSubmitting(true);
     try {
       const supabase = getSupabaseBrowserClient();
@@ -192,6 +201,7 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
         } else {
           throw error;
         }
+        submitLock.current = false;
         return;
       }
 
@@ -209,6 +219,7 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
       onAdd(data);
     } catch (err) {
       setSubmitError(err.message || 'Could not send invite.');
+      submitLock.current = false;
     } finally {
       setSubmitting(false);
     }

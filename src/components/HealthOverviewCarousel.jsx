@@ -1,9 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Heart, Activity, Shield, Pill } from 'lucide-react';
 import './HealthOverviewCarousel.css';
 
+const CARD_WIDTH = 192;
+const CARD_GAP = 16;
+const ITEM_WIDTH = CARD_WIDTH + CARD_GAP;
+
 const HealthOverviewCarousel = () => {
   const scrollContainerRef = useRef(null);
+  const isTeleporting = useRef(false);
 
   const metrics = [
     {
@@ -36,11 +41,40 @@ const HealthOverviewCarousel = () => {
     },
   ];
 
+  // Triple the list: [clones] [real] [clones]
+  const extendedMetrics = [...metrics, ...metrics, ...metrics];
+  const sectionWidth = metrics.length * ITEM_WIDTH;
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Start at the beginning of the middle (real) section
+    container.scrollLeft = sectionWidth;
+
+    const handleScroll = () => {
+      if (isTeleporting.current) return;
+      const { scrollLeft } = container;
+
+      if (scrollLeft <= 0) {
+        isTeleporting.current = true;
+        container.scrollLeft = sectionWidth;
+        requestAnimationFrame(() => { isTeleporting.current = false; });
+      } else if (scrollLeft >= sectionWidth * 2) {
+        isTeleporting.current = true;
+        container.scrollLeft = scrollLeft - sectionWidth;
+        requestAnimationFrame(() => { isTeleporting.current = false; });
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [sectionWidth]);
+
   const scroll = (direction) => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 200;
       scrollContainerRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        left: direction === 'left' ? -ITEM_WIDTH : ITEM_WIDTH,
         behavior: 'smooth',
       });
     }
@@ -72,10 +106,9 @@ const HealthOverviewCarousel = () => {
         </div>
       </div>
 
-      {/* Carousel Container */}
       <div className="health-overview__carousel" ref={scrollContainerRef}>
-        {metrics.map((metric) => (
-          <div key={metric.id} className="health-overview__card" style={{ backgroundColor: metric.bgColor }}>
+        {extendedMetrics.map((metric, index) => (
+          <div key={`${metric.id}-${index}`} className="health-overview__card" style={{ backgroundColor: metric.bgColor }}>
             <div className="health-overview__card-header">
               <div className="health-overview__card-icon-bg">
                 <metric.Icon size={18} strokeWidth={2} />

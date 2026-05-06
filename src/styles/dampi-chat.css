@@ -743,6 +743,10 @@
   cursor: not-allowed;
 }
 
+.chat-input:focus-visible {
+  outline: none;
+}
+
 .chat-send-btn {
   width: 48px;
   height: 48px;

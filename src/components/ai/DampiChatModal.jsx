@@ -1,18 +1,26 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { X, Menu, ChevronDown, Plus, Loader2, Send, FileText, Search, LayoutGrid, XCircle, MessageSquare, Trash2, Pencil, Check } from "lucide-react";
+import { X, Menu, ChevronDown, Plus, Loader2, Send, Stethoscope, CalendarPlus, ShieldCheck, Pill, ListChecks, XCircle, MessageSquare, Trash2, Pencil, Check, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
-import { callDampiChat } from "../../services/ai/dampiApi.js";
+import { callDampiChat, streamDampiChat } from "../../services/ai/dampiApi.js";
+import {
+  appendAiChatMessage,
+  createLocalChat,
+  deleteAiChatConversation,
+  ensureAiChatConversation,
+  loadAiChatConversations,
+  updateAiChatConversationTitle,
+} from "../../services/ai/chatPersistence.js";
 import { CHAT_SYSTEM_PROMPT, CHAT_STRUCTURED_RESPONSE_PROMPT, CHAT_CONTEXT_CONFIG } from "../../constants/dampiAi.js";
 import "../../styles/dampi-chat.css";
 
 const SUGGESTIONS = [
-  { icon: FileText, label: "Draft a Reply", prompt: "Help me draft a professional reply to a customer inquiry. Ask what the issue is and what tone I should use." },
-  { icon: Search, label: "Find a Solution", prompt: "Help me find a solution to a customer's problem. Ask what the issue is and what I've already tried." },
-  { icon: LayoutGrid, label: "Summarize Ticket", prompt: "Summarize this support ticket into key issues, actions taken, and next steps." },
-  { icon: FileText, label: "Write FAQ Entry", prompt: "Help me write a clear FAQ entry. Ask what question customers are asking and what the answer should cover." },
-  { icon: Search, label: "Escalation Template", prompt: "Help me write an escalation note for a ticket that needs to be handed off to a specialist." },
+  { icon: Stethoscope, label: "Check Symptoms", prompt: "Help me think through my child's symptoms. Ask about age, symptoms, duration, temperature, hydration, breathing, and warning signs before giving general guidance. Tell me when urgent care or a licensed clinician is needed." },
+  { icon: CalendarPlus, label: "Plan Clinic Visit", prompt: "Help me plan a clinic visit for my child. Ask what the visit is for, preferred date, location or doctor, and what documents or notes I should bring. If I ask you to schedule a reminder, propose the task first." },
+  { icon: ShieldCheck, label: "Prepare HMO Docs", prompt: "Help me prepare HMO or financial assistance documents for my child's care. Ask what support I need, what documents I already have, and what deadlines apply." },
+  { icon: Pill, label: "Medicine Reminder", prompt: "Help me set up a medicine reminder. Ask for the medicine name, dose, timing, start date, and any instructions. Propose the task first and wait for my approval before adding it." },
+  { icon: ListChecks, label: "Review Tasks", prompt: "Review my upcoming Dampi tasks and help me prioritize what needs attention. If you suggest new tasks, propose them first and wait for my approval before adding them." },
 ];
 
 const CHAT_PLACEHOLDER = "Message Dampi…";
@@ -25,8 +33,10 @@ const SNAP_MAX = 0.92;   // expanded
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 const MARKDOWN_PLUGINS = [remarkGfm];
-const VALID_TASK_TAGS = new Set(["Billing", "Technical", "General", "Urgent", "Other"]);
+const VALID_TASK_TAGS = new Set(["Health", "Clinic", "Medicine", "Documents", "Urgent", "Other"]);
 const MAX_QUESTION_OPTIONS = 5;
+const MAX_AUTO_TITLE_WORDS = 5;
+const MAX_AUTO_TITLE_LENGTH = 48;
 
 function parseDateKey(key) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
@@ -186,6 +196,23 @@ function normalizeTaskActions(rawActions = {}) {
   return { createTasks, askQuestions };
 }
 
+function formatTaskDateForUi(dateKey) {
+  const parsed = parseDateKey(dateKey);
+  return parsed ? formatDateForPrompt(parsed.date) : dateKey;
+}
+
+function formatTaskCount(count) {
+  return `${count} task${count === 1 ? "" : "s"}`;
+}
+
+function formatTaskSummaryForText(task) {
+  const parts = [formatTaskDateForUi(task.date)];
+  if (task.time) parts.push(task.time);
+  if (task.tag) parts.push(task.tag);
+
+  return `- ${task.title} (${parts.join(", ")})${task.desc ? `: ${task.desc}` : ""}`;
+}
+
 /** Ask Gemini to generate a short title for the conversation */
 async function generateTitle(messages) {
   try {
@@ -202,11 +229,48 @@ async function generateTitle(messages) {
   }
 }
 
+function truncateTitle(text) {
+  if (!text) return "New Chat";
+  if (text.length <= MAX_AUTO_TITLE_LENGTH) return text;
+  return `${text.slice(0, MAX_AUTO_TITLE_LENGTH - 1).trimEnd()}…`;
+}
+
+function generateFallbackTitle(userMessage, attachments = []) {
+  const normalizedMessage = typeof userMessage === "string"
+    ? userMessage
+        .replace(/\s+/g, " ")
+        .replace(/[*_`>#\[\]()]/g, " ")
+        .trim()
+    : "";
+
+  if (normalizedMessage) {
+    const words = normalizedMessage.split(" ").filter(Boolean).slice(0, MAX_AUTO_TITLE_WORDS);
+    if (words.length > 0) {
+      return truncateTitle(words.join(" "));
+    }
+  }
+
+  if (attachments.length > 0) {
+    const firstAttachmentName = attachments[0]?.name
+      ?.replace(/\.[^/.]+$/, "")
+      .replace(/[-_]+/g, " ")
+      .trim();
+
+    if (firstAttachmentName) {
+      return truncateTitle(firstAttachmentName);
+    }
+
+    return attachments.length === 1 ? "Attached file" : `${attachments.length} attachments`;
+  }
+
+  return "New Chat";
+}
+
 export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const nextChatIdRef = useRef(1);
   const nextMessageIdRef = useRef(1);
 
-  const createChat = () => ({ id: nextChatIdRef.current++, title: "New Chat", messages: [] });
+  const createChat = () => createLocalChat(nextChatIdRef.current++);
   const createMessageId = (prefix = "msg") => `${prefix}-${nextMessageIdRef.current++}`;
 
   const initialChatRef = useRef(null);
@@ -226,7 +290,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [questionDrafts, setQuestionDrafts] = useState({});
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const fileInputRef = useRef(null);
+  const activeStreamRef = useRef(null);
 
   /* derived */
   const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
@@ -247,16 +314,66 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     );
   };
 
-  const setChatTitle = (id, title) => {
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+  const setChatTitle = (id, title, { persist = true } = {}) => {
+    const normalizedTitle = title?.trim() || "New Chat";
+    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: normalizedTitle } : c)));
+    if (persist) {
+      updateAiChatConversationTitle(id, normalizedTitle).catch((error) => {
+        console.error(error);
+        setHistoryError(error.message || "Unable to save chat title.");
+      });
+    }
   };
 
   const sendQuestionReply = (questionKey) => {
     const reply = (questionDrafts[questionKey] || "").trim();
-    if (!reply || loading) return;
+    if (!reply || loading || historyLoading) return;
 
     setQuestionDrafts((prev) => ({ ...prev, [questionKey]: "" }));
     send(reply);
+  };
+
+  const approveProposedTasks = async (messageId, proposedTasks = [], chatId = activeChatId) => {
+    if (loading || historyLoading || typeof setTasks !== "function" || proposedTasks.length === 0) return;
+
+    setTasks((prev) => {
+      const next = { ...prev };
+
+      proposedTasks.forEach((task) => {
+        next[task.date] = [
+          ...(Array.isArray(next[task.date]) ? next[task.date] : []),
+          {
+            id: task.id,
+            title: task.title,
+            time: task.time,
+            desc: task.desc,
+            tag: task.tag,
+          },
+        ];
+      });
+
+      return next;
+    });
+
+    setMessages((prev) => prev.map((message) => (
+      message.id === messageId
+        ? { ...message, taskApprovalStatus: "approved" }
+        : message
+    )), chatId);
+
+    const confirmationEntry = {
+      id: createMessageId("assistant-task-confirmed"),
+      role: "assistant",
+      text: `Added ${formatTaskCount(proposedTasks.length)} to your calendar.`,
+    };
+    let savedConfirmationEntry = null;
+    try {
+      savedConfirmationEntry = await appendAiChatMessage(chatId, confirmationEntry);
+    } catch (error) {
+      console.error(error);
+      setHistoryError(error.message || "Task added, but the confirmation could not be saved.");
+    }
+    setMessages((prev) => [...prev, savedConfirmationEntry || confirmationEntry], chatId);
   };
 
   /* drag state */
@@ -270,6 +387,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
   const requestClose = useCallback(() => {
     if (isClosing) return;
+    activeStreamRef.current?.abortController?.abort();
     clearTimeout(closeTimerRef.current);
     setIsClosing(true);
     closeTimerRef.current = setTimeout(() => {
@@ -287,6 +405,38 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       setIsClosing(false);
       setSheetHeight(SNAP_MID);
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let active = true;
+
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+      setHistoryError("");
+
+      try {
+        const persistedChats = await loadAiChatConversations();
+        if (!active) return;
+
+        const nextChats = persistedChats.length > 0 ? persistedChats : [createChat()];
+        setChats(nextChats);
+        setActiveChatId(nextChats[0].id);
+      } catch (error) {
+        if (!active) return;
+        console.error(error);
+        setHistoryError(error.message || "Unable to load saved chats.");
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+
+    return () => {
+      active = false;
+    };
   }, [isOpen]);
 
   useEffect(() => () => clearTimeout(closeTimerRef.current), []);
@@ -383,9 +533,16 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     setAttachments((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const stopActiveGeneration = useCallback((reason = "stop") => {
+    if (!activeStreamRef.current) return false;
+    activeStreamRef.current.reason = reason;
+    activeStreamRef.current.abortController.abort();
+    return true;
+  }, []);
+
   /* ---- chat logic ---- */
   const send = async (text) => {
-    if (loading) return;
+    if (loading || historyLoading) return;
 
     const userMessage = text || input.trim();
     if (!userMessage && attachments.length === 0) return;
@@ -394,9 +551,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     const currentAttachments = [...attachments];
     setAttachments([]);
     const requestText = userMessage || "Describe the attached file(s).";
-    const chatIdAtSend = activeChatId;
-    const chatAtSend = chats.find((c) => c.id === chatIdAtSend);
-    const userEntry = {
+    const originalChatIdAtSend = activeChatId;
+    const chatAtSend = chats.find((c) => c.id === originalChatIdAtSend);
+    const draftUserEntry = {
       id: createMessageId("user"),
       role: "user",
       text: userMessage || `📎 ${currentAttachments.map((a) => a.name).join(", ")}`,
@@ -409,19 +566,57 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       text: "",
       pending: true,
     };
-
-    // Build history including the new user message for the API call
-    // (React state `messages` is stale inside this closure)
-    const historyForApi = [...(chatAtSend?.messages || []), userEntry];
-
-    setMessages((prev) => [...prev, userEntry, pendingEntry], chatIdAtSend);
+    const shouldSeedTitle = (chatAtSend?.title || "New Chat") === "New Chat" && (chatAtSend?.messages?.length || 0) === 0;
+    const seededTitle = shouldSeedTitle ? generateFallbackTitle(requestText, currentAttachments) : null;
+    let durableChatId = originalChatIdAtSend;
     setLoading(true);
     if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
 
     try {
-      const response = await callDampiChat(historyForApi, requestText, {
+      const persistedChat = await ensureAiChatConversation(chatAtSend);
+      const chatIdAtSend = persistedChat.id;
+      durableChatId = chatIdAtSend;
+      const abortController = new AbortController();
+      activeStreamRef.current = {
+        abortController,
+        chatId: chatIdAtSend,
+        pendingId,
+        reason: "stream",
+      };
+      if (chatIdAtSend !== originalChatIdAtSend) {
+        setChats((prev) => prev.map((chat) => (
+          chat.id === originalChatIdAtSend
+            ? { ...chat, id: chatIdAtSend, title: persistedChat.title }
+            : chat
+        )));
+        setActiveChatId(chatIdAtSend);
+      }
+      if (seededTitle) {
+        setChatTitle(chatIdAtSend, seededTitle);
+      }
+
+      const savedUserEntry = await appendAiChatMessage(chatIdAtSend, draftUserEntry);
+      const visibleUserEntry = savedUserEntry || draftUserEntry;
+
+      // Build history including the new user message for the API call
+      // (React state `messages` is stale inside this closure)
+      const historyForApi = [...(chatAtSend?.messages || []), visibleUserEntry];
+
+      setMessages((prev) => [...prev, visibleUserEntry, pendingEntry], chatIdAtSend);
+
+      const response = await streamDampiChat(historyForApi, requestText, {
         attachments: currentAttachments,
         systemPrompt: chatSystemPrompt,
+        signal: abortController.signal,
+        onEvent: (event) => {
+          if (event.type !== "text" || !event.text) return;
+
+          setMessages((prev) => prev.map((message) => (
+            message.id === pendingId
+              ? { ...message, text: `${message.text || ""}${event.text}` }
+              : message
+          )), chatIdAtSend);
+        },
       });
 
       const responseText = typeof response === "string" ? response : response?.text;
@@ -431,41 +626,34 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const visibleText = responseText || "";
       const createTasks = structuredActions ? structuredActions.createTasks : [];
       const askQuestions = structuredActions ? structuredActions.askQuestions : [];
-      const tasksToCreate = typeof setTasks === "function" ? createTasks : [];
-
-      if (tasksToCreate.length > 0) {
-        setTasks((prev) => {
-          const next = { ...prev };
-
-          tasksToCreate.forEach((task) => {
-            next[task.date] = [
-              ...(Array.isArray(next[task.date]) ? next[task.date] : []),
-              {
-                id: task.id,
-                title: task.title,
-                time: task.time,
-                desc: task.desc,
-                tag: task.tag,
-              },
-            ];
-          });
-
-          return next;
-        });
-      }
-
-      const taskCreatedLine = tasksToCreate.length > 0
-        ? `\n\n✅ Added ${tasksToCreate.length} task${tasksToCreate.length === 1 ? "" : "s"} to your calendar.`
+      const proposedTasks = typeof setTasks === "function" ? createTasks : [];
+      const taskApprovalLine = proposedTasks.length > 0
+        ? `\n\nProposed ${formatTaskCount(proposedTasks.length)}:\n${proposedTasks.map(formatTaskSummaryForText).join("\n")}\n\nApprove before I add ${proposedTasks.length === 1 ? "it" : "them"} to your calendar.`
         : "";
       const fallbackText = askQuestions.length > 0
         ? "I need a couple of quick details before I add that task."
         : "Done.";
-      const assistantText = `${visibleText || ""}${taskCreatedLine}`.trim() || fallbackText;
+      const assistantText = `${visibleText || ""}${taskApprovalLine}`.trim() || fallbackText;
+      const assistantEntry = {
+        id: pendingId,
+        role: "assistant",
+        text: assistantText,
+        questions: askQuestions,
+        proposedTasks,
+        taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
+      };
+      const savedAssistantEntry = await appendAiChatMessage(chatIdAtSend, assistantEntry);
+      const visibleAssistantEntry = {
+        ...(savedAssistantEntry || assistantEntry),
+        pending: false,
+        proposedTasks,
+        taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
+      };
 
       setMessages((prev) => {
         const updated = prev.map((message) => (
           message.id === pendingId
-            ? { ...message, role: "assistant", text: assistantText, questions: askQuestions, pending: false }
+            ? visibleAssistantEntry
             : message
         ));
         return updated;
@@ -476,6 +664,28 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         generateTitle(messagesForTitle).then((t) => setChatTitle(chatIdAtSend, t));
       }
     } catch (err) {
+      if (err?.name === "AbortError") {
+        const abortMeta = activeStreamRef.current;
+        const wasDeleted = abortMeta?.reason === "delete";
+
+        if (!wasDeleted) {
+          setMessages((prev) => prev.flatMap((message) => {
+            if (message.id !== pendingId) return [message];
+
+            const partialText = typeof message.text === "string" ? message.text.trim() : "";
+            if (!partialText) return [];
+
+            return [{
+              ...message,
+              text: partialText,
+              pending: false,
+            }];
+          }), durableChatId);
+        }
+
+        return;
+      }
+
       console.error(err);
       let errorMsg = err.message || "Failed to connect";
       
@@ -486,12 +696,30 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         errorMsg = "API Error: Check console. Backend proxy may not have valid API key.";
       }
       
-      setMessages((prev) => prev.map((message) => (
-        message.id === pendingId
-          ? { ...message, role: "assistant", text: `Error: ${errorMsg}`, pending: false }
-          : message
-      )), chatIdAtSend);
+      setMessages((prev) => {
+        if (!prev.some((message) => message.id === pendingId)) {
+          return [
+            ...prev,
+            draftUserEntry,
+            {
+              id: pendingId,
+              role: "assistant",
+              text: `Error: ${errorMsg}`,
+              pending: false,
+            },
+          ];
+        }
+
+        return prev.map((message) => (
+          message.id === pendingId
+            ? { ...message, role: "assistant", text: `Error: ${errorMsg}`, pending: false }
+            : message
+        ));
+      }, durableChatId);
     } finally {
+      if (activeStreamRef.current?.pendingId === pendingId) {
+        activeStreamRef.current = null;
+      }
       setLoading(false);
     }
   };
@@ -515,6 +743,15 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   };
 
   const deleteChat = (id) => {
+    if (activeStreamRef.current?.chatId === id) {
+      stopActiveGeneration("delete");
+    }
+
+    deleteAiChatConversation(id).catch((error) => {
+      console.error(error);
+      setHistoryError(error.message || "Unable to delete saved chat.");
+    });
+
     setChats((prev) => {
       const remaining = prev.filter((c) => c.id !== id);
       if (remaining.length === 0) {
@@ -526,7 +763,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   };
 
   const handleSuggestion = (label) => {
-    if (loading) return;
+    if (loading || historyLoading) return;
     const suggestion = SUGGESTIONS.find((item) => item.label === label);
     send(suggestion?.prompt || label);
   };
@@ -554,8 +791,13 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
             onMouseDown={onDragStart}
             onTouchStart={onDragStart}
           >
-            <div className="chat-sheet-notch">
-              <div className="chat-sheet-pill" />
+            <div className="chat-header-title-stack">
+              <div className="chat-sheet-notch">
+                <div className="chat-sheet-pill" />
+              </div>
+              <div className="chat-header-active-title">
+                {activeChat?.title || "New Chat"}
+              </div>
             </div>
           </div>
           <button className="chat-header-btn" onClick={requestClose} aria-label="Close chat">
@@ -568,7 +810,6 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
           <div className="chat-history-panel">
             <div className="chat-history-top">
               <div>
-                <span className="chat-history-eyebrow">Conversations</span>
                 <span className="chat-history-title">Your Chats</span>
               </div>
               <button className="chat-history-new-btn" onClick={handleNewChat} title="New chat">
@@ -576,6 +817,12 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               </button>
             </div>
             <div className="chat-history-list">
+              {historyLoading && (
+                <div className="chat-history-empty">Loading saved chats...</div>
+              )}
+              {historyError && (
+                <div className="chat-history-empty">{historyError}</div>
+              )}
               {chats.map((c) => (
                 <div
                   key={c.id}
@@ -663,7 +910,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                     ))}
                   </div>
                 )}
-                {msg.pending ? <Loader2 size={18} className="spin" /> : (
+                {msg.pending && !msg.text ? <Loader2 size={18} className="spin" /> : (
                   <>
                     <div className="chat-markdown">
                       <ReactMarkdown
@@ -675,6 +922,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                         {msg.text || ""}
                       </ReactMarkdown>
                     </div>
+                    {msg.pending && <Loader2 size={14} className="spin" />}
                     {Array.isArray(msg.questions) && msg.questions.length > 0 && (
                       <div className="chat-ai-questions">
                         {msg.questions.map((question, qIdx) => {
@@ -691,9 +939,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                       key={`${questionId}-option-${optIdx}`}
                                       type="button"
                                       className="chat-ai-option-btn"
-                                      disabled={loading}
+                                      disabled={loading || historyLoading}
                                       onClick={() => {
-                                        if (!loading) send(option);
+                                        if (!loading && !historyLoading) send(option);
                                       }}
                                     >
                                       {option}
@@ -708,7 +956,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                     className="chat-ai-input"
                                     placeholder={question.inputPlaceholder || "Type your answer..."}
                                     value={questionDrafts[questionReplyKey] || ""}
-                                    disabled={loading}
+                                    disabled={loading || historyLoading}
                                     onChange={(e) => {
                                       const nextValue = e.target.value;
                                       setQuestionDrafts((prev) => ({ ...prev, [questionReplyKey]: nextValue }));
@@ -723,7 +971,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                   <button
                                     type="button"
                                     className="chat-ai-send-btn"
-                                    disabled={loading || !(questionDrafts[questionReplyKey] || "").trim()}
+                                    disabled={loading || historyLoading || !(questionDrafts[questionReplyKey] || "").trim()}
                                     onClick={() => sendQuestionReply(questionReplyKey)}
                                   >
                                     <Send size={13} />
@@ -733,6 +981,37 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                    {Array.isArray(msg.proposedTasks) && msg.proposedTasks.length > 0 && (
+                      <div className="chat-task-approval">
+                        <div className="chat-task-approval-title">Proposed calendar tasks</div>
+                        <div className="chat-task-approval-list">
+                          {msg.proposedTasks.map((task) => (
+                            <div className="chat-task-approval-item" key={task.id}>
+                              <div className="chat-task-approval-item-title">{task.title}</div>
+                              <div className="chat-task-approval-item-meta">
+                                <span>{formatTaskDateForUi(task.date)}</span>
+                                {task.time && <span>{task.time}</span>}
+                                {task.tag && <span>{task.tag}</span>}
+                              </div>
+                              {task.desc && <div className="chat-task-approval-item-desc">{task.desc}</div>}
+                            </div>
+                          ))}
+                        </div>
+                        {/* TODO: Persist proposedTasks on ai_chat_messages so approvals can survive refresh/history reload. */}
+                        {msg.taskApprovalStatus === "approved" ? (
+                          <div className="chat-task-approval-status">Added to your calendar.</div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="chat-task-approval-btn"
+                            disabled={loading || historyLoading || typeof setTasks !== "function"}
+                            onClick={() => approveProposedTasks(msg.id, msg.proposedTasks, activeChatId)}
+                          >
+                            Add {formatTaskCount(msg.proposedTasks.length)}
+                          </button>
+                        )}
                       </div>
                     )}
                   </>
@@ -754,7 +1033,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         <div className="chat-suggestions">
           <div className="chat-suggestion-chips" style={{ background: 'transparent' }}>
             {visibleSuggestions.map(({ icon: Icon, label }, i) => (
-              <button key={i} className="chat-suggestion-chip" onClick={() => handleSuggestion(label)} disabled={loading}>
+              <button key={i} className="chat-suggestion-chip" onClick={() => handleSuggestion(label)} disabled={loading || historyLoading}>
                 <Icon size={13} className="chat-suggestion-chip-icon" />
                 <span>{label}</span>
               </button>
@@ -799,15 +1078,21 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               placeholder={CHAT_PLACEHOLDER}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && send()}
-              disabled={loading}
+              onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && send()}
+              disabled={loading || historyLoading}
             />
             <button
               className="chat-send-btn"
-              onClick={() => send()}
-              disabled={loading || (!input.trim() && attachments.length === 0)}
+              onClick={() => {
+                if (loading) {
+                  stopActiveGeneration("stop");
+                  return;
+                }
+                send();
+              }}
+              disabled={historyLoading || (!loading && !input.trim() && attachments.length === 0)}
             >
-              {loading ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
+              {loading ? <Square size={18} /> : <Send size={18} />}
             </button>
           </div>
           <input

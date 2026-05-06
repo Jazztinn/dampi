@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { callAiChat } from '../client/chatApi.js';
+import { streamAiChat } from '../client/chatApi.js';
 import { CHAT_SYSTEM_PROMPT } from '../config/prompts.js';
 import '../styles/chat-ui.css';
 
@@ -74,26 +74,41 @@ export default function ChatModal({
       { attachments: currentAttachments }
     );
     const historyForApi = [...messages, userMessage];
+    const assistantMessage = createMessage('assistant', '');
 
-    setMessages((current) => [...current, userMessage]);
+    setMessages((current) => [...current, userMessage, assistantMessage]);
     setInput('');
     setAttachments([]);
     setLoading(true);
 
     try {
-      const response = await callAiChat(historyForApi, text || 'Describe the attached file(s).', {
+      const response = await streamAiChat(historyForApi, text || 'Describe the attached file(s).', {
         mode: 'auto',
         attachments: currentAttachments,
         systemPrompt,
+        onEvent: (event) => {
+          if (event.type !== 'text' || !event.text) return;
+
+          setMessages((current) => current.map((message) => (
+            message.id === assistantMessage.id
+              ? { ...message, text: `${message.text || ''}${event.text}` }
+              : message
+          )));
+        },
       });
       const reply = typeof response === 'string' ? response : response?.text;
 
-      setMessages((current) => [...current, createMessage('assistant', reply || 'Done.')]);
+      setMessages((current) => current.map((message) => (
+        message.id === assistantMessage.id
+          ? { ...message, text: reply || message.text || 'Done.' }
+          : message
+      )));
     } catch (error) {
-      setMessages((current) => [
-        ...current,
-        createMessage('assistant', `Sorry, I hit an error: ${error.message}`),
-      ]);
+      setMessages((current) => current.map((message) => (
+        message.id === assistantMessage.id
+          ? { ...message, text: `Sorry, I hit an error: ${error.message}` }
+          : message
+      )));
     } finally {
       setLoading(false);
     }
@@ -119,15 +134,9 @@ export default function ChatModal({
               className={`dampi-chat-message dampi-chat-message--${message.role}`}
             >
               <div className="dampi-chat-message__role">{message.role === 'assistant' ? 'AI' : 'You'}</div>
-              <div className="dampi-chat-message__text">{message.text}</div>
+              <div className="dampi-chat-message__text">{message.text || 'Thinking...'}</div>
             </div>
           ))}
-          {loading && (
-            <div className="dampi-chat-message dampi-chat-message--assistant">
-              <div className="dampi-chat-message__role">AI</div>
-              <div className="dampi-chat-message__text">Thinking...</div>
-            </div>
-          )}
         </div>
 
         {attachments.length > 0 && (

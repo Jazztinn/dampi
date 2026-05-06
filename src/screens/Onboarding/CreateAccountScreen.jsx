@@ -1,7 +1,7 @@
 import { Mail, Lock, ChevronRight, Phone, User } from 'lucide-react';
 import { useState } from 'react';
 
-export default function CreateAccountScreen({ data, onNext }) {
+export default function CreateAccountScreen({ data, onNext, isSubmitting = false, submitError = '' }) {
   const [formData, setFormData] = useState({
     fullName: data.fullName || '',
     phone: data.phone || '',
@@ -120,8 +120,10 @@ export default function CreateAccountScreen({ data, onNext }) {
           {errors.password && <span className="error-text">{errors.password}</span>}
         </div>
 
-        <button type="submit" className="onboarding-cta">
-          Continue
+        {submitError && <span className="error-text">{submitError}</span>}
+
+        <button type="submit" className="onboarding-cta" disabled={isSubmitting}>
+          {isSubmitting ? 'Checking...' : 'Continue'}
           <ChevronRight size={18} />
         </button>
       </form>

@@ -237,6 +237,95 @@ function normalizeStructuredChatResponse(rawText) {
   }
 }
 
+function extractCandidateText(data) {
+  return data?.candidates?.[0]?.content?.parts
+    ?.map((part) => (typeof part.text === 'string' ? part.text : ''))
+    .join('') || '';
+}
+
+function decodeJsonStringPrefix(value) {
+  let output = '';
+
+  for (let i = 0; i < value.length; i += 1) {
+    const char = value[i];
+
+    if (char === '"') {
+      break;
+    }
+
+    if (char !== '\\') {
+      output += char;
+      continue;
+    }
+
+    if (i + 1 >= value.length) {
+      break;
+    }
+
+    const escape = value[i + 1];
+    i += 1;
+
+    if (escape === '"' || escape === '\\' || escape === '/') {
+      output += escape;
+    } else if (escape === 'b') {
+      output += '\b';
+    } else if (escape === 'f') {
+      output += '\f';
+    } else if (escape === 'n') {
+      output += '\n';
+    } else if (escape === 'r') {
+      output += '\r';
+    } else if (escape === 't') {
+      output += '\t';
+    } else if (escape === 'u') {
+      const hex = value.slice(i + 1, i + 5);
+      if (/^[0-9a-fA-F]{4}$/.test(hex)) {
+        output += String.fromCharCode(parseInt(hex, 16));
+        i += 4;
+      } else {
+        break;
+      }
+    } else {
+      output += escape;
+    }
+  }
+
+  return output;
+}
+
+function extractMessagePrefix(rawText) {
+  const text = stripJsonFence(rawText);
+  const keyMatch = /"message"\s*:\s*"/.exec(text);
+
+  if (!keyMatch) {
+    return /^\s*[{[]/.test(text) ? '' : text;
+  }
+
+  return decodeJsonStringPrefix(text.slice(keyMatch.index + keyMatch[0].length));
+}
+
+function parseSseChunk(chunk, onData) {
+  const events = chunk.split(/\r?\n\r?\n/);
+  const remainder = events.pop() || '';
+
+  events.forEach((event) => {
+    const dataLines = event
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trimStart());
+
+    if (dataLines.length > 0) {
+      onData(dataLines.join('\n'));
+    }
+  });
+
+  return remainder;
+}
+
+function sendStreamEvent(res, event) {
+  res.write(`${JSON.stringify(event)}\n`);
+}
+
 async function callProviderModel(model, payload) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${PROVIDER_API_KEY}`;
   const controller = new AbortController();
@@ -259,7 +348,7 @@ async function callProviderModel(model, payload) {
       throw error;
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = extractCandidateText(data);
 
     if (!text) {
       const error = new Error('No text in response');
@@ -271,6 +360,97 @@ async function callProviderModel(model, payload) {
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+async function streamProviderModel(model, payload, res) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${PROVIDER_API_KEY}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      const message = data.error?.message || 'API error';
+      const error = new Error(message);
+      error.status = response.status;
+      error.isModelError = response.status === 404 || message.toLowerCase().includes('not found');
+      throw error;
+    }
+
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders?.();
+    }
+
+    let buffer = '';
+    let rawText = '';
+    let streamedMessage = '';
+    const decoder = new TextDecoder();
+
+    const handleData = (eventData) => {
+      if (eventData === '[DONE]') return;
+
+      const data = JSON.parse(eventData);
+      rawText += extractCandidateText(data);
+
+      const nextMessage = extractMessagePrefix(rawText);
+      if (nextMessage.length > streamedMessage.length) {
+        const delta = nextMessage.slice(streamedMessage.length);
+        streamedMessage = nextMessage;
+        sendStreamEvent(res, { type: 'text', text: delta });
+      }
+    };
+
+    for await (const chunk of response.body) {
+      buffer += decoder.decode(chunk, { stream: true });
+      buffer = parseSseChunk(buffer, handleData);
+    }
+
+    buffer += decoder.decode();
+    if (buffer.trim()) {
+      parseSseChunk(`${buffer}\n\n`, handleData);
+    }
+
+    sendStreamEvent(res, {
+      type: 'done',
+      data: {
+        ...normalizeStructuredChatResponse(rawText),
+        model,
+      },
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function streamModelWithFallback(payload, models, res) {
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      await streamProviderModel(model, payload, res);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (!error.isModelError || res.headersSent) {
+        throw error;
+      }
+
+      console.warn(`Model ${model} failed: ${error.message}`);
+    }
+  }
+
+  throw lastError || new Error('All configured models failed');
 }
 
 async function callModelWithFallback(payload, models) {
@@ -361,6 +541,71 @@ app.post('/api/chat', async (req, res) => {
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(error.status || 500).json({ error: error.message || 'Chat request failed' });
+  }
+});
+
+app.post('/api/chat/stream', async (req, res) => {
+  if (!PROVIDER_API_KEY) {
+    return res.status(500).json({ error: 'API key not configured on server' });
+  }
+
+  const {
+    messages = [],
+    userMessage = '',
+    attachments = [],
+    mode = 'default',
+    purpose = 'chat',
+    systemPrompt = '',
+  } = req.body || {};
+
+  if (purpose === 'title') {
+    return res.status(400).json({ error: 'Title requests do not support streaming' });
+  }
+
+  if (!Array.isArray(messages) || !Array.isArray(attachments)) {
+    return res.status(400).json({ error: 'Messages and attachments must be arrays' });
+  }
+
+  if (typeof userMessage !== 'string') {
+    return res.status(400).json({ error: 'User message must be a string' });
+  }
+
+  if (typeof systemPrompt !== 'string') {
+    return res.status(400).json({ error: 'System prompt must be a string' });
+  }
+
+  if (!userMessage.trim() && attachments.length === 0) {
+    return res.status(400).json({ error: 'Missing user message or attachments' });
+  }
+
+  try {
+    const normalizedMode = normalizeMode(mode);
+    const normalizedSystemPrompt = normalizeSystemPrompt(systemPrompt);
+    const contents = buildContents(messages, userMessage, attachments);
+
+    if (!contents.length) {
+      return res.status(400).json({ error: 'No valid chat content was provided' });
+    }
+
+    const models = getModelsForMode(normalizedMode, userMessage, 'chat');
+    const generationConfig = getGenerationConfig(normalizedMode, userMessage, 'chat');
+    const payload = { contents, generationConfig };
+
+    if (normalizedSystemPrompt) {
+      payload.systemInstruction = { parts: [{ text: normalizedSystemPrompt }] };
+    }
+
+    await streamModelWithFallback(payload, models, res);
+    res.end();
+  } catch (error) {
+    console.error('Proxy stream error:', error);
+
+    if (res.headersSent) {
+      sendStreamEvent(res, { type: 'error', error: error.message || 'Chat request failed' });
+      return res.end();
+    }
+
+    return res.status(error.status || 500).json({ error: error.message || 'Chat request failed' });
   }
 });
 

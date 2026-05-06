@@ -7,3 +7,4 @@ ai/server/.env.local
 supabase/.branches
 supabase/.temp
 dist/
+.DS_Store

@@ -551,28 +551,21 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         className={`chat-sheet ${isDragging ? "dragging" : ""} ${isClosing ? "closing" : ""}`}
         style={{ height: `${sheetHeight * 100}%` }}
       >
-        {/* Drag handle */}
-        <div
-          className="chat-sheet-handle"
-          onMouseDown={onDragStart}
-          onTouchStart={onDragStart}
-        >
-          <div className="chat-sheet-pill" />
-        </div>
-
+        <div className="chat-sheet-body">
         {/* Header */}
         <div className="chat-modal-header">
           <button className="chat-header-btn" onClick={() => setShowHistory((v) => !v)} aria-label={showHistory ? "Close chat history" : "Open chat history"}>
             <Menu size={20} />
           </button>
-          <div className="chat-header-title">
-            <span className="chat-header-logo-wrap">
-              <img src={dampiIcon} alt="Dampi" className="chat-header-logo" />
-            </span>
-            <span className="chat-header-copy">
-              <span className="chat-header-eyebrow">Care Assistant</span>
-              <span className="chat-header-name">Dampi</span>
-            </span>
+          <div
+            className="chat-header-title"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'grab' }}
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
+          >
+            <div className="chat-sheet-notch">
+              <div className="chat-sheet-pill" />
+            </div>
           </div>
           <button className="chat-header-btn" onClick={requestClose} aria-label="Close chat">
             <X size={20} />
@@ -769,7 +762,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
         {/* Suggestions accordion */}
         <div className="chat-suggestions">
-          <div className="chat-suggestion-chips">
+          <div className="chat-suggestion-chips" style={{ background: 'transparent' }}>
             {visibleSuggestions.map(({ icon: Icon, label }, i) => (
               <button key={i} className="chat-suggestion-chip" onClick={() => handleSuggestion(label)} disabled={loading}>
                 <Icon size={13} className="chat-suggestion-chip-icon" />
@@ -841,6 +834,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         </div>
         </>
         )}
+        </div>
       </div>
     </div>
   );

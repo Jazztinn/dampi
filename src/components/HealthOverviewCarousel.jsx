@@ -16,28 +16,28 @@ const HealthOverviewCarousel = () => {
       Icon: Heart,
       label: 'Symptom Log',
       stat: '3 this week',
-      bgColor: '#a4c08a',
+      bgColor: 'rgba(164, 192, 138, 0.35)',
     },
     {
       id: 'growth',
       Icon: Activity,
       label: 'Growth Track',
       stat: '32.5 kg',
-      bgColor: '#b8d4d0',
+      bgColor: 'rgba(184, 212, 208, 0.35)',
     },
     {
       id: 'vaccines',
       Icon: Shield,
       label: 'Vaccines',
       stat: '2 upcoming',
-      bgColor: '#d4b9a0',
+      bgColor: 'rgba(212, 185, 160, 0.35)',
     },
     {
       id: 'medications',
       Icon: Pill,
       label: 'Medications',
       stat: '1 active',
-      bgColor: '#d9b5a8',
+      bgColor: 'rgba(217, 181, 168, 0.35)',
     },
   ];
 

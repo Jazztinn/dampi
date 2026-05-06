@@ -577,7 +577,6 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
           <div className="chat-history-panel">
             <div className="chat-history-top">
               <div>
-                <span className="chat-history-eyebrow">Conversations</span>
                 <span className="chat-history-title">Your Chats</span>
               </div>
               <button className="chat-history-new-btn" onClick={handleNewChat} title="New chat">

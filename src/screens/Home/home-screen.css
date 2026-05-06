@@ -49,11 +49,14 @@
 .home__progress-card {
   position: relative;
   z-index: 1;
-  background: #fff;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  border-radius: 20px;
   margin: 0 20px 24px;
   padding: 20px;
-  border: 1px solid rgba(77, 115, 108, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 24px rgba(54, 100, 90, 0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
 }
 
 .home__progress-row {

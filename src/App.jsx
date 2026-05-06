@@ -131,6 +131,14 @@ export default function App() {
     setAccountError('');
   };
 
+  const handleProfileChange = (profile) => {
+    setAccount((current) => {
+      if (!current) return current;
+
+      return { ...current, profile: { ...current.profile, ...profile } };
+    });
+  };
+
   const handleSignOut = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
@@ -172,6 +180,7 @@ export default function App() {
           children={account.children}
           onOpenAi={() => setChatOpen(true)}
           onSignOut={handleSignOut}
+          onProfileChange={handleProfileChange}
         />
         <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
         {accountError && <div className="app-error">{accountError}</div>}

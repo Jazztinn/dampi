@@ -1,8 +1,4 @@
 import {
-  Stethoscope,
-  Activity,
-  Shield,
-  Pill,
   Clock,
   AlertTriangle,
   Droplets,
@@ -10,6 +6,7 @@ import {
   Wind,
 } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
+import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
 import './home-screen.css';
 
 const PROGRESS_PCT = 85;
@@ -21,13 +18,6 @@ const today = new Date().toLocaleDateString('en-US', {
   month: 'long',
   day: 'numeric',
 });
-
-const CATEGORIES = [
-  { id: 'symptoms', Icon: Stethoscope, label: 'Symptom Log', stat: '3 this week', variant: 'sage' },
-  { id: 'growth', Icon: Activity, label: 'Growth Track', stat: '32.5 kg', variant: 'teal' },
-  { id: 'vaccines', Icon: Shield, label: 'Vaccines', stat: '2 upcoming', variant: 'warm' },
-  { id: 'medications', Icon: Pill, label: 'Medications', stat: '1 active', variant: 'coral' },
-];
 
 const RECENT_LOGS = [
   { id: 1, child: 'Sofia', date: 'Yesterday, 2:30 PM', symptoms: ['Fever', 'Cough'], severity: 'moderate' },
@@ -95,26 +85,12 @@ export default function HomeScreen({ onNavigateToSymptoms }) {
         </div>
       </section>
 
-      {/* Category grid */}
-      <section className="home__section">
+      {/* Health Overview Carousel */}
+      <section className="home__section home__section--carousel">
         <div className="home__section-header">
           <h3 className="home__section-title">Health Overview</h3>
         </div>
-        <div className="home__categories">
-          {CATEGORIES.map(({ id, Icon, label, stat, variant }) => (
-            <button
-              key={id}
-              className={`home__cat-card home__cat-card--${variant}`}
-              onClick={id === 'symptoms' ? onNavigateToSymptoms : undefined}
-            >
-              <div className="home__cat-icon">
-                <Icon size={22} strokeWidth={1.8} />
-              </div>
-              <span className="home__cat-label">{label}</span>
-              <span className="home__cat-stat">{stat}</span>
-            </button>
-          ))}
-        </div>
+        <DashboardMetricsCarousel />
       </section>
 
       {/* Recent logs */}

@@ -402,3 +402,13 @@
   color: var(--dampi-text-muted);
   margin: 0;
 }
+
+/* ── Carousel section ── */
+.home__section--carousel {
+  padding: 0;
+  margin-bottom: 24px;
+}
+
+.home__section--carousel .home__section-header {
+  padding: 0 20px;
+}

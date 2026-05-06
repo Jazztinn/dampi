@@ -1,0 +1,115 @@
+.health-overview {
+  padding: 0 20px 24px;
+}
+
+.health-overview__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.health-overview__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dampi-text, #1a1a1a);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.health-overview__nav {
+  display: flex;
+  gap: 8px;
+}
+
+.health-overview__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  color: var(--dampi-text-muted, #666);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.health-overview__nav-btn:hover {
+  background-color: rgba(146, 187, 179, 0.1);
+  color: var(--dampi-text, #1a1a1a);
+}
+
+.health-overview__carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.health-overview__carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.health-overview__card {
+  flex: 0 0 192px;
+  border-radius: 16px;
+  padding: 16px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  height: 224px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  scroll-snap-align: center;
+  scroll-snap-stop: normal;
+}
+
+.health-overview__card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.health-overview__card-icon-bg {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.health-overview__card-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.health-overview__card-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.health-overview__card-stat {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  line-height: 1.4;
+  word-wrap: break-word;
+}

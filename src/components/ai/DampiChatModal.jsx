@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { X, Menu, ChevronDown, Plus, Loader2, Send, FileText, Search, LayoutGrid, XCircle, MessageSquare, Trash2, Pencil, Check, Square } from "lucide-react";
+import { X, Menu, ChevronDown, Plus, Loader2, Send, Stethoscope, CalendarPlus, ShieldCheck, Pill, ListChecks, XCircle, MessageSquare, Trash2, Pencil, Check, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
@@ -16,11 +16,11 @@ import { CHAT_SYSTEM_PROMPT, CHAT_STRUCTURED_RESPONSE_PROMPT, CHAT_CONTEXT_CONFI
 import "../../styles/dampi-chat.css";
 
 const SUGGESTIONS = [
-  { icon: FileText, label: "Draft a Reply", prompt: "Help me draft a professional reply to a customer inquiry. Ask what the issue is and what tone I should use." },
-  { icon: Search, label: "Find a Solution", prompt: "Help me find a solution to a customer's problem. Ask what the issue is and what I've already tried." },
-  { icon: LayoutGrid, label: "Summarize Ticket", prompt: "Summarize this support ticket into key issues, actions taken, and next steps." },
-  { icon: FileText, label: "Write FAQ Entry", prompt: "Help me write a clear FAQ entry. Ask what question customers are asking and what the answer should cover." },
-  { icon: Search, label: "Escalation Template", prompt: "Help me write an escalation note for a ticket that needs to be handed off to a specialist." },
+  { icon: Stethoscope, label: "Check Symptoms", prompt: "Help me think through my child's symptoms. Ask about age, symptoms, duration, temperature, hydration, breathing, and warning signs before giving general guidance. Tell me when urgent care or a licensed clinician is needed." },
+  { icon: CalendarPlus, label: "Plan Clinic Visit", prompt: "Help me plan a clinic visit for my child. Ask what the visit is for, preferred date, location or doctor, and what documents or notes I should bring. If I ask you to schedule a reminder, propose the task first." },
+  { icon: ShieldCheck, label: "Prepare HMO Docs", prompt: "Help me prepare HMO or financial assistance documents for my child's care. Ask what support I need, what documents I already have, and what deadlines apply." },
+  { icon: Pill, label: "Medicine Reminder", prompt: "Help me set up a medicine reminder. Ask for the medicine name, dose, timing, start date, and any instructions. Propose the task first and wait for my approval before adding it." },
+  { icon: ListChecks, label: "Review Tasks", prompt: "Review my upcoming Dampi tasks and help me prioritize what needs attention. If you suggest new tasks, propose them first and wait for my approval before adding them." },
 ];
 
 const CHAT_PLACEHOLDER = "Message Dampi…";
@@ -33,7 +33,7 @@ const SNAP_MAX = 0.92;   // expanded
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 const MARKDOWN_PLUGINS = [remarkGfm];
-const VALID_TASK_TAGS = new Set(["Billing", "Technical", "General", "Urgent", "Other"]);
+const VALID_TASK_TAGS = new Set(["Health", "Clinic", "Medicine", "Documents", "Urgent", "Other"]);
 const MAX_QUESTION_OPTIONS = 5;
 const MAX_AUTO_TITLE_WORDS = 5;
 const MAX_AUTO_TITLE_LENGTH = 48;
@@ -196,6 +196,23 @@ function normalizeTaskActions(rawActions = {}) {
   return { createTasks, askQuestions };
 }
 
+function formatTaskDateForUi(dateKey) {
+  const parsed = parseDateKey(dateKey);
+  return parsed ? formatDateForPrompt(parsed.date) : dateKey;
+}
+
+function formatTaskCount(count) {
+  return `${count} task${count === 1 ? "" : "s"}`;
+}
+
+function formatTaskSummaryForText(task) {
+  const parts = [formatTaskDateForUi(task.date)];
+  if (task.time) parts.push(task.time);
+  if (task.tag) parts.push(task.tag);
+
+  return `- ${task.title} (${parts.join(", ")})${task.desc ? `: ${task.desc}` : ""}`;
+}
+
 /** Ask Gemini to generate a short title for the conversation */
 async function generateTitle(messages) {
   try {
@@ -314,6 +331,49 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
     setQuestionDrafts((prev) => ({ ...prev, [questionKey]: "" }));
     send(reply);
+  };
+
+  const approveProposedTasks = async (messageId, proposedTasks = [], chatId = activeChatId) => {
+    if (loading || historyLoading || typeof setTasks !== "function" || proposedTasks.length === 0) return;
+
+    setTasks((prev) => {
+      const next = { ...prev };
+
+      proposedTasks.forEach((task) => {
+        next[task.date] = [
+          ...(Array.isArray(next[task.date]) ? next[task.date] : []),
+          {
+            id: task.id,
+            title: task.title,
+            time: task.time,
+            desc: task.desc,
+            tag: task.tag,
+          },
+        ];
+      });
+
+      return next;
+    });
+
+    setMessages((prev) => prev.map((message) => (
+      message.id === messageId
+        ? { ...message, taskApprovalStatus: "approved" }
+        : message
+    )), chatId);
+
+    const confirmationEntry = {
+      id: createMessageId("assistant-task-confirmed"),
+      role: "assistant",
+      text: `Added ${formatTaskCount(proposedTasks.length)} to your calendar.`,
+    };
+    let savedConfirmationEntry = null;
+    try {
+      savedConfirmationEntry = await appendAiChatMessage(chatId, confirmationEntry);
+    } catch (error) {
+      console.error(error);
+      setHistoryError(error.message || "Task added, but the confirmation could not be saved.");
+    }
+    setMessages((prev) => [...prev, savedConfirmationEntry || confirmationEntry], chatId);
   };
 
   /* drag state */
@@ -566,48 +626,34 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const visibleText = responseText || "";
       const createTasks = structuredActions ? structuredActions.createTasks : [];
       const askQuestions = structuredActions ? structuredActions.askQuestions : [];
-      const tasksToCreate = typeof setTasks === "function" ? createTasks : [];
-
-      if (tasksToCreate.length > 0) {
-        setTasks((prev) => {
-          const next = { ...prev };
-
-          tasksToCreate.forEach((task) => {
-            next[task.date] = [
-              ...(Array.isArray(next[task.date]) ? next[task.date] : []),
-              {
-                id: task.id,
-                title: task.title,
-                time: task.time,
-                desc: task.desc,
-                tag: task.tag,
-              },
-            ];
-          });
-
-          return next;
-        });
-      }
-
-      const taskCreatedLine = tasksToCreate.length > 0
-        ? `\n\n✅ Added ${tasksToCreate.length} task${tasksToCreate.length === 1 ? "" : "s"} to your calendar.`
+      const proposedTasks = typeof setTasks === "function" ? createTasks : [];
+      const taskApprovalLine = proposedTasks.length > 0
+        ? `\n\nProposed ${formatTaskCount(proposedTasks.length)}:\n${proposedTasks.map(formatTaskSummaryForText).join("\n")}\n\nApprove before I add ${proposedTasks.length === 1 ? "it" : "them"} to your calendar.`
         : "";
       const fallbackText = askQuestions.length > 0
         ? "I need a couple of quick details before I add that task."
         : "Done.";
-      const assistantText = `${visibleText || ""}${taskCreatedLine}`.trim() || fallbackText;
+      const assistantText = `${visibleText || ""}${taskApprovalLine}`.trim() || fallbackText;
       const assistantEntry = {
         id: pendingId,
         role: "assistant",
         text: assistantText,
         questions: askQuestions,
+        proposedTasks,
+        taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
       };
       const savedAssistantEntry = await appendAiChatMessage(chatIdAtSend, assistantEntry);
+      const visibleAssistantEntry = {
+        ...(savedAssistantEntry || assistantEntry),
+        pending: false,
+        proposedTasks,
+        taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
+      };
 
       setMessages((prev) => {
         const updated = prev.map((message) => (
           message.id === pendingId
-            ? { ...(savedAssistantEntry || assistantEntry), pending: false }
+            ? visibleAssistantEntry
             : message
         ));
         return updated;
@@ -935,6 +981,37 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                    {Array.isArray(msg.proposedTasks) && msg.proposedTasks.length > 0 && (
+                      <div className="chat-task-approval">
+                        <div className="chat-task-approval-title">Proposed calendar tasks</div>
+                        <div className="chat-task-approval-list">
+                          {msg.proposedTasks.map((task) => (
+                            <div className="chat-task-approval-item" key={task.id}>
+                              <div className="chat-task-approval-item-title">{task.title}</div>
+                              <div className="chat-task-approval-item-meta">
+                                <span>{formatTaskDateForUi(task.date)}</span>
+                                {task.time && <span>{task.time}</span>}
+                                {task.tag && <span>{task.tag}</span>}
+                              </div>
+                              {task.desc && <div className="chat-task-approval-item-desc">{task.desc}</div>}
+                            </div>
+                          ))}
+                        </div>
+                        {/* TODO: Persist proposedTasks on ai_chat_messages so approvals can survive refresh/history reload. */}
+                        {msg.taskApprovalStatus === "approved" ? (
+                          <div className="chat-task-approval-status">Added to your calendar.</div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="chat-task-approval-btn"
+                            disabled={loading || historyLoading || typeof setTasks !== "function"}
+                            onClick={() => approveProposedTasks(msg.id, msg.proposedTasks, activeChatId)}
+                          >
+                            Add {formatTaskCount(msg.proposedTasks.length)}
+                          </button>
+                        )}
                       </div>
                     )}
                   </>

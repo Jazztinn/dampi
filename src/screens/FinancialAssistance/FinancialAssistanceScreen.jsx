@@ -1,97 +1,175 @@
+import {
+  Calendar,
+  ChevronRight,
+  FileCheck,
+  FileText,
+  HandCoins,
+  MapPin,
+  Phone,
+  UserCircle,
+} from 'lucide-react';
 import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
-
-const INFO_ROWS = [
-  {
-    id: 1,
-    Icon: Phone,
-    label: 'Contact',
-    value: '+63 XXX XXX XXXX',
-  },
-  {
-    id: 2,
-    Icon: MapPin,
-    label: 'Address',
-    value: 'Lorem Ipsum St., Dolor, Manila',
-  },
-  {
-    id: 3,
-    Icon: Calendar,
-    label: 'Member Since',
-    value: 'January 2024',
-  },
-];
 
 const ACTIONS = [
   {
     id: 1,
     iconClass: 'sage',
-    Icon: FileText,
+    Icon: HandCoins,
     title: 'Financial Assistance',
-    desc: 'Lorem ipsum dolor sit amet consectetur adipiscing',
+    desc: 'Check subsidy options and required documents.',
   },
   {
     id: 2,
     iconClass: 'warm',
     Icon: FileText,
     title: 'Document Requests',
-    desc: 'Ut enim ad minim veniam quis nostrud exercitation',
+    desc: 'Prepare certificates, receipts, and clinic forms.',
+  },
+  {
+    id: 3,
+    iconClass: 'blue',
+    Icon: FileCheck,
+    title: 'Claim Readiness',
+    desc: 'Review what is missing before filing.',
   },
 ];
 
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'DP';
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join('');
+}
+
+function formatMemberSince(value) {
+  if (!value) return 'Recently joined';
+  return new Date(value).toLocaleDateString('en-PH', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function getAgeLabel(dateOfBirth) {
+  if (!dateOfBirth) return 'Age not set';
+
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let years = today.getFullYear() - birthDate.getFullYear();
+  const monthDelta = today.getMonth() - birthDate.getMonth();
+
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) {
+    years -= 1;
+  }
+
+  if (Number.isNaN(years) || years < 0) return 'Age not set';
+  return years === 1 ? '1 year old' : `${years} years old`;
+}
+
+export default function FinancialAssistanceScreen({ profile, child }) {
+  const fullName = profile?.full_name || 'Dampi Parent';
+  const childName = child?.full_name || 'Child profile';
+  const patientId = profile?.id ? `DMPI-${profile.id.slice(0, 8).toUpperCase()}` : 'DMPI-PENDING';
+  const infoRows = [
+    {
+      id: 1,
+      Icon: Phone,
+      label: 'Contact',
+      value: profile?.phone || 'Not provided',
+    },
+    {
+      id: 2,
+      Icon: MapPin,
+      label: 'Preferred Clinic',
+      value: 'Not set yet',
+    },
+    {
+      id: 3,
+      Icon: Calendar,
+      label: 'Member Since',
+      value: formatMemberSince(profile?.created_at),
+    },
+  ];
+
+  return (
+    <div className="profile">
+      <div className="profile__statusbar" />
+
+      <header className="profile__header">
+        <div>
+          <p className="profile__eyebrow">Family profile</p>
+          <h1>My Profile</h1>
+          <p>Keep care contacts, coverage, and assistance steps ready.</p>
+        </div>
+        <button className="profile__icon-btn" aria-label="Profile settings">
+          <UserCircle size={20} />
+        </button>
+      </header>
 export default function FinancialAssistanceScreen({ onBack }) {
   return (
     <div className="profile">
       <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
 
-      {/* Avatar + identity */}
-      <div className="profile__identity">
+      <section className="profile__identity">
         <div className="profile__avatar">
-          <span className="profile__avatar-initials">JD</span>
+          <span>{getInitials(fullName)}</span>
         </div>
-        <div>
-          <p className="profile__name">Juan Dela Cruz</p>
-          <p className="profile__meta">
-            Lorem ipsum · Patient ID: DMPI-0001
-          </p>
+        <div className="profile__identity-copy">
+          <p className="profile__name">{fullName}</p>
+          <p className="profile__meta">Parent guardian · Patient ID: {patientId}</p>
         </div>
-      </div>
+        <span className="profile__status">Verified</span>
+      </section>
 
-      {/* Info rows */}
-      <p className="profile__section-title">Personal Information</p>
-      <div className="profile__info-list">
-        {INFO_ROWS.map(({ id, Icon, label, value }) => (
-          <div key={id} className="profile__info-row">
-            <div className="profile__info-icon">
-              <Icon size={16} strokeWidth={2} />
-            </div>
-            <div>
-              <p className="profile__info-label">{label}</p>
-              <p className="profile__info-value">{value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <section className="profile__summary-grid">
+        <article>
+          <p>Child</p>
+          <strong>{childName}</strong>
+          <span>{getAgeLabel(child?.date_of_birth)}</span>
+        </article>
+        <article>
+          <p>Coverage</p>
+          <strong>Active</strong>
+          <span>HMO + public aid</span>
+        </article>
+      </section>
 
-      {/* Action cards */}
-      <p className="profile__section-title">Assistance</p>
-      <div className="profile__actions">
-        {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
-          <button key={id} className="profile__action-card">
-            <div className={`profile__action-icon profile__action-icon--${iconClass}`}>
-              <Icon size={20} strokeWidth={2} />
-            </div>
-            <div className="profile__action-text">
-              <p className="profile__action-title">{title}</p>
-              <p className="profile__action-desc">{desc}</p>
-            </div>
-            <ChevronRight size={18} color="var(--dampi-text-muted)" strokeWidth={2} />
-          </button>
-        ))}
-      </div>
+      <section>
+        <p className="profile__section-title">Personal information</p>
+        <div className="profile__info-list">
+          {infoRows.map(({ id, Icon, label, value }) => (
+            <article key={id} className="profile__info-row">
+              <div className="profile__info-icon">
+                <Icon size={16} strokeWidth={2} />
+              </div>
+              <div>
+                <p className="profile__info-label">{label}</p>
+                <p className="profile__info-value">{value}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
-      <div style={{ height: '120px' }} />
+      <section>
+        <p className="profile__section-title">Assistance</p>
+        <div className="profile__actions">
+          {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
+            <button key={id} className="profile__action-card">
+              <div className={`profile__action-icon profile__action-icon--${iconClass}`}>
+                <Icon size={20} strokeWidth={2} />
+              </div>
+              <div className="profile__action-text">
+                <p className="profile__action-title">{title}</p>
+                <p className="profile__action-desc">{desc}</p>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" strokeWidth={2} />
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="profile__bottom-space" aria-hidden="true" />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { Users, Mail, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
-export default function InviteFamilyScreen({ data, onNext, onComplete }) {
+export default function InviteFamilyScreen({ data, onComplete, isSubmitting = false, submitError = '' }) {
   const [formData, setFormData] = useState({
     familyEmail: data.familyEmail || '',
   });
@@ -16,7 +16,7 @@ export default function InviteFamilyScreen({ data, onNext, onComplete }) {
     }
   };
 
-  const handleInvite = (e) => {
+  const handleInvite = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -31,16 +31,14 @@ export default function InviteFamilyScreen({ data, onNext, onComplete }) {
       return;
     }
 
-    if (formData.familyEmail) {
+    const completed = await onComplete(formData);
+    if (completed && formData.familyEmail) {
       setInvited(true);
-      setTimeout(() => {
-        onComplete(formData);
-      }, 1500);
     }
   };
 
-  const handleSkip = () => {
-    onComplete(formData);
+  const handleSkip = async () => {
+    await onComplete(formData);
   };
 
   return (
@@ -69,17 +67,19 @@ export default function InviteFamilyScreen({ data, onNext, onComplete }) {
                 value={formData.familyEmail}
                 onChange={handleChange}
                 className={errors.familyEmail ? 'error' : ''}
+                disabled={isSubmitting}
               />
             </div>
             {errors.familyEmail && <span className="error-text">{errors.familyEmail}</span>}
+            {submitError && <span className="error-text">{submitError}</span>}
           </div>
 
           <div className="onboarding-button-group">
-            <button type="submit" className="onboarding-cta">
-              Send Invite
+            <button type="submit" className="onboarding-cta" disabled={isSubmitting}>
+              {isSubmitting ? 'Finishing Setup...' : formData.familyEmail ? 'Save Invite' : 'Finish Setup'}
               <ChevronRight size={18} />
             </button>
-            <button type="button" onClick={handleSkip} className="onboarding-secondary">
+            <button type="button" onClick={handleSkip} className="onboarding-secondary" disabled={isSubmitting}>
               Skip for Now
             </button>
           </div>
@@ -87,8 +87,9 @@ export default function InviteFamilyScreen({ data, onNext, onComplete }) {
       ) : (
         <div className="success-state">
           <div className="success-icon">✓</div>
-          <h3>Invitation Sent!</h3>
-          <p>They'll receive an invite to join Dampi and help track your child's health.</p>
+          <h3>Invite Saved</h3>
+          <p>We'll keep this caregiver invitation pending until invite sending is ready.</p>
+          {submitError && <span className="error-text">{submitError}</span>}
         </div>
       )}
     </div>

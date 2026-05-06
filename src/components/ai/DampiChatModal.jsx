@@ -4,6 +4,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
 import { callDampiChat, streamDampiChat } from "../../services/ai/dampiApi.js";
+import {
+  appendAiChatMessage,
+  createLocalChat,
+  deleteAiChatConversation,
+  ensureAiChatConversation,
+  loadAiChatConversations,
+  updateAiChatConversationTitle,
+} from "../../services/ai/chatPersistence.js";
 import { CHAT_SYSTEM_PROMPT, CHAT_STRUCTURED_RESPONSE_PROMPT, CHAT_CONTEXT_CONFIG } from "../../constants/dampiAi.js";
 import "../../styles/dampi-chat.css";
 
@@ -206,7 +214,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const nextChatIdRef = useRef(1);
   const nextMessageIdRef = useRef(1);
 
-  const createChat = () => ({ id: nextChatIdRef.current++, title: "New Chat", messages: [] });
+  const createChat = () => createLocalChat(nextChatIdRef.current++);
   const createMessageId = (prefix = "msg") => `${prefix}-${nextMessageIdRef.current++}`;
 
   const initialChatRef = useRef(null);
@@ -226,6 +234,8 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [questionDrafts, setQuestionDrafts] = useState({});
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
   const fileInputRef = useRef(null);
 
   /* derived */
@@ -247,13 +257,20 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     );
   };
 
-  const setChatTitle = (id, title) => {
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+  const setChatTitle = (id, title, { persist = true } = {}) => {
+    const normalizedTitle = title?.trim() || "New Chat";
+    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: normalizedTitle } : c)));
+    if (persist) {
+      updateAiChatConversationTitle(id, normalizedTitle).catch((error) => {
+        console.error(error);
+        setHistoryError(error.message || "Unable to save chat title.");
+      });
+    }
   };
 
   const sendQuestionReply = (questionKey) => {
     const reply = (questionDrafts[questionKey] || "").trim();
-    if (!reply || loading) return;
+    if (!reply || loading || historyLoading) return;
 
     setQuestionDrafts((prev) => ({ ...prev, [questionKey]: "" }));
     send(reply);
@@ -287,6 +304,38 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       setIsClosing(false);
       setSheetHeight(SNAP_MID);
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let active = true;
+
+    const loadHistory = async () => {
+      setHistoryLoading(true);
+      setHistoryError("");
+
+      try {
+        const persistedChats = await loadAiChatConversations();
+        if (!active) return;
+
+        const nextChats = persistedChats.length > 0 ? persistedChats : [createChat()];
+        setChats(nextChats);
+        setActiveChatId(nextChats[0].id);
+      } catch (error) {
+        if (!active) return;
+        console.error(error);
+        setHistoryError(error.message || "Unable to load saved chats.");
+      } finally {
+        if (active) setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+
+    return () => {
+      active = false;
+    };
   }, [isOpen]);
 
   useEffect(() => () => clearTimeout(closeTimerRef.current), []);
@@ -385,7 +434,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
   /* ---- chat logic ---- */
   const send = async (text) => {
-    if (loading) return;
+    if (loading || historyLoading) return;
 
     const userMessage = text || input.trim();
     if (!userMessage && attachments.length === 0) return;
@@ -394,9 +443,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     const currentAttachments = [...attachments];
     setAttachments([]);
     const requestText = userMessage || "Describe the attached file(s).";
-    const chatIdAtSend = activeChatId;
-    const chatAtSend = chats.find((c) => c.id === chatIdAtSend);
-    const userEntry = {
+    const originalChatIdAtSend = activeChatId;
+    const chatAtSend = chats.find((c) => c.id === originalChatIdAtSend);
+    const draftUserEntry = {
       id: createMessageId("user"),
       role: "user",
       text: userMessage || `📎 ${currentAttachments.map((a) => a.name).join(", ")}`,
@@ -409,16 +458,32 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       text: "",
       pending: true,
     };
-
-    // Build history including the new user message for the API call
-    // (React state `messages` is stale inside this closure)
-    const historyForApi = [...(chatAtSend?.messages || []), userEntry];
-
-    setMessages((prev) => [...prev, userEntry, pendingEntry], chatIdAtSend);
+    let durableChatId = originalChatIdAtSend;
     setLoading(true);
     if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
 
     try {
+      const persistedChat = await ensureAiChatConversation(chatAtSend);
+      const chatIdAtSend = persistedChat.id;
+      durableChatId = chatIdAtSend;
+      if (chatIdAtSend !== originalChatIdAtSend) {
+        setChats((prev) => prev.map((chat) => (
+          chat.id === originalChatIdAtSend
+            ? { ...chat, id: chatIdAtSend, title: persistedChat.title }
+            : chat
+        )));
+        setActiveChatId(chatIdAtSend);
+      }
+
+      const savedUserEntry = await appendAiChatMessage(chatIdAtSend, draftUserEntry);
+      const visibleUserEntry = savedUserEntry || draftUserEntry;
+
+      // Build history including the new user message for the API call
+      // (React state `messages` is stale inside this closure)
+      const historyForApi = [...(chatAtSend?.messages || []), visibleUserEntry];
+
+      setMessages((prev) => [...prev, visibleUserEntry, pendingEntry], chatIdAtSend);
+
       const response = await streamDampiChat(historyForApi, requestText, {
         attachments: currentAttachments,
         systemPrompt: chatSystemPrompt,
@@ -470,11 +535,18 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         ? "I need a couple of quick details before I add that task."
         : "Done.";
       const assistantText = `${visibleText || ""}${taskCreatedLine}`.trim() || fallbackText;
+      const assistantEntry = {
+        id: pendingId,
+        role: "assistant",
+        text: assistantText,
+        questions: askQuestions,
+      };
+      const savedAssistantEntry = await appendAiChatMessage(chatIdAtSend, assistantEntry);
 
       setMessages((prev) => {
         const updated = prev.map((message) => (
           message.id === pendingId
-            ? { ...message, role: "assistant", text: assistantText, questions: askQuestions, pending: false }
+            ? { ...(savedAssistantEntry || assistantEntry), pending: false }
             : message
         ));
         return updated;
@@ -495,11 +567,26 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         errorMsg = "API Error: Check console. Backend proxy may not have valid API key.";
       }
       
-      setMessages((prev) => prev.map((message) => (
-        message.id === pendingId
-          ? { ...message, role: "assistant", text: `Error: ${errorMsg}`, pending: false }
-          : message
-      )), chatIdAtSend);
+      setMessages((prev) => {
+        if (!prev.some((message) => message.id === pendingId)) {
+          return [
+            ...prev,
+            draftUserEntry,
+            {
+              id: pendingId,
+              role: "assistant",
+              text: `Error: ${errorMsg}`,
+              pending: false,
+            },
+          ];
+        }
+
+        return prev.map((message) => (
+          message.id === pendingId
+            ? { ...message, role: "assistant", text: `Error: ${errorMsg}`, pending: false }
+            : message
+        ));
+      }, durableChatId);
     } finally {
       setLoading(false);
     }
@@ -524,6 +611,11 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   };
 
   const deleteChat = (id) => {
+    deleteAiChatConversation(id).catch((error) => {
+      console.error(error);
+      setHistoryError(error.message || "Unable to delete saved chat.");
+    });
+
     setChats((prev) => {
       const remaining = prev.filter((c) => c.id !== id);
       if (remaining.length === 0) {
@@ -535,7 +627,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   };
 
   const handleSuggestion = (label) => {
-    if (loading) return;
+    if (loading || historyLoading) return;
     const suggestion = SUGGESTIONS.find((item) => item.label === label);
     send(suggestion?.prompt || label);
   };
@@ -584,6 +676,12 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               </button>
             </div>
             <div className="chat-history-list">
+              {historyLoading && (
+                <div className="chat-history-empty">Loading saved chats...</div>
+              )}
+              {historyError && (
+                <div className="chat-history-empty">{historyError}</div>
+              )}
               {chats.map((c) => (
                 <div
                   key={c.id}
@@ -700,9 +798,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                       key={`${questionId}-option-${optIdx}`}
                                       type="button"
                                       className="chat-ai-option-btn"
-                                      disabled={loading}
+                                      disabled={loading || historyLoading}
                                       onClick={() => {
-                                        if (!loading) send(option);
+                                        if (!loading && !historyLoading) send(option);
                                       }}
                                     >
                                       {option}
@@ -717,7 +815,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                     className="chat-ai-input"
                                     placeholder={question.inputPlaceholder || "Type your answer..."}
                                     value={questionDrafts[questionReplyKey] || ""}
-                                    disabled={loading}
+                                    disabled={loading || historyLoading}
                                     onChange={(e) => {
                                       const nextValue = e.target.value;
                                       setQuestionDrafts((prev) => ({ ...prev, [questionReplyKey]: nextValue }));
@@ -732,7 +830,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                                   <button
                                     type="button"
                                     className="chat-ai-send-btn"
-                                    disabled={loading || !(questionDrafts[questionReplyKey] || "").trim()}
+                                    disabled={loading || historyLoading || !(questionDrafts[questionReplyKey] || "").trim()}
                                     onClick={() => sendQuestionReply(questionReplyKey)}
                                   >
                                     <Send size={13} />
@@ -763,7 +861,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         <div className="chat-suggestions">
           <div className="chat-suggestion-chips" style={{ background: 'transparent' }}>
             {visibleSuggestions.map(({ icon: Icon, label }, i) => (
-              <button key={i} className="chat-suggestion-chip" onClick={() => handleSuggestion(label)} disabled={loading}>
+              <button key={i} className="chat-suggestion-chip" onClick={() => handleSuggestion(label)} disabled={loading || historyLoading}>
                 <Icon size={13} className="chat-suggestion-chip-icon" />
                 <span>{label}</span>
               </button>
@@ -808,13 +906,13 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               placeholder={CHAT_PLACEHOLDER}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && send()}
-              disabled={loading}
+              onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && send()}
+              disabled={loading || historyLoading}
             />
             <button
               className="chat-send-btn"
               onClick={() => send()}
-              disabled={loading || (!input.trim() && attachments.length === 0)}
+              disabled={loading || historyLoading || (!input.trim() && attachments.length === 0)}
             >
               {loading ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
             </button>

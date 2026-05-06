@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, Phone, MessageSquare } from 'lucide-react';
+import { Mail, Lock, Phone, MessageSquare, ChevronLeft } from 'lucide-react';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './auth.css';
 

@@ -4,6 +4,7 @@ import CreateAccountScreen from './CreateAccountScreen.jsx';
 import AddChildScreen from './AddChildScreen.jsx';
 import InviteFamilyScreen from './InviteFamilyScreen.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
+import { ChevronLeft } from 'lucide-react';
 import './onboarding.css';
 
 const PENDING_ONBOARDING_KEY = 'dampi.pendingOnboarding';
@@ -162,8 +163,55 @@ export default function OnboardingFlow({ onComplete }) {
     { id: 'family', label: 'Invite Family' },
   ];
 
-  const handleNext = (newData = {}) => {
-    setFormData({ ...formData, ...newData });
+  const handleNext = async (newData = {}) => {
+    const nextData = { ...formData, ...newData };
+    setFormData(nextData);
+
+    if (step === 1) {
+      setIsSubmitting(true);
+      setSubmitError('');
+
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const email = nextData.email.trim();
+
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        const user = sessionData.session?.user || null;
+
+        if (user?.email && user.email.toLowerCase() !== email.toLowerCase()) {
+          throw new Error(`A different account is already signed in as ${user.email}.`);
+        }
+
+        if (!user) {
+          const { data: authData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password: nextData.password,
+            options: {
+              emailRedirectTo: window.location.origin,
+            },
+          });
+
+          if (signUpError) throw signUpError;
+
+          if (!authData.session) {
+            const pendingData = setPendingOnboarding({
+              ...nextData,
+              userId: authData.user?.id,
+            });
+            setPendingConfirmation(pendingData);
+            return;
+          }
+        }
+      } catch (error) {
+        setSubmitError(error.message || 'Unable to create your account.');
+        return;
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+
     if (step < steps.length - 1) {
       setStep(step + 1);
     }
@@ -186,34 +234,13 @@ export default function OnboardingFlow({ onComplete }) {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
 
-      let user = sessionData.session?.user || null;
+      const user = sessionData.session?.user || null;
 
       if (user?.email && user.email.toLowerCase() !== email.toLowerCase()) {
         throw new Error(`A different account is already signed in as ${user.email}.`);
       }
 
-      if (!user) {
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password: finalData.password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
-
-        if (signUpError) throw signUpError;
-        if (!authData.session) {
-          const pendingData = setPendingOnboarding({
-            ...finalData,
-            userId: authData.user?.id,
-          });
-          setPendingConfirmation(pendingData);
-          return false;
-        }
-        user = authData.user;
-      }
-
-      if (!user) throw new Error('Supabase did not return a user for this signup.');
+      if (!user) throw new Error('No active account session found. Create your account first.');
       return await persistOnboardingAccount(supabase, user, { ...finalData, familyEmail });
     } catch (error) {
       setSubmitError(error.message || 'Unable to finish onboarding.');
@@ -225,7 +252,13 @@ export default function OnboardingFlow({ onComplete }) {
 
   const screens = [
     <WelcomeScreen key="welcome" onNext={handleNext} />,
-    <CreateAccountScreen key="account" data={formData} onNext={handleNext} />,
+    <CreateAccountScreen
+      key="account"
+      data={formData}
+      onNext={handleNext}
+      isSubmitting={isSubmitting}
+      submitError={step === 1 ? submitError : ''}
+    />,
     <AddChildScreen key="child" data={formData} onNext={handleNext} />,
     <InviteFamilyScreen
       key="family"

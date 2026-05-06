@@ -7,8 +7,6 @@ import {
   Stethoscope,
   WalletCards,
 } from 'lucide-react';
-import { Heart, Stethoscope, Pill, Eye, Activity } from 'lucide-react';
-import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './hmo-portal.css';
 
 const BENEFITS = [
@@ -63,10 +61,6 @@ export default function HMOPortalScreen() {
           <WalletCards size={19} />
         </button>
       </header>
-export default function HMOPortalScreen({ onBack }) {
-  return (
-    <div className="hmo-portal">
-      <TopNavBar variant="inner" title="HMO Portal" onBack={onBack} />
 
       <section className="hmo-portal__coverage-card">
         <div className="hmo-portal__coverage-icon">
@@ -74,7 +68,7 @@ export default function HMOPortalScreen({ onBack }) {
         </div>
         <p className="hmo-portal__coverage-label">PhilHealth / HMO Plan</p>
         <h2>Coverage Active</h2>
-        <p>Valid until December 31, 2026 · ID: DMPI-2048</p>
+        <p>Valid until December 31, 2026 - ID: DMPI-2048</p>
         <span className="hmo-portal__coverage-badge">
           <span className="hmo-portal__coverage-dot" />
           Active Member

@@ -1,0 +1,205 @@
+/* ── Auth Landing Screen ────────────────────────────────────── */
+
+.auth-landing {
+  background: linear-gradient(180deg, #f8fafa 0%, #f0f5f4 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.auth-landing__content {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.auth-landing__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.auth-landing__logo {
+  width: 96px;
+  height: 96px;
+  background: rgba(146, 187, 179, 0.18);
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-teal);
+  box-shadow: 0 8px 24px rgba(77, 115, 108, 0.12);
+}
+
+.auth-landing__title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--dampi-teal);
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.auth-landing__subtitle {
+  font-size: 1rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.auth-landing__tagline {
+  font-size: 0.85rem;
+  color: var(--dampi-text-muted);
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.auth-landing__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Login Screen ───────────────────────────────────────────── */
+
+.login-screen {
+  background: linear-gradient(180deg, #f8fafa 0%, #f0f5f4 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.login-screen__back {
+  background: white;
+  border: 1px solid rgba(77, 115, 108, 0.15);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  align-self: flex-start;
+  margin-bottom: 32px;
+}
+
+.login-screen__back:hover {
+  background: rgba(77, 115, 108, 0.05);
+}
+
+.login-screen__content {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.login-screen__header {
+  text-align: center;
+}
+
+.login-screen__header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--dampi-text);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.login-screen__header p {
+  font-size: 0.9rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+}
+
+/* ── Mode tabs ── */
+
+.login-tabs {
+  display: flex;
+  background: rgba(77, 115, 108, 0.07);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.login-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  padding: 10px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--dampi-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.login-tab.active {
+  background: white;
+  color: var(--dampi-teal);
+  box-shadow: 0 1px 6px rgba(77, 115, 108, 0.12);
+}
+
+/* ── OTP step indicator ── */
+
+.otp-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--dampi-text-muted);
+  background: rgba(146, 187, 179, 0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.otp-step svg {
+  color: var(--dampi-teal);
+  flex-shrink: 0;
+}
+
+/* ── Sign out row (profile) ── */
+
+.profile__sign-out-row {
+  margin-top: 8px;
+}
+
+.profile__sign-out-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(232, 137, 122, 0.06);
+  border: 1.5px solid rgba(232, 137, 122, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--dampi-emergency);
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.profile__sign-out-btn:hover {
+  background: rgba(232, 137, 122, 0.1);
+}
+
+.profile__sign-out-btn:active {
+  transform: scale(0.98);
+}

@@ -1,4 +1,5 @@
-import { Phone, MapPin, Calendar, FileText, ChevronRight } from 'lucide-react';
+import { Phone, MapPin, Calendar, FileText, ChevronRight, LogOut } from 'lucide-react';
+import '../../screens/Auth/auth.css';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import './financial-assistance.css';
 
@@ -40,7 +41,7 @@ const ACTIONS = [
   },
 ];
 
-export default function FinancialAssistanceScreen({ onBack }) {
+export default function FinancialAssistanceScreen({ onBack, onSignOut }) {
   return (
     <div className="profile">
       <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
@@ -89,6 +90,14 @@ export default function FinancialAssistanceScreen({ onBack }) {
             <ChevronRight size={18} color="var(--dampi-text-muted)" strokeWidth={2} />
           </button>
         ))}
+      </div>
+
+      {/* Sign out */}
+      <div className="profile__sign-out-row">
+        <button className="profile__sign-out-btn" onClick={onSignOut}>
+          <LogOut size={18} strokeWidth={2} />
+          Sign Out
+        </button>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ const SCREENS = {
   profile:  FinancialAssistanceScreen,
 };
 
-export default function AppNavigator({ profile, child, onOpenAi }) {
+export default function AppNavigator({ profile, child, onOpenAi, onSignOut }) {
   const [currentScreen, setCurrentScreen] = useState('home');
 
   const Screen = SCREENS[currentScreen] ?? HomeScreen;
@@ -25,6 +25,7 @@ export default function AppNavigator({ profile, child, onOpenAi }) {
           profile={profile}
           child={child}
           onOpenAi={onOpenAi}
+          onSignOut={onSignOut}
           onNavigateToSymptoms={() => setCurrentScreen('symptoms')}
         />
       </div>

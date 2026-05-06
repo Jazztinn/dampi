@@ -1,6 +1,21 @@
 import { ChevronLeft } from 'lucide-react';
 import './top-nav-bar.css';
 
+export function getFirstName(fullName) {
+  return fullName?.trim().split(/\s+/)[0] || '';
+}
+
+export function getInitials(fullName) {
+  const parts = fullName?.trim().split(/\s+/).filter(Boolean) || [];
+  if (!parts.length) return 'D';
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
 export default function TopNavBar({ variant, title, onBack, extra, transparent }) {
   if (variant === 'inner') {
     return (

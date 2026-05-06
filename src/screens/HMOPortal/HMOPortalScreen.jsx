@@ -43,7 +43,7 @@ export default function HMOPortalScreen({ onBack }) {
         <p className="hmo-portal__coverage-label">PhilHealth / HMO Plan</p>
         <p className="hmo-portal__coverage-status">Coverage Active</p>
         <p className="hmo-portal__coverage-meta">
-          Valid until December 31, 2025 · ID: XXXX-XXXX-XXXX
+          Coverage details will appear after provider integration is connected.
         </p>
         <div className="hmo-portal__coverage-badge">
           <span className="hmo-portal__coverage-dot" />

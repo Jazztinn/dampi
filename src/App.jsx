@@ -18,25 +18,22 @@ async function loadOnboardingAccount(supabase, session) {
   if (profileError) throw profileError;
   if (!profile?.onboarding_completed) return null;
 
-  const { data: child, error: childError } = await supabase
+  const { data: children, error: childrenError } = await supabase
     .from('children')
     .select('*')
     .eq('primary_guardian_id', session.user.id)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: true });
 
-  if (childError) throw childError;
-  if (!child) return null;
+  if (childrenError) throw childrenError;
+  if (!children?.length) return null;
 
-  return { profile, child };
+  return { profile, child: children[0], children };
 }
 
 export default function App() {
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [account, setAccount] = useState(null);
   const [hasSession, setHasSession] = useState(false);
-  // authView only matters when !hasSession: 'landing' | 'onboarding' | 'login'
   const [authView, setAuthView] = useState('landing');
   const [accountError, setAccountError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -76,15 +73,20 @@ export default function App() {
 
       const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!active) return;
+
         try {
           setHasSession(!!session);
+
           if (!session) {
             setAccount(null);
             setAuthView('landing');
+            setAccountError('');
             return;
           }
+
           const nextAccount = await loadOnboardingAccount(supabase, session);
           if (!active) return;
+
           setAccount(nextAccount);
           setAccountError('');
         } catch (error) {
@@ -106,7 +108,7 @@ export default function App() {
   }, []);
 
   const handleOnboardingComplete = ({ profile, child }) => {
-    setAccount({ profile, child });
+    setAccount({ profile, child, children: child ? [child] : [] });
     setAccountError('');
   };
 
@@ -114,7 +116,6 @@ export default function App() {
     try {
       const supabase = getSupabaseBrowserClient();
       await supabase.auth.signOut();
-      // onAuthStateChange will reset state and set authView to 'landing'
     } catch {
       setAccount(null);
       setHasSession(false);
@@ -130,13 +131,13 @@ export default function App() {
     );
   }
 
-  // Fully authenticated and onboarding complete → Dashboard
   if (account) {
     return (
       <div className="dampi-app">
         <AppNavigator
           profile={account.profile}
           child={account.child}
+          children={account.children}
           onOpenAi={() => setChatOpen(true)}
           onSignOut={handleSignOut}
         />
@@ -146,7 +147,6 @@ export default function App() {
     );
   }
 
-  // Session exists but onboarding not complete → continue onboarding
   if (hasSession) {
     return (
       <div className="dampi-app">
@@ -156,7 +156,6 @@ export default function App() {
     );
   }
 
-  // No session — show auth flow
   return (
     <div className="dampi-app">
       {authView === 'login' && (

@@ -7,13 +7,13 @@ import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialA
 import './app-navigator.css';
 
 const SCREENS = {
-  home:     HomeScreen,
+  home: HomeScreen,
   symptoms: SymptomGuideScreen,
-  hmo:      HMOPortalScreen,
-  profile:  FinancialAssistanceScreen,
+  hmo: HMOPortalScreen,
+  profile: FinancialAssistanceScreen,
 };
 
-export default function AppNavigator({ profile, child, onOpenAi, onSignOut }) {
+export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut }) {
   const [currentScreen, setCurrentScreen] = useState('home');
 
   const Screen = SCREENS[currentScreen] ?? HomeScreen;
@@ -24,6 +24,7 @@ export default function AppNavigator({ profile, child, onOpenAi, onSignOut }) {
         <Screen
           profile={profile}
           child={child}
+          children={children}
           onOpenAi={onOpenAi}
           onSignOut={onSignOut}
           onNavigateToSymptoms={() => setCurrentScreen('symptoms')}

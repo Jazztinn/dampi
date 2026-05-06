@@ -64,13 +64,13 @@ async function callChatApi(payload) {
   }
 
   const data = await response.json();
-  return data.text;
+  return data;
 }
 
 export async function callAiChat(messages, userMessage, config = {}) {
   const purpose = config.purpose === 'title' ? 'title' : 'chat';
 
-  return callChatApi({
+  const data = await callChatApi({
     messages: normalizeMessages(messages),
     userMessage: typeof userMessage === 'string' ? userMessage : '',
     attachments: normalizeAttachments(config.attachments),
@@ -78,4 +78,6 @@ export async function callAiChat(messages, userMessage, config = {}) {
     purpose,
     systemPrompt: purpose === 'chat' ? normalizeSystemPrompt(config.systemPrompt) : '',
   });
+
+  return purpose === 'title' ? data.text : data;
 }

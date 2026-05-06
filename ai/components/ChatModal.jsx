@@ -81,13 +81,14 @@ export default function ChatModal({
     setLoading(true);
 
     try {
-      const reply = await callAiChat(historyForApi, text || 'Describe the attached file(s).', {
+      const response = await callAiChat(historyForApi, text || 'Describe the attached file(s).', {
         mode: 'auto',
         attachments: currentAttachments,
         systemPrompt,
       });
+      const reply = typeof response === 'string' ? response : response?.text;
 
-      setMessages((current) => [...current, createMessage('assistant', reply)]);
+      setMessages((current) => [...current, createMessage('assistant', reply || 'Done.')]);
     } catch (error) {
       setMessages((current) => [
         ...current,

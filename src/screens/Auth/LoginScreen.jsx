@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Mail, Lock, Phone, MessageSquare, ChevronLeft } from 'lucide-react';
+import { Mail, Lock, Phone, MessageSquare } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './auth.css';
 
@@ -93,9 +94,7 @@ export default function LoginScreen({ onBack }) {
 
   return (
     <div className="login-screen">
-      <button className="login-screen__back" onClick={onBack} aria-label="Go back">
-        <ChevronLeft size={20} strokeWidth={2.5} />
-      </button>
+      <TopNavBar variant="inner" title="Sign In" onBack={onBack} />
 
       <div className="login-screen__content">
         <div className="login-screen__header">

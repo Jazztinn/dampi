@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Baby, Users, Mail, Lock, User, Phone, ArrowLeft, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Baby, Users, Mail, Lock, User, Phone, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './accept-invite.css';
 
@@ -91,8 +92,10 @@ function AuthForm({ lockedEmail, onAuthed, onBack }) {
   };
 
   return (
-    <form className="accept-invite__form" onSubmit={handleSubmit}>
-      <div className="accept-invite__mode-toggle">
+    <div className="accept-invite__form-wrapper">
+      <TopNavBar variant="inner" title="Sign In to Accept" onBack={onBack} />
+      <form className="accept-invite__form" onSubmit={handleSubmit}>
+        <div className="accept-invite__mode-toggle">
         <button
           type="button"
           className={`accept-invite__mode-btn ${mode === 'signin' ? 'accept-invite__mode-btn--active' : ''}`}
@@ -177,11 +180,8 @@ function AuthForm({ lockedEmail, onAuthed, onBack }) {
       <button type="submit" className="accept-invite__cta" disabled={submitting}>
         {submitting ? 'Please wait…' : mode === 'signin' ? 'Sign In & Accept' : 'Create Account & Accept'}
       </button>
-
-      <button type="button" className="accept-invite__back-link" onClick={onBack}>
-        <ArrowLeft size={14} /> Back
-      </button>
     </form>
+    </div>
   );
 }
 

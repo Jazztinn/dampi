@@ -167,11 +167,26 @@
   margin: 0 0 12px;
 }
 
+/* ── Form Wrapper ── */
+.accept-invite__form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: -32px -28px 0;
+  padding: 0;
+}
+
+.accept-invite__form-wrapper .top-nav--inner {
+  border-bottom: 1px solid #e2ded8;
+  border-radius: 20px 20px 0 0;
+}
+
 /* ── Form ── */
 .accept-invite__form {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding: 32px 28px;
 }
 
 .accept-invite__mode-toggle {

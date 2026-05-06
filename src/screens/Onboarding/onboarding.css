@@ -356,28 +356,27 @@
 
 /* ── Back Button ── */
 .onboarding-back {
-  position: fixed;
-  bottom: 24px;
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top));
   left: 20px;
-  background: white;
-  border: 1px solid rgba(77, 115, 108, 0.15);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--dampi-text);
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  color: var(--dampi-teal);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 6px 0;
+  min-width: 28px;
+  transition: opacity 0.15s;
 }
 
 .onboarding-back:hover {
-  background: rgba(77, 115, 108, 0.05);
-  transform: translateX(-2px);
+  opacity: 0.65;
 }
 
 .onboarding-back:active {
-  transform: scale(0.96);
+  opacity: 0.4;
+  transform: translateX(-1px);
 }
 
 /* ── Mobile ── */

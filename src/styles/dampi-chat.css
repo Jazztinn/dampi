@@ -262,7 +262,7 @@
 }
 
 .chat-history-item.active {
-  background: var(--teal-10);
+  background: transparent;
   box-shadow: none;
 }
 

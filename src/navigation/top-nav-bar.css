@@ -61,7 +61,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: max(14px, env(safe-area-inset-top)) 24px 16px;
+  padding: max(20px, env(safe-area-inset-top)) 20px 16px;
   background: var(--dampi-cream);
 }
 

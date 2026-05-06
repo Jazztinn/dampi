@@ -284,8 +284,8 @@ export default function OnboardingFlow({ onComplete }) {
 
       {/* Navigation */}
       {step > 0 && (
-        <button className="onboarding-back" onClick={handleBack}>
-          ← Back
+        <button className="onboarding-back" onClick={handleBack} aria-label="Go back">
+          <ChevronLeft size={20} strokeWidth={2.5} />
         </button>
       )}
     </div>

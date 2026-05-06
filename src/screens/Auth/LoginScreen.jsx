@@ -93,8 +93,8 @@ export default function LoginScreen({ onBack }) {
 
   return (
     <div className="login-screen">
-      <button className="login-screen__back" onClick={onBack}>
-        ← Back
+      <button className="login-screen__back" onClick={onBack} aria-label="Go back">
+        <ChevronLeft size={20} strokeWidth={2.5} />
       </button>
 
       <div className="login-screen__content">

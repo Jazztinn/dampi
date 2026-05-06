@@ -2,13 +2,53 @@ import React, { useRef, useEffect } from 'react';
 import { Heart, Activity, Shield, Pill } from 'lucide-react';
 import './DashboardMetricsCarousel.css';
 
-const CARD_WIDTH = 150;
-const CARD_GAP = 16;
+const CARD_WIDTH = 200;
+const CARD_GAP = 4;
 const CARD_STEP = CARD_WIDTH + CARD_GAP;
 
 const DashboardMetricsCarousel = () => {
   const scrollContainerRef = useRef(null);
   const cardRefs = useRef([]);
+  const isTeleporting = useRef(false);
+
+  const metrics = [
+    {
+      id: 'symptoms',
+      Icon: Heart,
+      label: 'Symptom Log',
+      value: '0',
+      unit: 'Logs',
+      color: 'rgba(140, 179, 105, 0.7)',
+    },
+    {
+      id: 'growth',
+      Icon: Activity,
+      label: 'Growth Track',
+      value: '--',
+      unit: 'Not tracked',
+      color: 'rgba(255, 115, 69, 0.7)',
+    },
+    {
+      id: 'vaccines',
+      Icon: Shield,
+      label: 'Vaccines',
+      value: '--',
+      unit: 'Not tracked',
+      color: 'rgba(144, 116, 255, 0.7)',
+    },
+    {
+      id: 'medications',
+      Icon: Pill,
+      label: 'Medications',
+      value: '--',
+      unit: 'Not tracked',
+      color: 'rgba(88, 154, 255, 0.7)',
+    },
+  ];
+
+  // Tripled array for infinite scroll: [prev] [current] [next]
+  const extendedMetrics = [...metrics, ...metrics, ...metrics];
+  const sectionWidth = metrics.length * CARD_STEP;
 
   const updateCards = () => {
     if (!scrollContainerRef.current) return;
@@ -34,49 +74,50 @@ const DashboardMetricsCarousel = () => {
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    container.addEventListener('scroll', updateCards, { passive: true });
+
+    // Start at the middle set so user can scroll in either direction seamlessly
+    container.scrollLeft = sectionWidth;
+
+    let animationFrameId;
+
+    const handleScroll = () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => {
+        updateCards();
+
+        if (isTeleporting.current) return;
+        const currentScroll = container.scrollLeft;
+
+        // Teleport deep inside the left clone to the real section
+        if (currentScroll <= CARD_STEP) {
+          isTeleporting.current = true;
+          container.scrollLeft = currentScroll + sectionWidth;
+          requestAnimationFrame(() => {
+            isTeleporting.current = false;
+          });
+        } 
+        // Teleport deep inside the right clone back to the real section
+        else if (currentScroll >= sectionWidth * 2) {
+          isTeleporting.current = true;
+          container.scrollLeft = currentScroll - sectionWidth;
+          requestAnimationFrame(() => {
+            isTeleporting.current = false;
+          });
+        }
+      });
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', updateCards);
+    
     setTimeout(updateCards, 50);
+
     return () => {
-      container.removeEventListener('scroll', updateCards);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      container.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', updateCards);
     };
-  }, []);
-
-  const metrics = [
-    {
-      id: 'symptoms',
-      Icon: Heart,
-      label: 'Symptom Log',
-      value: '0',
-      unit: 'Logs',
-      color: '#8cb369',
-    },
-    {
-      id: 'growth',
-      Icon: Activity,
-      label: 'Growth Track',
-      value: '--',
-      unit: 'Not tracked',
-      color: '#ff7345',
-    },
-    {
-      id: 'vaccines',
-      Icon: Shield,
-      label: 'Vaccines',
-      value: '--',
-      unit: 'Not tracked',
-      color: '#9074ff',
-    },
-    {
-      id: 'medications',
-      Icon: Pill,
-      label: 'Medications',
-      value: '--',
-      unit: 'Not tracked',
-      color: '#589aff',
-    },
-  ];
+  }, [sectionWidth]);
 
   return (
     <div className="dmc-wrapper">
@@ -87,8 +128,8 @@ const DashboardMetricsCarousel = () => {
         ref={scrollContainerRef}
         className="dmc-scroll"
       >
-        {metrics.map((metric, i) => (
-          <div key={metric.id} className="dmc-snap-item">
+        {extendedMetrics.map((metric, i) => (
+          <div key={`${metric.id}-${i}`} className="dmc-snap-item">
             <div
               ref={(el) => (cardRefs.current[i] = el)}
               className="dmc-card-inner"

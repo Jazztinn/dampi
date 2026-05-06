@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { X, Menu, ChevronDown, Plus, Loader2, Send, FileText, Search, LayoutGrid, XCircle, MessageSquare, Trash2, Pencil, Check } from "lucide-react";
+import { X, Menu, ChevronDown, Plus, Loader2, Send, FileText, Search, LayoutGrid, XCircle, MessageSquare, Trash2, Pencil, Check, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
@@ -35,6 +35,8 @@ function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 const MARKDOWN_PLUGINS = [remarkGfm];
 const VALID_TASK_TAGS = new Set(["Billing", "Technical", "General", "Urgent", "Other"]);
 const MAX_QUESTION_OPTIONS = 5;
+const MAX_AUTO_TITLE_WORDS = 5;
+const MAX_AUTO_TITLE_LENGTH = 48;
 
 function parseDateKey(key) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
@@ -210,6 +212,43 @@ async function generateTitle(messages) {
   }
 }
 
+function truncateTitle(text) {
+  if (!text) return "New Chat";
+  if (text.length <= MAX_AUTO_TITLE_LENGTH) return text;
+  return `${text.slice(0, MAX_AUTO_TITLE_LENGTH - 1).trimEnd()}…`;
+}
+
+function generateFallbackTitle(userMessage, attachments = []) {
+  const normalizedMessage = typeof userMessage === "string"
+    ? userMessage
+        .replace(/\s+/g, " ")
+        .replace(/[*_`>#\[\]()]/g, " ")
+        .trim()
+    : "";
+
+  if (normalizedMessage) {
+    const words = normalizedMessage.split(" ").filter(Boolean).slice(0, MAX_AUTO_TITLE_WORDS);
+    if (words.length > 0) {
+      return truncateTitle(words.join(" "));
+    }
+  }
+
+  if (attachments.length > 0) {
+    const firstAttachmentName = attachments[0]?.name
+      ?.replace(/\.[^/.]+$/, "")
+      .replace(/[-_]+/g, " ")
+      .trim();
+
+    if (firstAttachmentName) {
+      return truncateTitle(firstAttachmentName);
+    }
+
+    return attachments.length === 1 ? "Attached file" : `${attachments.length} attachments`;
+  }
+
+  return "New Chat";
+}
+
 export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const nextChatIdRef = useRef(1);
   const nextMessageIdRef = useRef(1);
@@ -237,6 +276,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
   const fileInputRef = useRef(null);
+  const activeStreamRef = useRef(null);
 
   /* derived */
   const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
@@ -287,6 +327,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
 
   const requestClose = useCallback(() => {
     if (isClosing) return;
+    activeStreamRef.current?.abortController?.abort();
     clearTimeout(closeTimerRef.current);
     setIsClosing(true);
     closeTimerRef.current = setTimeout(() => {
@@ -432,6 +473,13 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     setAttachments((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const stopActiveGeneration = useCallback((reason = "stop") => {
+    if (!activeStreamRef.current) return false;
+    activeStreamRef.current.reason = reason;
+    activeStreamRef.current.abortController.abort();
+    return true;
+  }, []);
+
   /* ---- chat logic ---- */
   const send = async (text) => {
     if (loading || historyLoading) return;
@@ -458,6 +506,8 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       text: "",
       pending: true,
     };
+    const shouldSeedTitle = (chatAtSend?.title || "New Chat") === "New Chat" && (chatAtSend?.messages?.length || 0) === 0;
+    const seededTitle = shouldSeedTitle ? generateFallbackTitle(requestText, currentAttachments) : null;
     let durableChatId = originalChatIdAtSend;
     setLoading(true);
     if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
@@ -466,6 +516,13 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const persistedChat = await ensureAiChatConversation(chatAtSend);
       const chatIdAtSend = persistedChat.id;
       durableChatId = chatIdAtSend;
+      const abortController = new AbortController();
+      activeStreamRef.current = {
+        abortController,
+        chatId: chatIdAtSend,
+        pendingId,
+        reason: "stream",
+      };
       if (chatIdAtSend !== originalChatIdAtSend) {
         setChats((prev) => prev.map((chat) => (
           chat.id === originalChatIdAtSend
@@ -473,6 +530,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
             : chat
         )));
         setActiveChatId(chatIdAtSend);
+      }
+      if (seededTitle) {
+        setChatTitle(chatIdAtSend, seededTitle);
       }
 
       const savedUserEntry = await appendAiChatMessage(chatIdAtSend, draftUserEntry);
@@ -487,6 +547,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const response = await streamDampiChat(historyForApi, requestText, {
         attachments: currentAttachments,
         systemPrompt: chatSystemPrompt,
+        signal: abortController.signal,
         onEvent: (event) => {
           if (event.type !== "text" || !event.text) return;
 
@@ -557,6 +618,28 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         generateTitle(messagesForTitle).then((t) => setChatTitle(chatIdAtSend, t));
       }
     } catch (err) {
+      if (err?.name === "AbortError") {
+        const abortMeta = activeStreamRef.current;
+        const wasDeleted = abortMeta?.reason === "delete";
+
+        if (!wasDeleted) {
+          setMessages((prev) => prev.flatMap((message) => {
+            if (message.id !== pendingId) return [message];
+
+            const partialText = typeof message.text === "string" ? message.text.trim() : "";
+            if (!partialText) return [];
+
+            return [{
+              ...message,
+              text: partialText,
+              pending: false,
+            }];
+          }), durableChatId);
+        }
+
+        return;
+      }
+
       console.error(err);
       let errorMsg = err.message || "Failed to connect";
       
@@ -588,6 +671,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         ));
       }, durableChatId);
     } finally {
+      if (activeStreamRef.current?.pendingId === pendingId) {
+        activeStreamRef.current = null;
+      }
       setLoading(false);
     }
   };
@@ -611,6 +697,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   };
 
   const deleteChat = (id) => {
+    if (activeStreamRef.current?.chatId === id) {
+      stopActiveGeneration("delete");
+    }
+
     deleteAiChatConversation(id).catch((error) => {
       console.error(error);
       setHistoryError(error.message || "Unable to delete saved chat.");
@@ -655,8 +745,13 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
             onMouseDown={onDragStart}
             onTouchStart={onDragStart}
           >
-            <div className="chat-sheet-notch">
-              <div className="chat-sheet-pill" />
+            <div className="chat-header-title-stack">
+              <div className="chat-sheet-notch">
+                <div className="chat-sheet-pill" />
+              </div>
+              <div className="chat-header-active-title">
+                {activeChat?.title || "New Chat"}
+              </div>
             </div>
           </div>
           <button className="chat-header-btn" onClick={requestClose} aria-label="Close chat">
@@ -911,10 +1006,16 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
             />
             <button
               className="chat-send-btn"
-              onClick={() => send()}
-              disabled={loading || historyLoading || (!input.trim() && attachments.length === 0)}
+              onClick={() => {
+                if (loading) {
+                  stopActiveGeneration("stop");
+                  return;
+                }
+                send();
+              }}
+              disabled={historyLoading || (!loading && !input.trim() && attachments.length === 0)}
             >
-              {loading ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
+              {loading ? <Square size={18} /> : <Send size={18} />}
             </button>
           </div>
           <input

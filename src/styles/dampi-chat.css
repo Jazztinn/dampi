@@ -134,6 +134,25 @@
   color: var(--text);
 }
 
+.chat-header-title-stack {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-header-active-title {
+  max-width: min(56vw, 280px);
+  overflow: hidden;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .chat-header-logo-wrap {
   display: grid;
   place-items: center;

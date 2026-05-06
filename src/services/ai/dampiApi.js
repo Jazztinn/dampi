@@ -68,7 +68,7 @@ async function callChatApi(payload) {
   return data;
 }
 
-async function streamChatApi(payload, onEvent) {
+async function streamChatApi(payload, onEvent, signal) {
   let response;
 
   try {
@@ -76,11 +76,15 @@ async function streamChatApi(payload, onEvent) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal,
     });
-  } catch {
-    const error = new Error('Backend not running. Start both dev servers with `just dev`.');
-    error.isNetworkError = true;
-    throw error;
+  } catch (caughtError) {
+    if (caughtError?.name === 'AbortError') {
+      throw caughtError;
+    }
+    const networkError = new Error('Backend not running. Start both dev servers with `just dev`.');
+    networkError.isNetworkError = true;
+    throw networkError;
   }
 
   if (!response.ok) {
@@ -161,7 +165,7 @@ export async function streamDampiChat(messages, userMessage, config = {}) {
     mode: normalizeMode(config.mode),
     purpose: 'chat',
     systemPrompt: normalizeSystemPrompt(config.systemPrompt),
-  }, config.onEvent);
+  }, config.onEvent, config.signal);
 
   return data;
 }

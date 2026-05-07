@@ -668,10 +668,12 @@ export default function FamilyScreen({
 
       <div className="family__caregivers-header">
         <p className="family__section-title">Care Circle</p>
-        <button className="family__invite-btn-sm" onClick={() => setShowInvite(true)}>
-          <UserPlus size={14} strokeWidth={2} />
-          Add
-        </button>
+        {(hasCareCircle || hasPending) && (
+          <button className="family__invite-btn-sm" onClick={() => setShowInvite(true)}>
+            <UserPlus size={14} strokeWidth={2} />
+            Add
+          </button>
+        )}
       </div>
 
       {careError && <p className="family__error family__error--block">{careError}</p>}

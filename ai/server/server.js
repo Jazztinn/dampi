@@ -200,6 +200,15 @@ function buildContents(messages = [], userMessage, attachments = []) {
   return [...history, { role: 'user', parts: nextParts }];
 }
 
+function isSymptomLogRequest(userMessage, systemPrompt) {
+  const combined = `${userMessage}\n${systemPrompt}`;
+  return combined.includes('EXAM_SYSTEM_PROMPT') || 
+         combined.includes('SUMMARY_SYSTEM_PROMPT') || 
+         combined.includes('instructions":') || 
+         combined.includes('chiefComplaint":') ||
+         combined.includes('pediatric triage assistant');
+}
+
 function getModelsForMode(mode, prompt, purpose) {
   if (purpose === 'title') {
     return FAST_MODELS;
@@ -216,7 +225,7 @@ function getModelsForMode(mode, prompt, purpose) {
   return AVAILABLE_MODELS;
 }
 
-function getGenerationConfig(mode, prompt, purpose) {
+function getGenerationConfig(mode, prompt, purpose, systemPrompt = '') {
   if (purpose === 'title') {
     return {
       maxOutputTokens: 20,
@@ -225,7 +234,7 @@ function getGenerationConfig(mode, prompt, purpose) {
   }
 
   const useFastProfile = mode === 'fast' || (mode === 'auto' && !isComplexPrompt(prompt));
-  const isSymptomLog = prompt.includes('EXAM_SYSTEM_PROMPT') || prompt.includes('SUMMARY_SYSTEM_PROMPT') || prompt.includes('instructions":') || prompt.includes('chiefComplaint":');
+  const isSymptomLog = isSymptomLogRequest(prompt, systemPrompt);
 
   const generationConfig = {
     maxOutputTokens: (useFastProfile && !isSymptomLog) ? 600 : 2048,
@@ -438,6 +447,7 @@ async function streamProviderModel(model, payload, res) {
       res.flushHeaders?.();
     }
 
+    const isSymptomLog = isSymptomLogRequest(payload.contents[payload.contents.length - 1]?.parts?.[0]?.text || '', payload.systemInstruction?.parts?.[0]?.text || '');
     let buffer = '';
     let rawText = '';
     let streamedMessage = '';
@@ -447,13 +457,19 @@ async function streamProviderModel(model, payload, res) {
       if (eventData === '[DONE]') return;
 
       const data = JSON.parse(eventData);
-      rawText += extractCandidateText(data);
+      const newText = extractCandidateText(data);
+      rawText += newText;
 
-      const nextMessage = extractMessagePrefix(rawText);
-      if (nextMessage.length > streamedMessage.length) {
-        const delta = nextMessage.slice(streamedMessage.length);
-        streamedMessage = nextMessage;
-        sendStreamEvent(res, { type: 'text', text: delta });
+      if (isSymptomLog) {
+        // For symptom log, just stream the raw text delta
+        sendStreamEvent(res, { type: 'text', text: newText });
+      } else {
+        const nextMessage = extractMessagePrefix(rawText);
+        if (nextMessage.length > streamedMessage.length) {
+          const delta = nextMessage.slice(streamedMessage.length);
+          streamedMessage = nextMessage;
+          sendStreamEvent(res, { type: 'text', text: delta });
+        }
       }
     };
 
@@ -467,13 +483,23 @@ async function streamProviderModel(model, payload, res) {
       parseSseChunk(`${buffer}\n\n`, handleData);
     }
 
-    sendStreamEvent(res, {
-      type: 'done',
-      data: {
-        ...normalizeStructuredChatResponse(rawText),
-        model,
-      },
-    });
+    if (isSymptomLog) {
+      sendStreamEvent(res, {
+        type: 'done',
+        data: {
+          text: rawText,
+          model,
+        },
+      });
+    } else {
+      sendStreamEvent(res, {
+        type: 'done',
+        data: {
+          ...normalizeStructuredChatResponse(rawText),
+          model,
+        },
+      });
+    }
   } finally {
     clearTimeout(timeoutId);
   }
@@ -568,7 +594,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const models = getModelsForMode(normalizedMode, userMessage, normalizedPurpose);
-    const generationConfig = getGenerationConfig(normalizedMode, userMessage, normalizedPurpose);
+    const generationConfig = getGenerationConfig(normalizedMode, userMessage, normalizedPurpose, normalizedSystemPrompt);
     const payload = { contents, generationConfig };
 
     if (normalizedPurpose === 'chat' && normalizedSystemPrompt) {
@@ -578,6 +604,16 @@ app.post('/api/chat', async (req, res) => {
     const result = await callModelWithFallback(payload, models);
 
     if (normalizedPurpose === 'chat') {
+      const isSymptomLog = isSymptomLogRequest(userMessage, normalizedSystemPrompt);
+      
+      if (isSymptomLog) {
+        // Return raw text (the JSON) for specialized flows
+        return res.json({
+          text: result.text,
+          model: result.model
+        });
+      }
+
       return res.json({
         ...normalizeStructuredChatResponse(result.text),
         model: result.model,
@@ -635,7 +671,7 @@ app.post('/api/chat/stream', async (req, res) => {
     }
 
     const models = getModelsForMode(normalizedMode, userMessage, 'chat');
-    const generationConfig = getGenerationConfig(normalizedMode, userMessage, 'chat');
+    const generationConfig = getGenerationConfig(normalizedMode, userMessage, 'chat', normalizedSystemPrompt);
     const payload = { contents, generationConfig };
 
     if (normalizedSystemPrompt) {

@@ -35,8 +35,7 @@ export default function LoginScreen({ onBack }) {
 
       <div className="login-screen__content">
         <div className="login-screen__header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to continue to Dampi</p>
+          <h2 className="brand-font">Welcome Back</h2>
         </div>
 
         <form onSubmit={handleLogin} className="onboarding-form">

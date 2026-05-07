@@ -9,7 +9,7 @@ export default function AuthLandingScreen({ onNew, onExisting }) {
           <div className="auth-landing__logo auth-landing__logo--svg">
             <img src={dampiLogo} alt="Dampi" className="auth-landing__logo-img" />
           </div>
-          <h1 className="auth-landing__title">Dampi</h1>
+          <h1 className="auth-landing__title brand-font">Dampi</h1>
         </div>
 
         <div className="auth-landing__actions">

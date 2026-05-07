@@ -1,5 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap');
 
+@font-face {
+  font-family: 'Borel';
+  src: url('../assets/fonts/Borel-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.brand-font {
+  font-family: 'Borel', cursive;
+  font-weight: 400;
+}
+
 :root {
   font-family: "Work Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-synthesis: none;

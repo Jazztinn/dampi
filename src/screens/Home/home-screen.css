@@ -142,7 +142,72 @@
 }
 
 .home__progress-date {
-...
+  font-size: 0.75rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+}
+
+/* ── Registration Reminder ── */
+
+.home__registration-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid var(--dampi-warm);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(237, 161, 109, 0.12);
+}
+
+.home__registration-reminder:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(237, 161, 109, 0.18);
+}
+
+.home__registration-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.home__registration-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(237, 161, 109, 0.12);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-warm);
+}
+
+.home__registration-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--dampi-text);
+  margin: 0 0 2px;
+}
+
+.home__registration-sub {
+  font-size: 0.72rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.home__registration-action {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--dampi-warm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  background: rgba(237, 161, 109, 0.08);
+  border-radius: 8px;
+}
 
 .home__section {
   margin-bottom: 24px;

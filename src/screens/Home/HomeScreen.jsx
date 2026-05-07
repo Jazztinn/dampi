@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   AlertTriangle,
   Droplets,
@@ -6,6 +6,7 @@ import {
   Wind,
   FileText,
   Baby,
+  CheckCircle2,
 } from 'lucide-react';
 import TopNavBar, { getFirstName, getInitials } from '../../navigation/TopNavBar.jsx';
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
@@ -25,7 +26,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
   return count === 1 ? singular : plural;
 }
 
-export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms }) {
+export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms, onNavigateToChildRegistration }) {
   const [recentLogs, setRecentLogs] = useState([]);
   const [totalLogCount, setTotalLogCount] = useState(0);
 
@@ -51,6 +52,7 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
   const firstName = getFirstName(profile?.full_name);
   const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
   const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
+  const isRegistrationIncomplete = child && !child.registration_completed;
 
   const checkInMessage = useMemo(() => {
     if (childCount === 0) return "Ready to start tracking?";
@@ -112,6 +114,25 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
           </div>
         </div>
       </section>
+
+      {isRegistrationIncomplete && (
+        <section className="home__section">
+          <div className="home__registration-reminder" onClick={() => onNavigateToChildRegistration?.(child.id)}>
+            <div className="home__registration-content">
+              <div className="home__registration-icon">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <p className="home__registration-title">Finish {firstChildName}'s Registration</p>
+                <p className="home__registration-sub">Complete the medical profile to get better AI guidance.</p>
+              </div>
+            </div>
+            <div className="home__registration-action">
+              <span>Start</span>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="home__section home__section--carousel">
         <div className="home__section-header">

@@ -5,6 +5,7 @@ import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
 import HMOPortalScreen from '../screens/HMOPortal/HMOPortalScreen.jsx';
 import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialAssistanceScreen.jsx';
 import SymptomLogScreen from '../screens/SymptomLog/SymptomLogScreen.jsx';
+import ChildRegistrationFlow from '../screens/ChildRegistration/ChildRegistrationFlow.jsx';
 import './app-navigator.css';
 
 const SCREENS = {
@@ -35,6 +36,8 @@ export default function AppNavigator({
   const [screenHistory, setScreenHistory] = useState([]);
   const [showSymptomLog, setShowSymptomLog] = useState(false);
   const [symptomLogChildId, setSymptomLogChildId] = useState(null);
+  const [showChildRegistration, setShowChildRegistration] = useState(false);
+  const [registrationChildId, setRegistrationChildId] = useState(null);
   const contentAreaRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -81,6 +84,23 @@ export default function AppNavigator({
     setShowSymptomLog(true);
   };
 
+  const openChildRegistration = (childId) => {
+    setRegistrationChildId(childId);
+    setShowChildRegistration(true);
+  };
+
+  const handleRegistrationComplete = (data = {}) => {
+    setShowChildRegistration(false);
+    if (data.child) {
+      onChildrenChange?.((prev) => 
+        prev.map(c => c.id === data.child.id ? data.child : c)
+      );
+    }
+    if (data.profile) {
+      onProfileChange?.(data.profile);
+    }
+  };
+
   const Screen = SCREENS[currentScreen] || HomeScreen;
   const isFullscreen = FULLSCREEN_FLOW.has(currentScreen);
   const symptomLogChild = children.find((item) => item.id === symptomLogChildId) || child;
@@ -95,6 +115,12 @@ export default function AppNavigator({
             children={children}
             onExit={() => setShowSymptomLog(false)}
           />
+        ) : showChildRegistration ? (
+          <ChildRegistrationFlow
+            childId={registrationChildId}
+            onExit={() => setShowChildRegistration(false)}
+            onComplete={handleRegistrationComplete}
+          />
         ) : (
           <Screen
             profile={profile}
@@ -108,12 +134,13 @@ export default function AppNavigator({
             onChildrenChange={onChildrenChange}
             signingOut={signingOut}
             onNavigateToSymptoms={openSymptomLog}
+            onNavigateToChildRegistration={openChildRegistration}
             onExit={() => navigateTo('home')}
             onBack={goBack}
           />
         )}
       </div>
-      {!isFullscreen && (
+      {!isFullscreen && !showChildRegistration && (
         <BottomNav
           active={showSymptomLog ? 'symptoms' : currentScreen}
           setActive={navigateTo}

@@ -1,4 +1,4 @@
-import { House, Users, ClipboardList, User, Folder } from "lucide-react";
+import { House, Users, Shield, User, Folder, Activity } from "lucide-react";
 
 /**
  * Navigation tab definitions.
@@ -7,8 +7,9 @@ import { House, Users, ClipboardList, User, Folder } from "lucide-react";
 export const NAV_TABS = [
   { id: "home", Icon: House },
   { id: "documents", Icon: Folder },
-  { id: "symptoms", Icon: Users },
-  { id: "hmo", Icon: ClipboardList },
+  { id: "symptoms", Icon: Activity },
+  { id: "hmo", Icon: Shield },
+  { id: "family", Icon: Users },
   { id: "profile", Icon: User },
 ];
 

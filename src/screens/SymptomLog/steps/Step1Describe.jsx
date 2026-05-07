@@ -1,4 +1,6 @@
-import { Stethoscope, Thermometer, HeartPulse, Activity, Mic, Camera, Plus, Minus } from 'lucide-react';
+import { Stethoscope, Thermometer, HeartPulse, Activity, Plus, Minus } from 'lucide-react';
+import VoiceNoteButton from '../components/VoiceNoteButton.jsx';
+import { PhotoAttachButton, PhotoThumbStrip } from '../components/PhotoAttachField.jsx';
 
 const DURATION_OPTIONS = [
   { value: 'just-started', label: 'Just started' },
@@ -11,6 +13,13 @@ const DURATION_OPTIONS = [
 
 export default function Step1Describe({ describe, childName, onChange }) {
   const set = (patch) => onChange({ ...describe, ...patch });
+  const photos = describe.photos || [];
+  const appendDescription = (text) => {
+    const sep = describe.description && !describe.description.endsWith(' ') ? ' ' : '';
+    set({ description: `${describe.description}${sep}${text}` });
+  };
+  const addPhoto = (photo) => set({ photos: [...photos, photo] });
+  const removePhoto = (id) => set({ photos: photos.filter((p) => p.id !== id) });
 
   return (
     <section className="symptom-log__panel">
@@ -35,24 +44,11 @@ export default function Step1Describe({ describe, childName, onChange }) {
             rows={5}
           />
           <div className="symptom-log__textarea-icons">
-            <button
-              type="button"
-              className="symptom-log__icon-btn"
-              title="Voice notes — coming soon"
-              aria-label="Voice notes (coming soon)"
-            >
-              <Mic size={16} />
-            </button>
-            <button
-              type="button"
-              className="symptom-log__icon-btn"
-              title="Attach photo — coming soon"
-              aria-label="Attach photo (coming soon)"
-            >
-              <Camera size={16} />
-            </button>
+            <VoiceNoteButton onTranscript={appendDescription} />
+            <PhotoAttachButton onAdd={addPhoto} />
           </div>
         </div>
+        <PhotoThumbStrip photos={photos} onRemove={removePhoto} />
       </label>
 
       <div className="symptom-log__vitals-grid">

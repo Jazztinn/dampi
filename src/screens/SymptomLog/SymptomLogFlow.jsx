@@ -23,6 +23,7 @@ import Step1Describe from './steps/Step1Describe.jsx';
 import Step2Examine from './steps/Step2Examine.jsx';
 import Step3Findings from './steps/Step3Findings.jsx';
 import Step4Summary from './steps/Step4Summary.jsx';
+import FlowHelpModal from './components/FlowHelpModal.jsx';
 import './symptom-log.css';
 
 const STEP_COUNT = 4;
@@ -69,6 +70,7 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
   const [draft, setDraft] = useState(() => loadDraft() || emptyDraft());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [helpOpen, setHelpOpen] = useState(false);
   const saveTimer = useRef(null);
 
   useEffect(() => {
@@ -262,8 +264,9 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
           <button
             type="button"
             className="symptom-log__help-btn"
-            title="Help — coming soon"
+            title="How this works"
             aria-label="Help"
+            onClick={() => setHelpOpen(true)}
           >
             <HelpCircle size={20} />
           </button>
@@ -292,7 +295,13 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
         <Step1Describe describe={draft.describe} childName={childName} onChange={setDescribe} />
       )}
       {draft.step === 1 && (
-        <Step2Examine plan={draft.plan} childName={childName} />
+        <Step2Examine
+          plan={draft.plan}
+          childName={childName}
+          childAge={childAge}
+          findings={draft.findings}
+          onChange={setFindings}
+        />
       )}
       {draft.step === 2 && (
         <Step3Findings plan={draft.plan} findings={draft.findings} onChange={setFindings} />
@@ -325,7 +334,9 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
             <button
               type="button"
               className="symptom-log__primary"
-              title="Share PDF — coming soon"
+              title="Print or save as PDF"
+              onClick={() => window.print()}
+              disabled={!draft.summary?.data}
             >
               <Share2 size={18} />
               <span>Share Clinical PDF</span>
@@ -348,6 +359,8 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
           <span>This summary is for clinical reference only. Ensure all data is accurate before finalizing.</span>
         </p>
       )}
+
+      <FlowHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 }

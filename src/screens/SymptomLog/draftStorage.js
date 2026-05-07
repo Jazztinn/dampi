@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'dampi.symptomLog.draft';
-const VERSION = 1;
+const VERSION = 2;
 
 export function emptyDraft() {
   return {
@@ -14,9 +14,17 @@ export function emptyDraft() {
       durationCustom: '',
       medicalHistory: '',
       historyExpanded: false,
+      photos: [],
     },
     plan: null,
-    findings: { answers: {}, overallSeverity: null, notes: '' },
+    findings: {
+      answers: {},
+      overallSeverity: null,
+      notes: '',
+      photos: [],
+      examPhotos: {},
+      stepHelp: {},
+    },
     summary: null,
     createdAt: null,
     updatedAt: null,

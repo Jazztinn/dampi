@@ -11,19 +11,20 @@ import './app-navigator.css';
 const SCREENS = {
   home: HomeScreen,
   documents: DocumentsScreen,
-  symptoms: FamilyScreen,
+  symptoms: SymptomLogScreen,
   hmo: HMOPortalScreen,
+  family: FamilyScreen,
   profile: FinancialAssistanceScreen,
 };
 
 // Screens that take over the full app shell (no global bottom nav).
-// If the SCREENS keys above are renamed, update this set too.
-const FULLSCREEN_FLOW = new Set(['hmo']);
+const FULLSCREEN_FLOW = new Set(['hmo-log-flow']); 
 
 export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut, onProfileChange }) {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [showSymptomLog, setShowSymptomLog] = useState(false);
 
+  // Allow both the dedicated tab AND the home screen shortcut to trigger the flow
   if (showSymptomLog) {
     return (
       <SymptomLogScreen
@@ -35,7 +36,7 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
     );
   }
 
-  const Screen = SCREENS[currentScreen] ?? HomeScreen;
+  const Screen = SCREENS[currentScreen] || HomeScreen;
   const isFullscreen = FULLSCREEN_FLOW.has(currentScreen);
 
   return (
@@ -48,7 +49,7 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
           onOpenAi={onOpenAi}
           onSignOut={onSignOut}
           onProfileChange={onProfileChange}
-          onNavigateToSymptoms={() => setShowSymptomLog(true)}
+          onNavigateToSymptoms={() => setCurrentScreen('symptoms')}
           onExit={() => setCurrentScreen('home')}
           onBack={() => setCurrentScreen('home')}
         />

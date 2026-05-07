@@ -1,4 +1,6 @@
-import { ClipboardCheck, Gauge, Mic, Camera } from 'lucide-react';
+import { ClipboardCheck, Gauge } from 'lucide-react';
+import VoiceNoteButton from '../components/VoiceNoteButton.jsx';
+import { PhotoAttachButton, PhotoThumbStrip } from '../components/PhotoAttachField.jsx';
 
 function severityLabel(value) {
   if (value === null || value === undefined) return 'Move slider to rate';
@@ -11,6 +13,13 @@ export default function Step3Findings({ plan, findings, onChange }) {
   if (!plan) return null;
   const set = (patch) => onChange({ ...findings, ...patch });
   const setAnswer = (id, value) => set({ answers: { ...findings.answers, [id]: value } });
+  const photos = findings.photos || [];
+  const appendNote = (text) => {
+    const sep = findings.notes && !findings.notes.endsWith(' ') ? ' ' : '';
+    set({ notes: `${findings.notes || ''}${sep}${text}` });
+  };
+  const addPhoto = (photo) => set({ photos: [...photos, photo] });
+  const removePhoto = (id) => set({ photos: photos.filter((p) => p.id !== id) });
 
   return (
     <section className="symptom-log__panel">
@@ -93,24 +102,11 @@ export default function Step3Findings({ plan, findings, onChange }) {
             rows={3}
           />
           <div className="symptom-log__textarea-icons">
-            <button
-              type="button"
-              className="symptom-log__icon-btn"
-              title="Voice notes — coming soon"
-              aria-label="Voice notes (coming soon)"
-            >
-              <Mic size={16} />
-            </button>
-            <button
-              type="button"
-              className="symptom-log__icon-btn"
-              title="Attach photo — coming soon"
-              aria-label="Attach photo (coming soon)"
-            >
-              <Camera size={16} />
-            </button>
+            <VoiceNoteButton onTranscript={appendNote} />
+            <PhotoAttachButton onAdd={addPhoto} />
           </div>
         </div>
+        <PhotoThumbStrip photos={photos} onRemove={removePhoto} />
       </label>
     </section>
   );

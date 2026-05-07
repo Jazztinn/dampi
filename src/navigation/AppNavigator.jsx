@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import BottomNav from '../components/BottomNav.jsx';
 import HomeScreen from '../screens/Home/HomeScreen.jsx';
 import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
@@ -19,6 +19,16 @@ const SCREENS = {
 export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut, onProfileChange }) {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [showSymptomLog, setShowSymptomLog] = useState(false);
+  const contentAreaRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (showSymptomLog) return;
+
+    const container = contentAreaRef.current;
+    if (container) {
+      container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  }, [currentScreen, showSymptomLog]);
 
   if (showSymptomLog) {
     return (
@@ -35,7 +45,7 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
 
   return (
     <div className="app-container">
-      <div className="content-area">
+      <div className="content-area" ref={contentAreaRef}>
         <Screen
           profile={profile}
           child={child}

@@ -32,7 +32,7 @@ const AVAILABLE_MODELS = [
 const FAST_MODELS = AVAILABLE_MODELS.slice(0, 3);
 const FULL_MODELS = ['gemini-1.5-pro', 'gemini-pro-latest', 'gemini-1.5-flash', 'gemini-2.0-flash'];
 const VALID_MODES = new Set(['fast', 'auto', 'default']);
-const VALID_PURPOSES = new Set(['chat', 'title']);
+const VALID_PURPOSES = new Set(['chat', 'title', 'transcription']);
 const STRUCTURED_CHAT_SCHEMA = {
   type: 'OBJECT',
   required: ['message', 'createTasks', 'askQuestions'],
@@ -230,6 +230,13 @@ function getGenerationConfig(mode, prompt, purpose, systemPrompt = '') {
     return {
       maxOutputTokens: 20,
       temperature: 0.3,
+    };
+  }
+
+  if (purpose === 'transcription') {
+    return {
+      maxOutputTokens: 500,
+      temperature: 0,
     };
   }
 
@@ -602,6 +609,13 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const result = await callModelWithFallback(payload, models);
+
+    if (normalizedPurpose === 'transcription') {
+      return res.json({
+        text: result.text.trim(),
+        model: result.model,
+      });
+    }
 
     if (normalizedPurpose === 'chat') {
       const isSymptomLog = isSymptomLogRequest(userMessage, normalizedSystemPrompt);

@@ -183,6 +183,7 @@
 .chat-history-item-action,
 .chat-send-btn,
 .chat-attach-action,
+.chat-voice-btn,
 .chat-ai-send-btn {
   -webkit-appearance: none;
   appearance: none;
@@ -748,6 +749,62 @@
 .chat-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.chat-voice-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid var(--sage-35);
+  border-radius: 50%;
+  background: var(--sage-15);
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.chat-voice-btn:hover:not(:disabled) {
+  background: var(--sage-20);
+  border-color: var(--primary);
+  color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.chat-voice-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.chat-voice-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.chat-voice-btn--listening {
+  background: var(--warm-15);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 0 rgba(237, 161, 109, 0.34);
+  animation: chatVoicePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes chatVoicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(237, 161, 109, 0.34); }
+  50% { box-shadow: 0 0 0 7px rgba(237, 161, 109, 0); }
+}
+
+.chat-voice-status {
+  margin: 9px 4px 0;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.chat-voice-status--error {
+  color: var(--danger);
 }
 
 .chat-send-btn {

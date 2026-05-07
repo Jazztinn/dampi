@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { X, Menu, ChevronDown, Plus, Loader2, Send, Stethoscope, CalendarPlus, ShieldCheck, Pill, ListChecks, XCircle, MessageSquare, Trash2, Pencil, Check, Square } from "lucide-react";
+import { X, Menu, ChevronDown, Plus, Loader2, Send, Stethoscope, CalendarPlus, ShieldCheck, Pill, ListChecks, XCircle, MessageSquare, Trash2, Pencil, Check, Square, Mic, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
-import { callDampiChat, streamDampiChat } from "../../services/ai/dampiApi.js";
+import { callDampiChat, streamDampiChat, transcribeDampiAudio } from "../../services/ai/dampiApi.js";
 import {
   appendAiChatMessage,
   createLocalChat,
@@ -37,6 +37,41 @@ const VALID_TASK_TAGS = new Set(["Health", "Clinic", "Medicine", "Documents", "U
 const MAX_QUESTION_OPTIONS = 5;
 const MAX_AUTO_TITLE_WORDS = 5;
 const MAX_AUTO_TITLE_LENGTH = 48;
+
+function getVoiceRecorderMimeType() {
+  if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return "";
+
+  return [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/mpeg",
+  ].find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) || "";
+}
+
+function appendVoiceTranscript(currentInput, transcript) {
+  const current = currentInput.trimEnd();
+  const spoken = transcript.trim();
+  if (!spoken) return currentInput;
+  return current ? `${current} ${spoken}` : spoken;
+}
+
+function isVoiceRecordingSupported() {
+  return Boolean(
+    typeof navigator !== "undefined" &&
+    navigator.mediaDevices?.getUserMedia &&
+    typeof MediaRecorder !== "undefined"
+  );
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+    reader.onerror = () => reject(new Error("Unable to read voice recording."));
+    reader.readAsDataURL(blob);
+  });
+}
 
 function parseDateKey(key) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
@@ -292,8 +327,18 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [questionDrafts, setQuestionDrafts] = useState({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceTranscribing, setVoiceTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
   const fileInputRef = useRef(null);
   const activeStreamRef = useRef(null);
+  const voiceRecorderSupported = useMemo(() => isVoiceRecordingSupported(), []);
+  const voiceRecorderMimeType = useMemo(() => getVoiceRecorderMimeType(), []);
+  const mediaRecorderRef = useRef(null);
+  const voiceStreamRef = useRef(null);
+  const voiceChunksRef = useRef([]);
+  const discardVoiceRecordingRef = useRef(false);
+  const sendVoiceTranscriptRef = useRef(null);
 
   /* derived */
   const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
@@ -324,6 +369,116 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       });
     }
   };
+
+  const stopVoiceRecording = useCallback((discardTranscript = false) => {
+    discardVoiceRecordingRef.current = discardTranscript;
+
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+      return;
+    }
+
+    voiceStreamRef.current?.getTracks().forEach((track) => track.stop());
+    voiceStreamRef.current = null;
+    mediaRecorderRef.current = null;
+    voiceChunksRef.current = [];
+    setVoiceListening(false);
+    if (discardTranscript) setVoiceTranscribing(false);
+  }, []);
+
+  const handleVoiceToggle = useCallback(async () => {
+    if (!voiceRecorderSupported || loading || historyLoading || voiceTranscribing) return;
+
+    if (voiceListening) {
+      stopVoiceRecording();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorderOptions = voiceRecorderMimeType ? { mimeType: voiceRecorderMimeType } : undefined;
+      const recorder = new MediaRecorder(stream, recorderOptions);
+
+      voiceChunksRef.current = [];
+      discardVoiceRecordingRef.current = false;
+      voiceStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size > 0) {
+          voiceChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = () => {
+        discardVoiceRecordingRef.current = true;
+        setVoiceError("Voice recording failed. Try again.");
+        setVoiceListening(false);
+        setVoiceTranscribing(false);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.onstop = async () => {
+        const chunks = [...voiceChunksRef.current];
+        const shouldDiscard = discardVoiceRecordingRef.current;
+        const mime = recorder.mimeType || voiceRecorderMimeType || "audio/webm";
+
+        voiceChunksRef.current = [];
+        mediaRecorderRef.current = null;
+        voiceStreamRef.current = null;
+        stream.getTracks().forEach((track) => track.stop());
+        setVoiceListening(false);
+
+        if (shouldDiscard) {
+          discardVoiceRecordingRef.current = false;
+          setVoiceTranscribing(false);
+          return;
+        }
+
+        if (chunks.length === 0) {
+          setVoiceError("No voice recording was captured.");
+          return;
+        }
+
+        setVoiceTranscribing(true);
+        setVoiceError("");
+
+        try {
+          const audioBlob = new Blob(chunks, { type: mime });
+          const data = await blobToBase64(audioBlob);
+          const transcript = await transcribeDampiAudio({
+            name: `voice-dictation.${mime.includes("mp4") ? "m4a" : "webm"}`,
+            mime,
+            data,
+          });
+
+          if (transcript && !discardVoiceRecordingRef.current) {
+            setInput("");
+            sendVoiceTranscriptRef.current?.(transcript);
+          } else if (!discardVoiceRecordingRef.current) {
+            setVoiceError("No clear speech was detected.");
+          }
+        } catch (error) {
+          if (!discardVoiceRecordingRef.current) {
+            setVoiceError(error.message || "Voice transcription failed.");
+          }
+        } finally {
+          discardVoiceRecordingRef.current = false;
+          setVoiceTranscribing(false);
+        }
+      };
+
+      recorder.start();
+      setVoiceListening(true);
+      setVoiceError("");
+    } catch (error) {
+      const permissionDenied = error?.name === "NotAllowedError" || error?.name === "SecurityError";
+      setVoiceError(permissionDenied ? "Microphone permission is blocked." : "Voice recording could not start.");
+      setVoiceListening(false);
+      setVoiceTranscribing(false);
+    }
+  }, [historyLoading, loading, stopVoiceRecording, voiceListening, voiceRecorderMimeType, voiceRecorderSupported, voiceTranscribing]);
 
   const sendQuestionReply = (questionKey) => {
     const reply = (questionDrafts[questionKey] || "").trim();
@@ -389,6 +544,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const requestClose = useCallback(() => {
     if (isClosing) return;
     activeStreamRef.current?.abortController?.abort();
+    stopVoiceRecording(true);
     clearTimeout(closeTimerRef.current);
     setIsClosing(true);
     closeTimerRef.current = setTimeout(() => {
@@ -396,7 +552,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       setIsClosing(false);
       onClose();
     }, 260);
-  }, [isClosing, onClose]);
+  }, [isClosing, onClose, stopVoiceRecording]);
 
   /* reset height when modal opens */
   useEffect(() => {
@@ -440,7 +596,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     };
   }, [isOpen]);
 
-  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(closeTimerRef.current);
+    stopVoiceRecording(true);
+  }, [stopVoiceRecording]);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -535,6 +694,9 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   /* ---- chat logic ---- */
   const send = async (text) => {
     if (loading || historyLoading) return;
+
+    stopVoiceRecording(true);
+    setVoiceError("");
 
     const userMessage = text || input.trim();
     if (!userMessage && attachments.length === 0) return;
@@ -716,20 +878,30 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     }
   };
 
+  useEffect(() => {
+    sendVoiceTranscriptRef.current = (transcript) => {
+      send(transcript);
+    };
+  });
+
   const handleNewChat = () => {
+    stopVoiceRecording(true);
     const fresh = createChat();
     setChats((prev) => [fresh, ...prev]);
     setActiveChatId(fresh.id);
     setInput("");
     setAttachments([]);
+    setVoiceError("");
     setQuestionDrafts({});
     setShowHistory(false);
   };
 
   const switchChat = (id) => {
+    stopVoiceRecording(true);
     setActiveChatId(id);
     setInput("");
     setAttachments([]);
+    setVoiceError("");
     setQuestionDrafts({});
     setShowHistory(false);
   };
@@ -1076,6 +1248,32 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               disabled={loading || historyLoading}
             />
             <button
+              type="button"
+              className={`chat-voice-btn${voiceListening ? " chat-voice-btn--listening" : ""}`}
+              onClick={handleVoiceToggle}
+              disabled={!voiceRecorderSupported || loading || historyLoading || voiceTranscribing}
+              aria-label={
+                !voiceRecorderSupported
+                  ? "Voice dictation unavailable"
+                  : voiceListening
+                    ? "Stop voice dictation"
+                    : voiceTranscribing
+                      ? "Transcribing voice dictation"
+                      : "Start voice dictation"
+              }
+              title={
+                !voiceRecorderSupported
+                  ? "Voice dictation unavailable in this browser"
+                  : voiceListening
+                    ? "Stop voice dictation"
+                    : voiceTranscribing
+                      ? "Transcribing voice dictation"
+                      : "Start voice dictation"
+              }
+            >
+              {voiceRecorderSupported ? <Mic size={18} /> : <MicOff size={18} />}
+            </button>
+            <button
               className="chat-send-btn"
               onClick={() => {
                 if (loading) {
@@ -1089,6 +1287,11 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
               {loading ? <Square size={18} /> : <Send size={18} />}
             </button>
           </div>
+          {(voiceListening || voiceTranscribing || voiceError) && (
+            <div className={`chat-voice-status${voiceError ? " chat-voice-status--error" : ""}`} role={voiceError ? "alert" : "status"}>
+              {voiceError || (voiceTranscribing ? "Transcribing..." : "Recording...")}
+            </div>
+          )}
           <input
             ref={fileInputRef}
             type="file"

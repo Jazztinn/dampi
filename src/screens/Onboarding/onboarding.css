@@ -817,9 +817,7 @@
 }
 
 .try-chat__input:focus {
-  box-shadow:
-    inset 0 2px 5px rgba(0, 0, 0, 0.1),
-    0 0 0 2px rgba(146, 187, 179, 0.25);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .try-chat__input::placeholder {

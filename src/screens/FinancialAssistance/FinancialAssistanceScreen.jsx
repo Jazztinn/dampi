@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Phone, Calendar, Baby, LogOut, ImagePlus, Edit3, Save, X } from 'lucide-react';
+import { Phone, Calendar, Baby, LogOut, ImagePlus, Edit3, Save, X, Mail } from 'lucide-react';
 import TopNavBar, { getInitials } from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './financial-assistance.css';
@@ -37,25 +37,17 @@ export default function FinancialAssistanceScreen({
   const [profileForm, setProfileForm] = useState({
     full_name: profile?.full_name || '',
     phone: profile?.phone || '',
-    child_name: child?.full_name || '',
   });
+  const [discoverable, setDiscoverable] = useState(profile?.discoverable !== false);
+  const [savingDiscoverable, setSavingDiscoverable] = useState(false);
   const fullName = profile?.full_name || 'Dampi caregiver';
   const avatarInputId = profile?.id ? `profile-avatar-${profile.id}` : 'profile-avatar-input';
   const childCount = children.length || (child ? 1 : 0);
   const primaryChildName = child?.full_name || children[0]?.full_name || 'No child profile';
+  
+  const isEmailVerified = profile?.id?.endsWith('@google.com'); // Simple check
+
   const infoRows = [
-    {
-      id: 'contact',
-      Icon: Phone,
-      label: 'Contact',
-      value: profile?.phone || 'Not provided',
-    },
-    {
-      id: 'children',
-      Icon: Baby,
-      label: childCount === 1 ? 'Child Profile' : 'Child Profiles',
-      value: childCount > 1 ? `${childCount} children linked` : primaryChildName,
-    },
     {
       id: 'member-since',
       Icon: Calendar,
@@ -64,13 +56,22 @@ export default function FinancialAssistanceScreen({
     },
   ];
 
+  if (!isEmailVerified) {
+    infoRows.unshift({
+      id: 'verify-email',
+      Icon: Mail,
+      label: 'Verify your email',
+      value: 'Connect your email for better security.',
+    });
+  }
+
   useEffect(() => {
     setProfileForm({
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
       child_name: child?.full_name || '',
     });
-  }, [profile?.full_name, profile?.phone, child?.full_name]);
+  }, [profile?.full_name, profile?.phone]);
 
   const handleProfileFieldChange = (event) => {
     const { name, value } = event.target;
@@ -82,7 +83,6 @@ export default function FinancialAssistanceScreen({
     setProfileForm({
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
-      child_name: child?.full_name || '',
     });
     setProfileError('');
     setEditingProfile(false);
@@ -94,7 +94,6 @@ export default function FinancialAssistanceScreen({
 
     const nextName = profileForm.full_name.trim();
     const nextPhone = profileForm.phone.trim();
-    const nextChildName = profileForm.child_name.trim();
 
     if (!nextName) {
       setProfileError('Name is required.');
@@ -103,11 +102,6 @@ export default function FinancialAssistanceScreen({
 
     if (!nextPhone) {
       setProfileError('Phone number is required.');
-      return;
-    }
-    
-    if (!nextChildName && child) {
-      setProfileError('Child name is required.');
       return;
     }
 
@@ -125,27 +119,37 @@ export default function FinancialAssistanceScreen({
 
       if (error) throw error;
       
-      if (child && child.id && nextChildName !== child.full_name) {
-        const { data: updatedChildData, error: childError } = await supabase
-          .from('children')
-          .update({ full_name: nextChildName })
-          .eq('id', child.id)
-          .select('*')
-          .single();
-          
-        if (childError) throw childError;
-        
-        onChildrenChange?.((prevChildren) => {
-          return prevChildren.map((c) => c.id === child.id ? updatedChildData : c);
-        });
-      }
-
       onProfileChange?.(updatedProfile);
       setEditingProfile(false);
     } catch (error) {
       setProfileError(error.message || 'Unable to update profile.');
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleDiscoverableChange = async (e) => {
+    const nextValue = e.target.checked;
+    setDiscoverable(nextValue);
+    setSavingDiscoverable(true);
+    // setCareError(''); // if you have an error state for this section
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ discoverable: nextValue })
+        .eq('id', profile.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      onProfileChange?.(data);
+    } catch (err) {
+      setDiscoverable(!nextValue);
+      // setCareError(err.message || 'Unable to update setting.');
+    } finally {
+      setSavingDiscoverable(false);
     }
   };
 
@@ -282,20 +286,6 @@ export default function FinancialAssistanceScreen({
             disabled={savingProfile}
           />
 
-          {child && (
-            <>
-              <label htmlFor="profile-child-name">Child's Name</label>
-              <input
-                id="profile-child-name"
-                name="child_name"
-                type="text"
-                value={profileForm.child_name}
-                onChange={handleProfileFieldChange}
-                disabled={savingProfile}
-              />
-            </>
-          )}
-
           {profileError && <p className="profile__form-error">{profileError}</p>}
 
           <button type="submit" className="profile__save-btn" disabled={savingProfile}>
@@ -318,6 +308,24 @@ export default function FinancialAssistanceScreen({
           ))}
         </div>
       )}
+
+      <div className="profile__section-header">
+        <p className="profile__section-title">Settings</p>
+      </div>
+
+      <label className="profile__setting-row" htmlFor="family-discoverable">
+        <input
+          id="family-discoverable"
+          type="checkbox"
+          checked={discoverable}
+          onChange={handleDiscoverableChange}
+          disabled={savingDiscoverable}
+        />
+        <span>
+          <strong>Show me in caregiver search</strong>
+          <small>Other Dampi users can find your name and send care-circle requests.</small>
+        </span>
+      </label>
 
       <div className="profile__sign-out-row">
         <button type="button" className="profile__sign-out-btn" onClick={onSignOut} disabled={signingOut}>

@@ -82,135 +82,7 @@ function ChildCard({ child }) {
   );
 }
 
-function AddChildSheet({ profileId, onAdd, onClose }) {
-  const dobBounds = getDobBounds();
-  const [formData, setFormData] = useState({ full_name: '', date_of_birth: '', gender: '' });
-  const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const submitLock = useRef(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'date_of_birth') {
-      const result = validateChildDob(value, { required: false });
-      if (value && !result.valid) {
-        setErrors((prev) => ({ ...prev, date_of_birth: result.error }));
-        return;
-      }
-    }
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (submitting || submitLock.current) return;
-
-    const newErrors = {};
-    if (!formData.full_name.trim()) newErrors.full_name = 'Name is required';
-    const dobResult = validateChildDob(formData.date_of_birth);
-    if (!dobResult.valid) newErrors.date_of_birth = dobResult.error;
-    if (!formData.gender) newErrors.gender = 'Gender is required';
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
-      return;
-    }
-
-    submitLock.current = true;
-    setSubmitting(true);
-    setSubmitError('');
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase
-        .from('children')
-        .insert({ primary_guardian_id: profileId, ...formData, full_name: formData.full_name.trim() })
-        .select()
-        .single();
-      if (error) throw error;
-      onAdd(data);
-    } catch (err) {
-      setSubmitError(err.message || 'Could not add child.');
-      submitLock.current = false;
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="family__sheet-overlay" onClick={onClose}>
-      <div className="family__sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="family__sheet-header">
-          <p className="family__sheet-title">Add a Child</p>
-          <button className="family__sheet-close" onClick={onClose} aria-label="Close">
-            <X size={18} strokeWidth={2} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="family__sheet-form">
-          <div className="family__form-group">
-            <label htmlFor="fc-name">Child's Name</label>
-            <div className="family__input-wrap">
-              <Baby size={16} className="family__input-icon" />
-              <input
-                id="fc-name"
-                name="full_name"
-                type="text"
-                placeholder="Full name"
-                value={formData.full_name}
-                onChange={handleChange}
-                className={errors.full_name ? 'family__input family__input--error' : 'family__input'}
-              />
-            </div>
-            {errors.full_name && <span className="family__error">{errors.full_name}</span>}
-          </div>
-
-          <div className="family__form-group">
-            <label htmlFor="fc-dob">Date of Birth</label>
-            <div className="family__input-wrap">
-              <Calendar size={16} className="family__input-icon" />
-              <input
-                id="fc-dob"
-                name="date_of_birth"
-                type="date"
-                min={dobBounds.min}
-                max={dobBounds.max}
-                value={formData.date_of_birth}
-                onChange={handleChange}
-                className={errors.date_of_birth ? 'family__input family__input--error' : 'family__input'}
-              />
-            </div>
-            {errors.date_of_birth && <span className="family__error">{errors.date_of_birth}</span>}
-          </div>
-
-          <div className="family__form-group">
-            <label htmlFor="fc-gender">Gender</label>
-            <select
-              id="fc-gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className={errors.gender ? 'family__select family__select--error' : 'family__select'}
-            >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.gender && <span className="family__error">{errors.gender}</span>}
-          </div>
-
-          {submitError && <p className="family__error">{submitError}</p>}
-
-          <button type="submit" className="family__sheet-cta" disabled={submitting}>
-            {submitting ? 'Adding...' : 'Add Child'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 function InviteSheet({ children, profileId, onSent, onEmailInviteAdded, onClose }) {
   const [query, setQuery] = useState('');
@@ -492,7 +364,6 @@ export default function FamilyScreen({
   const [requests, setRequests] = useState([]);
   const [caregiverFamilies, setCaregiverFamilies] = useState([]);
   const [loadingCare, setLoadingCare] = useState(true);
-  const [showAddChild, setShowAddChild] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [careError, setCareError] = useState('');
   const [discoverable, setDiscoverable] = useState(profile?.discoverable !== false);
@@ -548,16 +419,6 @@ export default function FamilyScreen({
     setReloadKey((key) => key + 1);
   }, []);
 
-  const handleChildAdded = (child) => {
-    setLocalChildren((prev) => [...prev, child]);
-    onChildrenChange?.((currentChildren) => [...currentChildren, child]);
-    setShowAddChild(false);
-  };
-
-  const handleEmailInviteAdded = (invite) => {
-    setInvites((prev) => [invite, ...prev]);
-  };
-
   const handleDiscoverableChange = async (e) => {
     const nextValue = e.target.checked;
     setDiscoverable(nextValue);
@@ -584,10 +445,23 @@ export default function FamilyScreen({
   };
 
   const handleAddClick = () => {
-    if (profile?.onboarding_completed) {
-      onNavigateToAddChild?.();
+    const incompleteChild = localChildren.find(child => !child.registration_completed);
+
+    if (incompleteChild) {
+      if (profile?.onboarding_completed) {
+        // If parent onboarding is complete, navigate to complete child's registration
+        onNavigateToAddChild?.(incompleteChild.id);
+      } else {
+        // If parent onboarding is NOT complete, alert them
+        alert("Please complete your own registration before finishing child registration.");
+      }
     } else {
-      alert("Please complete your own registration before adding another child.");
+      // No incomplete children, proceed to add a new child
+      if (profile?.onboarding_completed) {
+        onNavigateToAddChild?.();
+      } else {
+        alert("Please complete your own registration before adding a new child.");
+      }
     }
   };
 
@@ -634,6 +508,8 @@ export default function FamilyScreen({
   const hasCareCircle = memberships.length > 0;
   const hasPending = requests.length > 0 || invites.length > 0;
 
+  const incompleteChild = localChildren.find(child => !child.registration_completed);
+
   return (
     <div className="family">
       <TopNavBar variant="inner" title="Family" onBack={onBack} />
@@ -647,24 +523,15 @@ export default function FamilyScreen({
           <div className="family__add-icon">
             <Plus size={16} strokeWidth={2.5} />
           </div>
-          <span className="family__add-label">Add a Child</span>
+          <span className="family__add-label">
+            {incompleteChild 
+              ? `Finish ${incompleteChild.full_name}'s Registration` 
+              : 'Add a Child'
+            }
+          </span>
           <ChevronRight size={16} color="var(--dampi-text-muted)" strokeWidth={2} />
         </button>
       </div>
-
-      <label className="family__setting-row" htmlFor="family-discoverable">
-        <input
-          id="family-discoverable"
-          type="checkbox"
-          checked={discoverable}
-          onChange={handleDiscoverableChange}
-          disabled={savingDiscoverable}
-        />
-        <span>
-          <strong>Show me in caregiver search</strong>
-          <small>Other Dampi users can find your name and send care-circle requests. Your email and phone stay private.</small>
-        </span>
-      </label>
 
       <div className="family__caregivers-header">
         <p className="family__section-title">Care Circle</p>
@@ -816,14 +683,6 @@ export default function FamilyScreen({
             ))}
           </div>
         </>
-      )}
-
-      {showAddChild && (
-        <AddChildSheet
-          profileId={profile?.id}
-          onAdd={handleChildAdded}
-          onClose={() => setShowAddChild(false)}
-        />
       )}
 
       {showInvite && (

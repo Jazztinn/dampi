@@ -41,6 +41,7 @@ const SUGGESTIONS = [
 ];
 
 const CHAT_PLACEHOLDER = "Message Dampi…";
+const VOICE_VISUALIZER_BARS = [0.62, 0.86, 1.18, 0.78, 1.34, 0.94, 1.08, 0.72, 1.26, 0.82, 1.12, 0.68];
 
 /* Snap points as % of parent height */
 const SNAP_MIN = 0.38;   // collapsed
@@ -437,6 +438,7 @@ export default function ChatModal({
   const [voiceListening, setVoiceListening] = useState(false);
   const [voiceTranscribing, setVoiceTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState("");
+  const [voiceLevel, setVoiceLevel] = useState(0);
   const accountChildren = useMemo(() => {
     if (Array.isArray(children) && children.length > 0) return children;
     return child ? [child] : [];
@@ -454,6 +456,9 @@ export default function ChatModal({
   const mediaRecorderRef = useRef(null);
   const voiceStreamRef = useRef(null);
   const voiceChunksRef = useRef([]);
+  const voiceAnimationFrameRef = useRef(null);
+  const voiceAudioContextRef = useRef(null);
+  const voiceAudioSourceRef = useRef(null);
   const discardVoiceRecordingRef = useRef(false);
   const sendVoiceTranscriptRef = useRef(null);
 
@@ -495,6 +500,65 @@ export default function ChatModal({
     }
   };
 
+  const stopVoiceVisualization = useCallback(() => {
+    if (voiceAnimationFrameRef.current) {
+      cancelAnimationFrame(voiceAnimationFrameRef.current);
+      voiceAnimationFrameRef.current = null;
+    }
+
+    voiceAudioSourceRef.current?.disconnect();
+    voiceAudioSourceRef.current = null;
+
+    const audioContext = voiceAudioContextRef.current;
+    voiceAudioContextRef.current = null;
+    if (audioContext && audioContext.state !== "closed") {
+      audioContext.close().catch(() => {});
+    }
+
+    setVoiceLevel(0);
+  }, []);
+
+  const startVoiceVisualization = useCallback((stream) => {
+    stopVoiceVisualization();
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    try {
+      const audioContext = new AudioContextClass();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.72;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      source.connect(analyser);
+      voiceAudioContextRef.current = audioContext;
+      voiceAudioSourceRef.current = source;
+
+      const updateLevel = () => {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+
+        for (let i = 0; i < data.length; i += 1) {
+          const sample = (data[i] - 128) / 128;
+          sum += sample * sample;
+        }
+
+        const rms = Math.sqrt(sum / data.length);
+        const nextLevel = Math.min(1, rms * 4.4);
+        setVoiceLevel((currentLevel) => (
+          Math.abs(currentLevel - nextLevel) < 0.02 ? currentLevel : nextLevel
+        ));
+        voiceAnimationFrameRef.current = requestAnimationFrame(updateLevel);
+      };
+
+      updateLevel();
+    } catch {
+      stopVoiceVisualization();
+    }
+  }, [stopVoiceVisualization]);
+
   const stopVoiceRecording = useCallback((discardTranscript = false) => {
     discardVoiceRecordingRef.current = discardTranscript;
 
@@ -508,9 +572,10 @@ export default function ChatModal({
     voiceStreamRef.current = null;
     mediaRecorderRef.current = null;
     voiceChunksRef.current = [];
+    stopVoiceVisualization();
     setVoiceListening(false);
     if (discardTranscript) setVoiceTranscribing(false);
-  }, []);
+  }, [stopVoiceVisualization]);
 
   const handleVoiceToggle = useCallback(async () => {
     if (!voiceRecorderSupported || loading || historyLoading || voiceTranscribing) return;
@@ -529,6 +594,7 @@ export default function ChatModal({
       discardVoiceRecordingRef.current = false;
       voiceStreamRef.current = stream;
       mediaRecorderRef.current = recorder;
+      startVoiceVisualization(stream);
 
       recorder.ondataavailable = (event) => {
         if (event.data?.size > 0) {
@@ -541,6 +607,7 @@ export default function ChatModal({
         setVoiceError("Voice recording failed. Try again.");
         setVoiceListening(false);
         setVoiceTranscribing(false);
+        stopVoiceVisualization();
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -552,6 +619,7 @@ export default function ChatModal({
         voiceChunksRef.current = [];
         mediaRecorderRef.current = null;
         voiceStreamRef.current = null;
+        stopVoiceVisualization();
         stream.getTracks().forEach((track) => track.stop());
         setVoiceListening(false);
 
@@ -602,8 +670,9 @@ export default function ChatModal({
       setVoiceError(permissionDenied ? "Microphone permission is blocked." : "Voice recording could not start.");
       setVoiceListening(false);
       setVoiceTranscribing(false);
+      stopVoiceVisualization();
     }
-  }, [historyLoading, loading, stopVoiceRecording, voiceListening, voiceRecorderMimeType, voiceRecorderSupported, voiceTranscribing]);
+  }, [historyLoading, loading, startVoiceVisualization, stopVoiceRecording, stopVoiceVisualization, voiceListening, voiceRecorderMimeType, voiceRecorderSupported, voiceTranscribing]);
 
   /* drag state */
   const [sheetHeight, setSheetHeight] = useState(SNAP_MID); // fraction 0-1
@@ -1607,7 +1676,7 @@ export default function ChatModal({
         />
 
         {/* Input */}
-        <div className="chat-modal-input-area">
+        <div className={`chat-modal-input-area${(voiceListening || voiceTranscribing) && !voiceError ? " chat-modal-input-area--voice-active" : ""}`}>
           {/* Attachment previews */}
           {attachments.length > 0 && (
             <div className="chat-attach-preview-row">
@@ -1625,58 +1694,89 @@ export default function ChatModal({
             </div>
           )}
           <div className="chat-input-row">
-            <input
-              type="text"
-              className="chat-input"
-              placeholder={trialLocked ? "Sign up to continue…" : CHAT_PLACEHOLDER}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && !trialLocked && send()}
-              disabled={loading || historyLoading || trialLocked}
-            />
-            <button
-              type="button"
-              className={`chat-voice-btn${voiceListening ? " chat-voice-btn--listening" : ""}`}
-              onClick={handleVoiceToggle}
-              disabled={!voiceRecorderSupported || loading || historyLoading || voiceTranscribing || trialLocked}
-              aria-label={
-                !voiceRecorderSupported
-                  ? "Voice dictation unavailable"
-                  : voiceListening
-                    ? "Stop voice dictation"
+            {(voiceListening || voiceTranscribing) && !voiceError && (
+              <button
+                type="button"
+                className="chat-voice-input-visualization"
+                onClick={() => stopVoiceRecording(voiceTranscribing)}
+                aria-label={voiceTranscribing ? "Cancel voice transcription" : "Stop voice dictation"}
+              >
+                <div
+                  className={`chat-voice-visualizer${voiceTranscribing ? " chat-voice-visualizer--transcribing" : ""}`}
+                  aria-hidden="true"
+                >
+                  {VOICE_VISUALIZER_BARS.map((bar, index) => {
+                    const barScale = voiceListening
+                      ? Math.max(0.16, Math.min(1, (voiceLevel * bar) + 0.12))
+                      : 0.44;
+
+                    return (
+                      <span
+                        key={index}
+                        style={{
+                          "--voice-bar-scale": barScale.toFixed(2),
+                          "--voice-bar-delay": `${index * 70}ms`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </button>
+            )}
+            {!((voiceListening || voiceTranscribing) && !voiceError) && (
+              <input
+                type="text"
+                className="chat-input"
+                placeholder={trialLocked ? "Sign up to continue…" : CHAT_PLACEHOLDER}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && !trialLocked && send()}
+                disabled={loading || historyLoading || trialLocked}
+              />
+            )}
+            {!((voiceListening || voiceTranscribing) && !voiceError) && (
+              <button
+                type="button"
+                className="chat-voice-btn"
+                onClick={handleVoiceToggle}
+                disabled={!voiceRecorderSupported || loading || historyLoading || voiceTranscribing || trialLocked}
+                aria-label={
+                  !voiceRecorderSupported
+                    ? "Voice dictation unavailable"
                     : voiceTranscribing
                       ? "Transcribing voice dictation"
                       : "Start voice dictation"
-              }
-              title={
-                !voiceRecorderSupported
-                  ? "Voice dictation unavailable in this browser"
-                  : voiceListening
-                    ? "Stop voice dictation"
-                    : voiceTranscribing
-                      ? "Transcribing voice dictation"
-                      : "Start voice dictation"
-              }
-            >
-              {voiceRecorderSupported ? <Mic size={18} /> : <MicOff size={18} />}
-            </button>
-            <button
-              className="chat-send-btn"
-              onClick={() => {
-                if (loading) {
-                  stopActiveGeneration("stop");
-                  return;
                 }
-                send();
-              }}
-              disabled={historyLoading || trialLocked || (!loading && !input.trim() && attachments.length === 0)}
-            >
-              {loading ? <Square size={18} /> : <Send size={18} />}
-            </button>
+                title={
+                  !voiceRecorderSupported
+                    ? "Voice dictation unavailable in this browser"
+                    : voiceTranscribing
+                      ? "Transcribing voice dictation"
+                      : "Start voice dictation"
+                }
+              >
+                {voiceRecorderSupported ? <Mic size={18} /> : <MicOff size={18} />}
+              </button>
+            )}
+            {!((voiceListening || voiceTranscribing) && !voiceError) && (
+              <button
+                className="chat-send-btn"
+                onClick={() => {
+                  if (loading) {
+                    stopActiveGeneration("stop");
+                    return;
+                  }
+                  send();
+                }}
+                disabled={historyLoading || trialLocked || (!loading && !input.trim() && attachments.length === 0)}
+              >
+                {loading ? <Square size={18} /> : <Send size={18} />}
+              </button>
+            )}
           </div>
-          {(voiceListening || voiceTranscribing || voiceError) && (
-            <div className={`chat-voice-status${voiceError ? " chat-voice-status--error" : ""}`} role={voiceError ? "alert" : "status"}>
-              {voiceError || (voiceTranscribing ? "Transcribing..." : "Recording...")}
+          {voiceError && (
+            <div className="chat-voice-status chat-voice-status--error" role="alert">
+              {voiceError}
             </div>
           )}
           <input
@@ -1687,7 +1787,13 @@ export default function ChatModal({
             style={{ display: "none" }}
             onChange={handleFileSelect}
           />
-          <button className="chat-attach-action" onClick={() => fileInputRef.current?.click()} type="button">
+          <button
+            className={`chat-attach-action${(voiceListening || voiceTranscribing) && !voiceError ? " chat-attach-action--voice-spacer" : ""}`}
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+            aria-hidden={(voiceListening || voiceTranscribing) && !voiceError ? "true" : undefined}
+            tabIndex={(voiceListening || voiceTranscribing) && !voiceError ? -1 : undefined}
+          >
             <Plus size={14} />
           </button>
         </div>

@@ -484,6 +484,7 @@ export default function FamilyScreen({
   onBack,
   onChildrenChange,
   onProfileChange,
+  onNavigateToAddChild,
 }) {
   const [localChildren, setLocalChildren] = useState(initialChildren);
   const [invites, setInvites] = useState([]);
@@ -582,6 +583,14 @@ export default function FamilyScreen({
     }
   };
 
+  const handleAddClick = () => {
+    if (profile?.onboarding_completed) {
+      onNavigateToAddChild?.();
+    } else {
+      alert("Please complete your own registration before adding another child.");
+    }
+  };
+
   const handleRequestResponse = async (requestId, accept) => {
     const supabase = getSupabaseBrowserClient();
     setCareError('');
@@ -634,7 +643,7 @@ export default function FamilyScreen({
         {localChildren.map((child) => (
           <ChildCard key={child.id} child={child} />
         ))}
-        <button className="family__add-card" onClick={() => setShowAddChild(true)}>
+        <button className="family__add-card" onClick={handleAddClick}>
           <div className="family__add-icon">
             <Plus size={16} strokeWidth={2.5} />
           </div>

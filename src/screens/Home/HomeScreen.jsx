@@ -31,10 +31,10 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
     const refreshLogs = async () => {
       try {
         const logs = await loadSymptomLogs(null, 5);
-        setRecentLogs(logs);
-        // Fetch total count (simple approach for now)
+        setRecentLogs(logs || []);
+        // Fetch total count
         const allLogs = await loadSymptomLogs(null, 1000);
-        setTotalLogCount(allLogs.length);
+        setTotalLogCount(allLogs?.length || 0);
       } catch (err) {
         console.error('Failed to load logs:', err);
       }
@@ -94,26 +94,27 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
             </div>
           </div>
         </div>
-      </section>
 
-      {isRegistrationIncomplete && (
-        <section className="home__section">
-          <div className="home__registration-reminder" onClick={() => onNavigateToChildRegistration?.(child.id)}>
-            <div className="home__registration-content">
-              <div className="home__registration-icon">
-                <AlertTriangle size={20} />
+        {isRegistrationIncomplete && (
+          <>
+            <div className="home__card-divider" />
+            <div className="home__registration-reminder" onClick={() => onNavigateToChildRegistration?.(child.id)}>
+              <div className="home__registration-content">
+                <div className="home__registration-icon">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <p className="home__registration-title">Finish {firstChildName}'s Registration</p>
+                  <p className="home__registration-sub">Get better AI guidance.</p>
+                </div>
               </div>
-              <div>
-                <p className="home__registration-title">Finish {firstChildName}'s Registration</p>
-                <p className="home__registration-sub">Complete the medical profile to get better AI guidance.</p>
+              <div className="home__registration-action">
+                <span>Continue</span>
               </div>
             </div>
-            <div className="home__registration-action">
-              <span>Start</span>
-            </div>
-          </div>
-        </section>
-      )}
+          </>
+        )}
+      </section>
 
       <section className="home__section home__section--carousel">
         <div className="home__section-header">

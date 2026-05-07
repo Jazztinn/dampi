@@ -1,12 +1,11 @@
 /* ── Onboarding Flow ──────────────────────────────────────── */
 
 .onboarding-flow {
-  background: linear-gradient(180deg, #f8fafa 0%, #f0f5f4 100%);
+  background: linear-gradient(180deg, #fffdf9 0%, var(--dampi-cream) 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: 20px;
 }
 
 /* ── Progress Indicator ── */

@@ -56,6 +56,7 @@ export default function App() {
   const [account, setAccount] = useState(null);
   const [hasSession, setHasSession] = useState(false);
   const [authView, setAuthView] = useState('landing');
+  const [showAddChildFlow, setShowAddChildFlow] = useState(false);
   const [accountError, setAccountError] = useState('');
   const [signingOut, setSigningOut] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -172,6 +173,12 @@ export default function App() {
   const handleOnboardingComplete = ({ profile, child, hmoCoverage }) => {
     setAccount({ profile, child, children: child ? [child] : [], hmoCoverage });
     setAccountError('');
+    setShowAddChildFlow(false); // Make sure to exit this mode on full completion
+  };
+
+  const handleAddedChild = (newChild) => {
+    handleChildrenChange((currentChildren) => [...currentChildren, newChild]);
+    setShowAddChildFlow(false);
   };
 
   const handleProfileChange = (profile) => {
@@ -262,6 +269,7 @@ export default function App() {
           onChildrenChange={handleChildrenChange}
           signingOut={signingOut}
           symptomLogRequest={symptomLogRequest}
+          onNavigateToAddChild={() => setShowAddChildFlow(true)}
         />
         <DampiChatModal
           isOpen={chatOpen}
@@ -282,16 +290,24 @@ export default function App() {
 
   return (
     <div className="dampi-app">
-      {!showOnboarding && authView === 'login' && (
+      {!showOnboarding && authView === 'login' && !showAddChildFlow && (
         <LoginScreen onBack={() => setAuthView('landing')} />
       )}
-      {showOnboarding && (
+      {showOnboarding && !showAddChildFlow && (
         <OnboardingFlow
           onComplete={handleOnboardingComplete}
           onInitialBack={!hasSession ? () => setAuthView('landing') : null}
         />
       )}
-      {!showOnboarding && authView === 'landing' && (
+      {showAddChildFlow && (
+        <OnboardingFlow
+          onComplete={handleAddedChild}
+          startAtStep={2} // Start at 'Add Child'
+          isAddingChild
+          onInitialBack={() => setShowAddChildFlow(false)}
+        />
+      )}
+      {!showOnboarding && !showAddChildFlow && authView === 'landing' && (
         <AuthLandingScreen
           onNew={() => setAuthView('onboarding')}
           onExisting={() => setAuthView('login')}

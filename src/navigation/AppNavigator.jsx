@@ -31,6 +31,7 @@ export default function AppNavigator({
   onChildrenChange,
   signingOut = false,
   symptomLogRequest = null,
+  onNavigateToAddChild,
 }) {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [screenHistory, setScreenHistory] = useState([]);
@@ -135,6 +136,7 @@ export default function AppNavigator({
             signingOut={signingOut}
             onNavigateToSymptoms={openSymptomLog}
             onNavigateToChildRegistration={openChildRegistration}
+            onNavigateToAddChild={onNavigateToAddChild}
             onExit={() => navigateTo('home')}
             onBack={goBack}
           />

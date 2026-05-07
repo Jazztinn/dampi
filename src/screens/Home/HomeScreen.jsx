@@ -5,6 +5,7 @@ import {
   Thermometer,
   Wind,
   FileText,
+  Baby,
 } from 'lucide-react';
 import TopNavBar, { getFirstName, getInitials } from '../../navigation/TopNavBar.jsx';
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
@@ -13,11 +14,6 @@ import './home-screen.css';
 
 const RING_R = 54;
 const RING_C = 2 * Math.PI * RING_R;
-
-const today = new Date().toLocaleDateString('en-US', {
-  month: 'long',
-  day: 'numeric',
-});
 
 const HEALTH_TIPS = [
   { id: 1, Icon: Droplets, title: 'Stay Hydrated', body: 'Offer warm fluids to help your child stay healthy and comfortable.' },
@@ -31,30 +27,46 @@ function pluralize(count, singular, plural = `${singular}s`) {
 
 export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms }) {
   const [recentLogs, setRecentLogs] = useState([]);
+  const [totalLogCount, setTotalLogCount] = useState(0);
 
   useEffect(() => {
-    const refreshLogs = () => loadSymptomLogs(null, 5).then(setRecentLogs).catch(() => {});
+    const refreshLogs = async () => {
+      try {
+        const logs = await loadSymptomLogs(null, 5);
+        setRecentLogs(logs);
+        // Fetch total count (simple approach for now)
+        const allLogs = await loadSymptomLogs(null, 1000);
+        setTotalLogCount(allLogs.length);
+      } catch (err) {
+        console.error('Failed to load logs:', err);
+      }
+    };
+    
     refreshLogs();
     window.addEventListener('dampi:symptom-log-saved', refreshLogs);
     return () => window.removeEventListener('dampi:symptom-log-saved', refreshLogs);
   }, []);
 
   const childCount = children.length || (child ? 1 : 0);
-  const completedProfileItems = [
-    Boolean(profile?.full_name),
-    Boolean(profile?.phone),
-    childCount > 0,
-  ].filter(Boolean).length;
-  const totalProfileItems = 3;
-  const progressPct = Math.round((completedProfileItems / totalProfileItems) * 100);
-  const ringOffset = RING_C * (1 - progressPct / 100);
   const firstName = getFirstName(profile?.full_name);
   const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
   const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
-  const progressDetail = `${completedProfileItems} of ${totalProfileItems} profile items complete`;
-  const childSummary = childCount > 0
-    ? `Tracking ${childCount} ${pluralize(childCount, 'child', 'children')}, starting with ${firstChildName}.`
-    : 'Add a child profile to start tracking family health.';
+
+  const checkInMessage = useMemo(() => {
+    if (childCount === 0) return "Ready to start tracking?";
+    const name = firstChildName;
+    const variants = [
+      `How's ${name} feeling today?`,
+      `Is ${name} feeling well?`,
+      `Checking in on ${name}...`,
+      `How is ${name} doing?`,
+      `Ready to log for ${name}?`,
+    ];
+    // Use a simple hash of the name/count to keep it stable but varied
+    const idx = (name.length + childCount) % variants.length;
+    return variants[idx];
+  }, [firstChildName, childCount]);
+
   const avatar = (
     <div className="topbar-avatar" aria-label="Profile">
       {profile?.avatar_url ? (
@@ -78,43 +90,25 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
 
       <section className="home__progress-card">
         <div className="home__progress-row">
-          <div className="home__ring-wrap">
-            <svg viewBox="0 0 120 120" width="110" height="110">
-              <circle cx="60" cy="60" r={RING_R} fill="none" strokeWidth="10" className="home__ring-track" />
-              <circle
-                cx="60" cy="60" r={RING_R}
-                fill="none" strokeWidth="10"
-                strokeLinecap="round"
-                strokeDasharray={RING_C}
-                strokeDashoffset={ringOffset}
-                transform="rotate(-90 60 60)"
-                className="home__ring-fill"
-              />
-            </svg>
-            <span className="home__ring-label">{progressPct}%</span>
+          <div className="home__profile-photo">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="home__profile-image" />
+            ) : (
+              <span className="home__profile-initials">{getInitials(profile?.full_name)}</span>
+            )}
           </div>
           <div className="home__progress-info">
-            <p className="home__progress-eyebrow">Your Progress</p>
-            <p className="home__progress-detail">{progressDetail}</p>
-            <p className="home__progress-child">{childSummary}</p>
-            <p className="home__progress-date">{today}</p>
-          </div>
-        </div>
-
-        <div className="home__stats-row">
-          <div className="home__stat">
-            <span className="home__stat-value">{childCount}</span>
-            <span className="home__stat-label">Children</span>
-          </div>
-          <div className="home__stat-divider" />
-          <div className="home__stat">
-            <span className="home__stat-value">0</span>
-            <span className="home__stat-label">Total Logs</span>
-          </div>
-          <div className="home__stat-divider" />
-          <div className="home__stat">
-            <span className="home__stat-value">None</span>
-            <span className="home__stat-label">Next Visit</span>
+            <div className="home__progress-stats">
+              <div className="home__progress-stat">
+                <Baby size={14} className="home__stat-icon" />
+                <span>Tracking <strong>{childCount}</strong> {pluralize(childCount, 'child', 'children')}</span>
+              </div>
+              <div className="home__progress-stat">
+                <FileText size={14} className="home__stat-icon" />
+                <span><strong>{totalLogCount}</strong> {pluralize(totalLogCount, 'log', 'logs')} recorded</span>
+              </div>
+            </div>
+            <p className="home__progress-checkin">{checkInMessage}</p>
           </div>
         </div>
       </section>

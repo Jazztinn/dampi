@@ -6,7 +6,6 @@ import { House, Users, Shield, User, Folder, Activity } from "lucide-react";
  */
 export const NAV_TABS = [
   { id: "home", Icon: House },
-  { id: "documents", Icon: Folder },
   { id: "symptoms", Icon: Activity },
   { id: "hmo", Icon: Shield },
   { id: "family", Icon: Users },

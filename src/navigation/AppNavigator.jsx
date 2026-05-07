@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import BottomNav from '../components/BottomNav.jsx';
 import HomeScreen from '../screens/Home/HomeScreen.jsx';
 import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
-import DocumentsScreen from '../screens/Documents/DocumentsScreen.jsx';
 import HMOPortalScreen from '../screens/HMOPortal/HMOPortalScreen.jsx';
 import FinancialAssistanceScreen from '../screens/FinancialAssistance/FinancialAssistanceScreen.jsx';
 import SymptomLogScreen from '../screens/SymptomLog/SymptomLogScreen.jsx';
@@ -10,7 +9,6 @@ import './app-navigator.css';
 
 const SCREENS = {
   home: HomeScreen,
-  documents: DocumentsScreen,
   symptoms: SymptomLogScreen,
   hmo: HMOPortalScreen,
   family: FamilyScreen,

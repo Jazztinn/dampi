@@ -1,71 +1,5 @@
 import { Mail, Lock, ChevronRight, Phone, User } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { streamDampiChat } from '../../services/ai/dampiApi.js';
-import dampiLogo from '../../assets/dampi.svg';
-
-const TAGALOG_SCENARIOS = [
-  'Yung anak kong si Chloe ay may lagnat at mainit na mainit.',
-  'Ang anak ko ay may ubo at parang hirap huminga.',
-  'Si Carlo ay may pantal sa braso, namumula at lumalaki.',
-  'Hindi kumakain ang anak ko at matagal na siyang mahina at walang gana.',
-  'Ang anak ko ay nagsusuka ng paulit-ulit pagkatapos kumain.',
-  'Mayroon siyang sakit ng tiyan at nag-iiyak ng walang tigil.',
-];
-
-const TEASER_SYSTEM_PROMPT = `You are Dampi, a caring Filipino child health assistant. A parent is describing their child's symptoms. Respond with empathy, a brief assessment, and 1-2 actionable next steps. Keep your response concise — 3 sentences max. Respond in Filipino/Tagalog.`;
-
-function ChatTeaser() {
-  const [scenario] = useState(
-    () => TAGALOG_SCENARIOS[Math.floor(Math.random() * TAGALOG_SCENARIOS.length)]
-  );
-  const [response, setResponse] = useState('');
-  const [streaming, setStreaming] = useState(false);
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-
-    const run = async () => {
-      await new Promise((r) => setTimeout(r, 700));
-      setStreaming(true);
-      try {
-        await streamDampiChat([], scenario, {
-          systemPrompt: TEASER_SYSTEM_PROMPT,
-          onEvent: (event) => {
-            if (event.type === 'text') {
-              setResponse((prev) => prev + event.text);
-            }
-          },
-        });
-      } catch {
-        setResponse('Handa akong tumulong sa iyong pamilya kapag nag-sign up ka!');
-      } finally {
-        setStreaming(false);
-      }
-    };
-
-    run();
-  }, []);
-
-  return (
-    <div className="teaser-chat">
-      <p className="teaser-chat__label">See Dampi in action</p>
-      <div className="teaser-chat__bubble teaser-chat__bubble--user">
-        {scenario}
-      </div>
-      {(streaming || response) && (
-        <div className="teaser-chat__bubble teaser-chat__bubble--dampi">
-          <img src={dampiLogo} alt="" className="teaser-chat__avatar" />
-          <div className="teaser-chat__text">
-            {response}
-            {streaming && <span className="teaser-chat__cursor" aria-hidden="true" />}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+import { useState } from 'react';
 
 export default function CreateAccountScreen({ data, onNext, isSubmitting = false, submitError = '' }) {
   const [formData, setFormData] = useState({
@@ -116,8 +50,6 @@ export default function CreateAccountScreen({ data, onNext, isSubmitting = false
         <h2>Create Account</h2>
         <p>Set up your Dampi account</p>
       </div>
-
-      <ChatTeaser />
 
       <form onSubmit={handleSubmit} className="onboarding-form">
         <div className="form-group">

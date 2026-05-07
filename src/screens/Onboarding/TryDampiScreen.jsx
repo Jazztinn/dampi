@@ -68,7 +68,16 @@ export default function TryDampiScreen({ onNext }) {
       setMessages(prev =>
         prev.map(m => (m.id === pendingId ? { ...m, pending: false } : m))
       );
-
+    } catch {
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === pendingId
+            ? { ...m, text: 'Sorry, may error. Subukan ulit.', pending: false }
+            : m
+        )
+      );
+    } finally {
+      setLoading(false);
       if (newCount >= MAX_MESSAGES) {
         const lockId = uid();
         setTimeout(() => {
@@ -83,16 +92,6 @@ export default function TryDampiScreen({ onNext }) {
           setTimeout(() => setLocked(true), 800);
         }, 350);
       }
-    } catch {
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === pendingId
-            ? { ...m, text: 'Sorry, may error. Subukan ulit.', pending: false }
-            : m
-        )
-      );
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -1245,6 +1245,20 @@
 /* ── Print stylesheet (Share Clinical PDF) ──────────────── */
 
 @media print {
+  @page {
+    margin: 12mm;
+  }
+
+  html,
+  body,
+  #root,
+  .dampi-app {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
   body * { visibility: hidden !important; }
   .symptom-log,
   .symptom-log * { visibility: visible !important; }
@@ -1258,9 +1272,27 @@
   .symptom-log__camera-modal,
   .symptom-log__help-modal { display: none !important; }
   .symptom-log {
-    position: absolute;
-    inset: 0;
+    position: static !important;
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
     background: #fff !important;
     padding: 0 !important;
+    color: #111 !important;
+  }
+  .symptom-log__summary-stack {
+    display: block !important;
+  }
+  .symptom-log__summary-header,
+  .symptom-log__card,
+  .symptom-log__disclaimer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .symptom-log__card {
+    margin: 0 0 10px !important;
+    border-color: #d8e1de !important;
+    box-shadow: none !important;
   }
 }

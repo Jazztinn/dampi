@@ -66,10 +66,62 @@ Rules:
 
 export function extractJson(text) {
   if (!text) throw new Error('Empty response from Dampi.');
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('Dampi did not return a JSON object.');
-  return JSON.parse(text.slice(start, end + 1));
+
+  if (typeof text === 'object' && !Array.isArray(text)) {
+    return text;
+  }
+
+  const trimmed = String(text).trim();
+  const fenceMatch = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  const raw = fenceMatch ? fenceMatch[1].trim() : trimmed;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Dampi did not return a JSON object.');
+    }
+    return parsed;
+  } catch (err) {
+    if (err.message === 'Dampi did not return a JSON object.') throw err;
+  }
+
+  const start = raw.indexOf('{');
+  if (start === -1) throw new Error('Dampi did not return a JSON object.');
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < raw.length; i += 1) {
+    const char = raw[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return JSON.parse(raw.slice(start, i + 1));
+      }
+    }
+  }
+
+  throw new Error('Dampi returned an incomplete JSON object.');
 }
 
 const VALID_STATUS = new Set(['normal', 'abnormal', 'inconclusive']);

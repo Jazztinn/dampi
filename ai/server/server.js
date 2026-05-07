@@ -33,6 +33,8 @@ const FAST_MODELS = AVAILABLE_MODELS.slice(0, 3);
 const FULL_MODELS = ['gemini-1.5-pro', 'gemini-pro-latest', 'gemini-1.5-flash', 'gemini-2.0-flash'];
 const VALID_MODES = new Set(['fast', 'auto', 'default']);
 const VALID_PURPOSES = new Set(['chat', 'title', 'transcription']);
+const PROVIDER_TIMEOUT_MS = 60000;
+const PROVIDER_STREAM_TIMEOUT_MS = 120000;
 const STRUCTURED_CHAT_SCHEMA = {
   type: 'OBJECT',
   required: ['message', 'createTasks', 'askQuestions'],
@@ -388,10 +390,46 @@ function sendStreamEvent(res, event) {
   res.write(`${JSON.stringify(event)}\n`);
 }
 
+function createTimeoutController(timeoutMs, message) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort(new Error(message));
+  }, timeoutMs);
+
+  return { controller, timeoutId };
+}
+
+function normalizeProviderError(error, model) {
+  if (/^Timed out (?:waiting|streaming)/i.test(error?.message || '')) {
+    const timeoutError = new Error(`AI provider timed out while waiting for ${model}. Please try again.`);
+    timeoutError.status = 504;
+    timeoutError.isTimeout = true;
+    return timeoutError;
+  }
+
+  if (error?.name === 'AbortError' || error?.name === 'TimeoutError') {
+    const timeoutError = new Error(`AI provider timed out while waiting for ${model}. Please try again.`);
+    timeoutError.status = 504;
+    timeoutError.isTimeout = true;
+    return timeoutError;
+  }
+
+  if (error?.name === 'TypeError' && /aborted/i.test(error.message || '')) {
+    const timeoutError = new Error(`AI provider timed out while waiting for ${model}. Please try again.`);
+    timeoutError.status = 504;
+    timeoutError.isTimeout = true;
+    return timeoutError;
+  }
+
+  return error;
+}
+
 async function callProviderModel(model, payload) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${PROVIDER_API_KEY}`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const { controller, timeoutId } = createTimeoutController(
+    PROVIDER_TIMEOUT_MS,
+    `Timed out waiting for ${model}`,
+  );
 
   try {
     const response = await fetch(url, {
@@ -419,6 +457,8 @@ async function callProviderModel(model, payload) {
     }
 
     return { text, model };
+  } catch (error) {
+    throw normalizeProviderError(error, model);
   } finally {
     clearTimeout(timeoutId);
   }
@@ -426,8 +466,10 @@ async function callProviderModel(model, payload) {
 
 async function streamProviderModel(model, payload, res) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${PROVIDER_API_KEY}`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const { controller, timeoutId } = createTimeoutController(
+    PROVIDER_STREAM_TIMEOUT_MS,
+    `Timed out streaming from ${model}`,
+  );
 
   try {
     const response = await fetch(url, {
@@ -506,6 +548,8 @@ async function streamProviderModel(model, payload, res) {
         },
       });
     }
+  } catch (error) {
+    throw normalizeProviderError(error, model);
   } finally {
     clearTimeout(timeoutId);
   }

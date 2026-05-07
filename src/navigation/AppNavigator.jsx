@@ -16,6 +16,10 @@ const SCREENS = {
   profile: FinancialAssistanceScreen,
 };
 
+// Screens that take over the full app shell (no global bottom nav).
+// If the SCREENS keys above are renamed, update this set too.
+const FULLSCREEN_FLOW = new Set(['hmo']);
+
 export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut, onProfileChange }) {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [showSymptomLog, setShowSymptomLog] = useState(false);
@@ -32,9 +36,10 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
   }
 
   const Screen = SCREENS[currentScreen] ?? HomeScreen;
+  const isFullscreen = FULLSCREEN_FLOW.has(currentScreen);
 
   return (
-    <div className="app-container">
+    <div className={`app-container${isFullscreen ? ' app-container--fullscreen' : ''}`}>
       <div className="content-area">
         <Screen
           profile={profile}
@@ -44,13 +49,17 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
           onSignOut={onSignOut}
           onProfileChange={onProfileChange}
           onNavigateToSymptoms={() => setShowSymptomLog(true)}
+          onExit={() => setCurrentScreen('home')}
+          onBack={() => setCurrentScreen('home')}
         />
       </div>
-      <BottomNav
-        active={currentScreen}
-        setActive={setCurrentScreen}
-        openChatModal={onOpenAi}
-      />
+      {!isFullscreen && (
+        <BottomNav
+          active={currentScreen}
+          setActive={setCurrentScreen}
+          openChatModal={onOpenAi}
+        />
+      )}
     </div>
   );
 }

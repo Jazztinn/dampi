@@ -18,7 +18,7 @@ import "../../styles/dampi-chat.css";
 const SUGGESTIONS = [
   { icon: Stethoscope, label: "Check Symptoms", prompt: "Help me think through my child's symptoms. Ask about age, symptoms, duration, temperature, hydration, breathing, and warning signs before giving general guidance. Tell me when urgent care or a licensed clinician is needed." },
   { icon: CalendarPlus, label: "Plan Clinic Visit", prompt: "Help me plan a clinic visit for my child. Ask what the visit is for, preferred date, location or doctor, and what documents or notes I should bring. If I ask you to schedule a reminder, propose the task first." },
-  { icon: ShieldCheck, label: "Prepare HMO Docs", prompt: "Help me prepare HMO or financial assistance documents for my child's care. Ask what support I need, what documents I already have, and what deadlines apply." },
+  { icon: ShieldCheck, label: "Log Symptoms", prompt: "Help me log my child's symptoms. Ask about the symptom type, severity, when it started, and any other relevant details like temperature or associated symptoms." },
   { icon: Pill, label: "Medicine Reminder", prompt: "Help me set up a medicine reminder. Ask for the medicine name, dose, timing, start date, and any instructions. Propose the task first and wait for my approval before adding it." },
   { icon: ListChecks, label: "Review Tasks", prompt: "Review my upcoming Dampi tasks and help me prioritize what needs attention. If you suggest new tasks, propose them first and wait for my approval before adding them." },
 ];

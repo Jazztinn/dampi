@@ -22,15 +22,15 @@ const PORT = process.env.PORT || 3001;
 const PROVIDER_API_KEY = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
 const AVAILABLE_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-flash-latest',
   'gemini-2.0-flash',
-  'gemini-2.5-pro',
+  'gemini-1.5-flash',
+  'gemini-flash-latest',
+  'gemini-1.5-pro',
   'gemini-pro-latest',
 ];
 
 const FAST_MODELS = AVAILABLE_MODELS.slice(0, 3);
-const FULL_MODELS = ['gemini-2.5-pro', 'gemini-pro-latest', 'gemini-2.5-flash'];
+const FULL_MODELS = ['gemini-1.5-pro', 'gemini-pro-latest', 'gemini-1.5-flash', 'gemini-2.0-flash'];
 const VALID_MODES = new Set(['fast', 'auto', 'default']);
 const VALID_PURPOSES = new Set(['chat', 'title']);
 const STRUCTURED_CHAT_SCHEMA = {

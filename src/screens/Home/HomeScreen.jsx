@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertTriangle,
   Droplets,
@@ -12,9 +12,6 @@ import TopNavBar, { getFirstName, getInitials } from '../../navigation/TopNavBar
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
 import { loadSymptomLogs } from '../../services/symptomLog/symptomLogPersistence.js';
 import './home-screen.css';
-
-const RING_R = 54;
-const RING_C = 2 * Math.PI * RING_R;
 
 const HEALTH_TIPS = [
   { id: 1, Icon: Droplets, title: 'Stay Hydrated', body: 'Offer warm fluids to help your child stay healthy and comfortable.' },
@@ -53,21 +50,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
   const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
   const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
   const isRegistrationIncomplete = child && !child.registration_completed;
-
-  const checkInMessage = useMemo(() => {
-    if (childCount === 0) return "Ready to start tracking?";
-    const name = firstChildName;
-    const variants = [
-      `How's ${name} feeling today?`,
-      `Is ${name} feeling well?`,
-      `Checking in on ${name}...`,
-      `How is ${name} doing?`,
-      `Ready to log for ${name}?`,
-    ];
-    // Use a simple hash of the name/count to keep it stable but varied
-    const idx = (name.length + childCount) % variants.length;
-    return variants[idx];
-  }, [firstChildName, childCount]);
 
   const avatar = (
     <div className="topbar-avatar" aria-label="Profile">
@@ -110,7 +92,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
                 <span><strong>{totalLogCount}</strong> {pluralize(totalLogCount, 'log', 'logs')} recorded</span>
               </div>
             </div>
-            <p className="home__progress-checkin">{checkInMessage}</p>
           </div>
         </div>
       </section>

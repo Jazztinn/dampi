@@ -118,9 +118,16 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
 
       const result = await callDampiChat([], userMessage, {
         systemPrompt: EXAM_SYSTEM_PROMPT,
-        mode: 'default',
+        mode: 'fast',
       });
-      const parsed = validatePlan(extractJson(result?.text || ''));
+      const rawText = result?.text || '';
+      let parsed;
+      try {
+        parsed = validatePlan(extractJson(rawText));
+      } catch (parseErr) {
+        console.error('AI Parse Error:', parseErr, 'Raw:', rawText);
+        throw new Error(`Dampi gave an invalid response format. Raw: ${rawText.slice(0, 100)}...`);
+      }
       setDraft((prev) => ({ ...prev, plan: parsed, step: 1 }));
     } catch (err) {
       setError(err.message || 'Could not generate examination plan.');
@@ -164,15 +171,15 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
       try {
         const result = await callDampiChat([], userMessage, {
           systemPrompt: SUMMARY_SYSTEM_PROMPT,
-          mode: 'default',
+          mode: 'fast',
         });
         lastRaw = result?.text || '';
         parsed = validateSummary(extractJson(lastRaw));
       } catch {
         const retry = await callDampiChat(
           [{ role: 'user', text: userMessage }, { role: 'assistant', text: lastRaw }],
-          'Your previous response was not valid JSON in the required schema. Return ONLY the JSON object now, no prose.',
-          { systemPrompt: SUMMARY_SYSTEM_PROMPT, mode: 'default' },
+          'Your previous response was not valid JSON in the required schema. Return ONLY the JSON object now, no prose. DO NOT use markdown code blocks.',
+          { systemPrompt: SUMMARY_SYSTEM_PROMPT, mode: 'fast' },
         );
         lastRaw = retry?.text || '';
         parsed = validateSummary(extractJson(lastRaw));

@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import './DashboardMetricsCarousel.css';
 
 const CARD_WIDTH = 200;
-const CARD_GAP = 4;
+const CARD_GAP = -24;
 const CARD_STEP = CARD_WIDTH + CARD_GAP;
 
 const DashboardMetricsCarousel = () => {

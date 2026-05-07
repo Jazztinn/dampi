@@ -172,9 +172,11 @@ export default function TryDampiScreen({ onNext }) {
         </div>
       </div>
 
-      <button className="onboarding-secondary" onClick={() => onNext()}>
-        Skip for now
-      </button>
+      {sentCount === 0 && (
+        <button className="onboarding-secondary" onClick={() => onNext()}>
+          Skip for now
+        </button>
+      )}
     </div>
   );
 }

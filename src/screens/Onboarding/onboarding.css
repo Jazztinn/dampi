@@ -33,6 +33,14 @@
 }
 
 /* ── Screen Container ── */
+.onboarding-screen-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden; /* prevents scrollbars during animation */
+  width: 100%;
+}
+
 .onboarding-screen {
   flex: 1;
   display: flex;
@@ -40,6 +48,40 @@
   justify-content: center;
   margin-bottom: 80px;
   padding-top: 20px;
+  width: 100%;
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.slide-next {
+  animation-name: slideInNext;
+}
+
+.slide-back {
+  animation-name: slideInBack;
+}
+
+@keyframes slideInNext {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInBack {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .onboarding-screen-content {

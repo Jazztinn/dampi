@@ -31,6 +31,7 @@ function clearPendingOnboarding() {
 }
 
 export default function OnboardingFlow({ onComplete, onInitialBack }) {
+  const [direction, setDirection] = useState('next');
   const [step, setStep] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingStep');
     const parsed = saved ? parseInt(saved, 10) : 0;
@@ -267,12 +268,16 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
     }
 
     if (step < steps.length - 1) {
+      setDirection('next');
       setStep(step + 1);
     }
   };
 
   const handleBack = () => {
-    if (step > 0) setStep(step - 1);
+    if (step > 0) {
+      setDirection('back');
+      setStep(step - 1);
+    }
   };
 
   const handleComplete = async (newData = {}) => {
@@ -375,7 +380,11 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       />
 
       {/* Screen */}
-      <div className="onboarding-screen">{screens[step]}</div>
+      <div className="onboarding-screen-wrapper">
+        <div key={step} className={`onboarding-screen slide-${direction}`}>
+          {screens[step]}
+        </div>
+      </div>
     </div>
   );
 }

@@ -61,6 +61,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       hmoBenefitsTier: '',
       hmoBenefitsNotes: '',
       familyEmail: '',
+      discoverable: true,
     };
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,7 +124,9 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       .upsert({
         id: user.id,
         full_name: data.fullName.trim(),
+        email: user.email || data.email.trim(),
         phone: data.phone.trim(),
+        discoverable: data.discoverable !== false,
       }, { onConflict: 'id' });
 
     if (profileError) throw profileError;

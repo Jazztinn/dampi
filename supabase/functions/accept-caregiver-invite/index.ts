@@ -19,6 +19,13 @@ serve(async (req) => {
     return new Response('Method Not Allowed', { status: 405, headers: corsHeaders })
   }
 
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: 'Caregiver invite function is missing Supabase secrets.' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -107,6 +114,7 @@ serve(async (req) => {
     await admin.from('profiles').insert({
       id: user.id,
       full_name: user.user_metadata?.full_name ?? user.email ?? '',
+      email: user.email ?? '',
       phone: user.user_metadata?.phone ?? '',
       role: 'caregiver',
       onboarding_completed: false,

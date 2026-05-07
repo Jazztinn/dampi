@@ -20,6 +20,13 @@ serve(async (req) => {
     return new Response('Method Not Allowed', { status: 405, headers: corsHeaders })
   }
 
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY || !APP_BASE_URL) {
+    return new Response(JSON.stringify({ error: 'Caregiver invite function is missing Supabase secrets.' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {

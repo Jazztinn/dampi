@@ -877,3 +877,42 @@
   cursor: not-allowed;
   transform: none;
 }
+
+.onboarding-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(77, 115, 108, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.onboarding-form .onboarding-toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 3px;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: none;
+  accent-color: var(--dampi-teal);
+}
+
+.onboarding-toggle-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.onboarding-toggle-row strong {
+  font-size: 0.82rem;
+  color: var(--dampi-text);
+}
+
+.onboarding-toggle-row small {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--dampi-text-muted);
+}

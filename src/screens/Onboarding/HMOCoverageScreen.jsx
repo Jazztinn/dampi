@@ -49,7 +49,7 @@ export default function HMOCoverageScreen({ data, onNext }) {
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2>HMO Coverage</h2>
+        <h2 className="brand-font">HMO Coverage</h2>
         <p>Add coverage details for faster approval requests</p>
       </div>
 

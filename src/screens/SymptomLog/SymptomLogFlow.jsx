@@ -269,7 +269,7 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
 
       <div className="symptom-log__sub-header">
         <p className="symptom-log__step-counter">Step {draft.step + 1} of {STEP_COUNT}</p>
-        <h1 className="symptom-log__step-title">{STEP_TITLES[draft.step]}</h1>
+        <h1 className="symptom-log__step-title brand-font">{STEP_TITLES[draft.step]}</h1>
         <p className="symptom-log__step-blurb">
           {draft.step === 0 && "Tell us what's happening. Your detailed notes help us provide better guidance for your child's care."}
           {draft.step === 1 && "Follow these AI-guided steps to help us understand your child's condition."}

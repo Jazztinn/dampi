@@ -47,7 +47,7 @@ export default function CreateAccountScreen({ data, onNext, isSubmitting = false
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2>Create Account</h2>
+        <h2 className="brand-font">Create Account</h2>
         <p>Set up your Dampi account</p>
       </div>
 

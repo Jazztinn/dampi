@@ -100,7 +100,7 @@ export default function TryDampiScreen({ onNext }) {
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2>Try Dampi</h2>
+        <h2 className="brand-font">Try Dampi</h2>
         <p>Chat with Dampi before you sign up</p>
       </div>
 

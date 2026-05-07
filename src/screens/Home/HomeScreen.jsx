@@ -72,7 +72,7 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
       <TopNavBar transparent extra={avatar} />
 
       <div className="home__greeting">
-        <p className="home__greeting-hi">{greeting}</p>
+        <p className="home__greeting-hi brand-font">{greeting}</p>
         <p className="home__greeting-sub">Let's check on your family</p>
       </div>
 

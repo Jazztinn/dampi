@@ -44,7 +44,7 @@ export default function InviteFamilyScreen({ data, onComplete, isSubmitting = fa
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2>Invite Family Members</h2>
+        <h2 className="brand-font">Invite Family Members</h2>
         <p>Optional: Let caregivers help track health</p>
       </div>
 

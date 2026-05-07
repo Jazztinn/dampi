@@ -48,7 +48,7 @@ export default function AddChildScreen({ data, onNext }) {
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2>Add Your Child</h2>
+        <h2 className="brand-font">Add Your Child</h2>
         <p>Let's start by knowing your child</p>
       </div>
 

@@ -8,7 +8,7 @@ export default function WelcomeScreen({ onNext }) {
         <div className="welcome-logo welcome-logo--svg">
           <img src={dampiLogo} alt="Dampi" className="welcome-logo-img" />
         </div>
-        <h1 className="welcome-title">Dampi</h1>
+        <h1 className="welcome-title brand-font">Dampi</h1>
       </div>
 
       <div className="welcome-features">

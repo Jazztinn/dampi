@@ -1,4 +1,5 @@
 import dampiLogo from '../../assets/dampi.svg';
+import SocialAuthButtons from './SocialAuthButtons.jsx';
 import './auth.css';
 
 export default function AuthLandingScreen({ onNew, onExisting }) {
@@ -20,6 +21,14 @@ export default function AuthLandingScreen({ onNew, onExisting }) {
             I Already Have an Account
           </button>
         </div>
+
+        <div className="login-divider">
+          <span className="login-divider__line" />
+          <span className="login-divider__text">or</span>
+          <span className="login-divider__line" />
+        </div>
+
+        <SocialAuthButtons action="Continue" />
       </div>
     </div>
   );

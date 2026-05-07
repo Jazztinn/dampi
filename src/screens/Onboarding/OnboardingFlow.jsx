@@ -11,6 +11,15 @@ import './onboarding.css';
 
 const PENDING_ONBOARDING_KEY = 'dampi.pendingOnboarding';
 
+function getAuthDisplayName(user) {
+  return (
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.user_metadata?.display_name ||
+    ''
+  );
+}
+
 function getPendingOnboarding() {
   try {
     const pending = window.localStorage.getItem(PENDING_ONBOARDING_KEY);
@@ -57,6 +66,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [pendingConfirmation, setPendingConfirmation] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
 
   // Persist state changes
   useEffect(() => {
@@ -73,6 +83,39 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
     window.localStorage.removeItem('dampi.onboardingData');
     clearPendingOnboarding();
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAuthUser = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (!active) return;
+
+        const user = data.session?.user || null;
+        setAuthUser(user);
+
+        if (user) {
+          setFormData((current) => ({
+            ...current,
+            fullName: current.fullName || getAuthDisplayName(user),
+            email: current.email || user.email || '',
+            password: '',
+          }));
+        }
+      } catch {
+        if (active) setAuthUser(null);
+      }
+    };
+
+    loadAuthUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const persistOnboardingAccount = async (supabase, user, data) => {
     const { error: profileError } = await supabase
@@ -233,10 +276,12 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
         if (sessionError) throw sessionError;
 
         let user = sessionData.session?.user || null;
+        setAuthUser(user);
 
         if (user?.email && user.email.toLowerCase() !== email.toLowerCase()) {
           await supabase.auth.signOut();
           user = null;
+          setAuthUser(null);
         }
 
         if (!user) {
@@ -318,6 +363,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       onNext={handleNext}
       isSubmitting={isSubmitting}
       submitError={step === 2 ? submitError : ''}
+      authenticatedEmail={authUser?.email || ''}
     />,
     <AddChildScreen key="child" data={formData} onNext={handleNext} />,
     <HMOCoverageScreen key="hmo" data={formData} onNext={handleNext} />,

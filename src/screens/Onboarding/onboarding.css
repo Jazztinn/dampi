@@ -275,6 +275,12 @@
     0 0 0 3px rgba(192, 57, 43, 0.12);
 }
 
+.onboarding-form input:disabled {
+  color: var(--dampi-text-muted);
+  cursor: not-allowed;
+  opacity: 0.82;
+}
+
 .onboarding-form textarea {
   min-height: 92px;
   resize: vertical;
@@ -298,6 +304,12 @@
   text-align: center;
   margin: 0;
   line-height: 1.5;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--dampi-text-muted);
+  font-weight: 600;
 }
 
 /* ── CTA Button ── */

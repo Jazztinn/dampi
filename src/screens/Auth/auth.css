@@ -209,6 +209,12 @@
   transform: scale(0.98);
 }
 
+.login-social__btn:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
+}
+
 /* ── OTP step indicator ── */
 
 .otp-step {

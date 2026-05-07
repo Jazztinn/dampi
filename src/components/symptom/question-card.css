@@ -1,0 +1,113 @@
+.question-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(107, 163, 152, 0.08);
+  transition: opacity 0.2s ease;
+}
+
+.question-card--answered {
+  opacity: 0.7;
+}
+
+.question-card--latest {
+  opacity: 1;
+  box-shadow: 0 3px 12px rgba(107, 163, 152, 0.14);
+}
+
+.question-card__question {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--dampi-text);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.question-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.question-card__chip {
+  padding: 7px 14px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(146, 187, 179, 0.35);
+  background: var(--dampi-cream, #f9f7f4);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--dampi-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.question-card__chip:hover:not(:disabled) {
+  border-color: var(--dampi-teal);
+  background: rgba(107, 163, 152, 0.08);
+}
+
+.question-card__chip--selected {
+  background: var(--dampi-teal);
+  border-color: var(--dampi-teal);
+  color: #fff;
+  font-weight: 600;
+}
+
+.question-card__chip:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.question-card__input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.question-card__input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(146, 187, 179, 0.25);
+  font-size: 0.84rem;
+  color: var(--dampi-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.question-card__input:focus {
+  border-color: var(--dampi-teal);
+}
+
+.question-card__input::placeholder {
+  color: var(--dampi-text-muted);
+}
+
+.question-card__send {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--dampi-teal);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.question-card__send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.question-card__answer {
+  font-size: 0.82rem;
+  color: var(--dampi-teal);
+  font-weight: 500;
+  font-style: italic;
+  margin-top: 4px;
+}

@@ -24,7 +24,9 @@ export const CHAT_STRUCTURED_RESPONSE_PROMPT = [
   '- Supported tags: Health, Clinic, Medicine, Documents, Urgent, Other.',
   '- askQuestions is optional and should be used when you need user input before creating tasks.',
   '- Each askQuestions item must include a question string, can include options as short quick-reply strings, and can optionally include allowFreeText and inputPlaceholder.',
-  '- If no task should be created and no question is needed, return empty createTasks and askQuestions arrays.',
+  '- generateSummary is optional and should ONLY be used in the symptom log flow when all required areas have been covered.',
+  '- When generateSummary is populated, include a structured medical summary with: chief_complaint, history_of_present_illness, associated_symptoms, onset_and_duration, aggravating_factors, relieving_factors, vital_signs, medications_taken, allergies, past_medical_history, red_flags_noted, parent_concerns, ai_triage_note.',
+  '- If no task should be created, no question is needed, and no summary should be generated, return empty createTasks and askQuestions arrays.',
 ].join('\n');
 
 export const CHAT_CONTEXT_CONFIG = {

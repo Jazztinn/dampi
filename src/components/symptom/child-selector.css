@@ -1,0 +1,31 @@
+.child-selector {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.child-selector::-webkit-scrollbar {
+  display: none;
+}
+
+.child-selector__pill {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(146, 187, 179, 0.3);
+  background: #fff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--dampi-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.child-selector__pill--active {
+  background: var(--dampi-teal);
+  border-color: var(--dampi-teal);
+  color: #fff;
+  font-weight: 600;
+}

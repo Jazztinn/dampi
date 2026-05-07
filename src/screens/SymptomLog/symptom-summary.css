@@ -1,0 +1,215 @@
+/* ── Symptom Summary (Doctor-facing one-page view) ──────── */
+
+.symptom-summary {
+  background: var(--dampi-cream);
+  min-height: 100vh;
+  padding: 0 20px 100px;
+}
+
+.symptom-summary__top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  background: var(--dampi-cream);
+  z-index: 10;
+}
+
+.symptom-summary__back,
+.symptom-summary__share {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-text);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(107, 163, 152, 0.1);
+}
+
+.symptom-summary__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+}
+
+.symptom-summary__red-flag {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(228, 106, 98, 0.08);
+  border: 1px solid rgba(228, 106, 98, 0.25);
+  margin-bottom: 16px;
+  color: var(--dampi-emergency, #e46a62);
+}
+
+.symptom-summary__red-flag-title {
+  font-weight: 700;
+  font-size: 0.84rem;
+  margin-bottom: 4px;
+}
+
+.symptom-summary__red-flag ul {
+  list-style: disc;
+  padding-left: 16px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.symptom-summary__patient-header {
+  margin-bottom: 16px;
+}
+
+.symptom-summary__patient-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+}
+
+.symptom-summary__patient-header p {
+  font-size: 0.82rem;
+  color: var(--dampi-text-muted);
+  margin-top: 2px;
+}
+
+.symptom-summary__chief {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--dampi-teal);
+}
+
+.symptom-summary__chief-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dampi-teal);
+  margin-bottom: 4px;
+}
+
+.symptom-summary__chief-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+}
+
+.symptom-summary__section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.symptom-summary__section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--dampi-teal);
+}
+
+.symptom-summary__section-header h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--dampi-text);
+}
+
+.symptom-summary__section-body {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--dampi-text);
+}
+
+.symptom-summary__section-body p {
+  margin-bottom: 4px;
+}
+
+.symptom-summary__tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.symptom-summary__tag {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(107, 163, 152, 0.1);
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--dampi-teal);
+}
+
+.symptom-summary__med {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(146, 187, 179, 0.12);
+}
+
+.symptom-summary__med:last-child {
+  border-bottom: none;
+}
+
+.symptom-summary__med-name {
+  font-weight: 600;
+  font-size: 0.84rem;
+}
+
+.symptom-summary__med-detail {
+  font-size: 0.78rem;
+  color: var(--dampi-text-muted);
+  margin-top: 2px;
+}
+
+.symptom-summary__triage-note {
+  background: rgba(107, 163, 152, 0.06);
+  border: 1px solid rgba(107, 163, 152, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+
+.symptom-summary__triage-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dampi-teal);
+  margin-bottom: 4px;
+}
+
+.symptom-summary__triage-note p:last-child {
+  font-size: 0.84rem;
+  color: var(--dampi-text);
+  line-height: 1.5;
+}
+
+.symptom-summary__share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--dampi-teal);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: opacity 0.15s ease;
+}
+
+.symptom-summary__share-btn:active {
+  opacity: 0.85;
+}

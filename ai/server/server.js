@@ -36,7 +36,7 @@ const VALID_PURPOSES = new Set(['chat', 'title']);
 const STRUCTURED_CHAT_SCHEMA = {
   type: 'OBJECT',
   required: ['message', 'createTasks', 'askQuestions'],
-  propertyOrdering: ['message', 'createTasks', 'askQuestions'],
+  propertyOrdering: ['message', 'createTasks', 'askQuestions', 'generateSummary'],
   properties: {
     message: {
       type: 'STRING',
@@ -75,6 +75,42 @@ const STRUCTURED_CHAT_SCHEMA = {
           allowFreeText: { type: 'BOOLEAN' },
           inputPlaceholder: { type: 'STRING' },
         },
+      },
+    },
+    generateSummary: {
+      type: 'OBJECT',
+      properties: {
+        chief_complaint: { type: 'STRING' },
+        history_of_present_illness: { type: 'STRING' },
+        associated_symptoms: { type: 'ARRAY', items: { type: 'STRING' } },
+        onset_and_duration: { type: 'STRING' },
+        aggravating_factors: { type: 'ARRAY', items: { type: 'STRING' } },
+        relieving_factors: { type: 'ARRAY', items: { type: 'STRING' } },
+        vital_signs: {
+          type: 'OBJECT',
+          properties: {
+            temperature: { type: 'STRING' },
+            breathing: { type: 'STRING' },
+            hydration: { type: 'STRING' },
+          },
+        },
+        medications_taken: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              name: { type: 'STRING' },
+              dose: { type: 'STRING' },
+              frequency: { type: 'STRING' },
+              last_taken: { type: 'STRING' },
+            },
+          },
+        },
+        allergies: { type: 'STRING' },
+        past_medical_history: { type: 'STRING' },
+        red_flags_noted: { type: 'ARRAY', items: { type: 'STRING' } },
+        parent_concerns: { type: 'STRING' },
+        ai_triage_note: { type: 'STRING' },
       },
     },
   },
@@ -219,13 +255,16 @@ function normalizeStructuredChatResponse(rawText) {
 
     const message = typeof parsed.message === 'string' ? parsed.message.trim() : '';
 
-    return {
-      text: message || 'Done.',
-      taskActions: {
-        createTasks: Array.isArray(parsed.createTasks) ? parsed.createTasks : [],
-        askQuestions: Array.isArray(parsed.askQuestions) ? parsed.askQuestions : [],
-      },
+    const taskActions = {
+      createTasks: Array.isArray(parsed.createTasks) ? parsed.createTasks : [],
+      askQuestions: Array.isArray(parsed.askQuestions) ? parsed.askQuestions : [],
     };
+
+    if (parsed.generateSummary && typeof parsed.generateSummary === 'object') {
+      taskActions.generateSummary = parsed.generateSummary;
+    }
+
+    return { text: message || 'Done.', taskActions };
   } catch {
     return {
       text: typeof rawText === 'string' ? rawText : '',

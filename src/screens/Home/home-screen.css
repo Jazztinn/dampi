@@ -363,6 +363,44 @@
   margin: 0;
 }
 
+/* ── Log cards ── */
+
+.home__log-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(107, 163, 152, 0.08);
+}
+
+.home__log-icon {
+  color: var(--dampi-teal);
+  flex-shrink: 0;
+}
+
+.home__log-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home__log-complaint {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home__log-date {
+  font-size: 0.74rem;
+  color: var(--dampi-text-muted);
+  margin-top: 2px;
+}
+
 /* ── Tips horizontal scroll ── */
 
 .home__tips-scroll {

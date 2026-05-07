@@ -121,14 +121,14 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
 
       <section className="home__section home__section--carousel">
         <div className="home__section-header">
-          <h3 className="home__section-title">Health Overview</h3>
+          <h3 className="home__section-title brand-font">Dashboard Widgets</h3>
         </div>
         <DashboardMetricsCarousel />
       </section>
 
       <section className="home__section">
         <div className="home__section-header">
-          <h3 className="home__section-title">Recent Logs</h3>
+          <h3 className="home__section-title brand-font">Recent Logs</h3>
           <button className="home__see-all" onClick={onNavigateToSymptoms}>Add log</button>
         </div>
         <div className="home__logs">
@@ -158,7 +158,7 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
 
       <section className="home__section">
         <div className="home__section-header">
-          <h3 className="home__section-title">Health Tips</h3>
+          <h3 className="home__section-title brand-font">Health Tips</h3>
         </div>
         <div className="home__tips-scroll">
           {HEALTH_TIPS.map(({ id, Icon, title, body }) => (

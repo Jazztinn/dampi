@@ -69,7 +69,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSplashTimerDone(true);
-    }, 5000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -215,9 +215,7 @@ export default function App() {
   if (loadingAccount || !splashTimerDone) {
     return (
       <div className="dampi-app app-state splash-screen">
-        <div className="splash-logo-container">
-          <img src={dampiLogo} alt="Dampi" className="splash-logo" />
-        </div>
+        <img src={dampiLogo} alt="Dampi" className="splash-logo" />
       </div>
     );
   }

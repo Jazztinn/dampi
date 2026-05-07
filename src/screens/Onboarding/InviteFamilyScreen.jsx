@@ -4,13 +4,14 @@ import { useState } from 'react';
 export default function InviteFamilyScreen({ data, onComplete, isSubmitting = false, submitError = '' }) {
   const [formData, setFormData] = useState({
     familyEmail: data.familyEmail || '',
+    discoverable: data.discoverable !== false,
   });
   const [errors, setErrors] = useState({});
   const [invited, setInvited] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const { name, type, checked, value } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -73,6 +74,21 @@ export default function InviteFamilyScreen({ data, onComplete, isSubmitting = fa
             {errors.familyEmail && <span className="error-text">{errors.familyEmail}</span>}
             {submitError && <span className="error-text">{submitError}</span>}
           </div>
+
+          <label className="onboarding-toggle-row" htmlFor="discoverable">
+            <input
+              id="discoverable"
+              type="checkbox"
+              name="discoverable"
+              checked={formData.discoverable}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+            <span>
+              <strong>Show me in caregiver search</strong>
+              <small>Other Dampi users can find your name and send care-circle requests. Your email and phone stay private.</small>
+            </span>
+          </label>
 
           <div className="onboarding-button-group">
             <button type="submit" className="onboarding-cta" disabled={isSubmitting}>

@@ -24,21 +24,15 @@ import Step2Examine from './steps/Step2Examine.jsx';
 import Step3Findings from './steps/Step3Findings.jsx';
 import Step4Summary from './steps/Step4Summary.jsx';
 import FlowHelpModal from './components/FlowHelpModal.jsx';
+import { formatChildAge } from '../../utils/dobValidation.js';
 import './symptom-log.css';
 
 const STEP_COUNT = 4;
 const STEP_TITLES = ['Describe', 'Examine', 'Checklist', 'Summary'];
 
 function calcAge(dob) {
-  if (!dob) return '';
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return '';
-  const now = new Date();
-  const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-  if (months < 24) return `${months} mo`;
-  const years = Math.floor(months / 12);
-  const rem = months % 12;
-  return rem ? `${years}y ${rem}m` : `${years}y`;
+  const age = formatChildAge(dob);
+  return age === 'Date unavailable' ? '' : age;
 }
 
 function formatReportDate(iso) {

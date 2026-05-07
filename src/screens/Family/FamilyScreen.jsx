@@ -2,17 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Users, Mail, Baby, Calendar, Plus, X, ChevronRight, UserPlus, RotateCcw, Trash2 } from 'lucide-react';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
+import { formatChildAge, getDobBounds, validateChildDob } from '../../utils/dobValidation.js';
 import './family.css';
 
 function formatAge(dob) {
-  if (!dob) return '';
-  const birth = new Date(dob);
-  const now = new Date();
-  const months =
-    (now.getFullYear() - birth.getFullYear()) * 12 +
-    (now.getMonth() - birth.getMonth());
-  if (months < 24) return `${months}mo`;
-  return `${Math.floor(months / 12)}y`;
+  const age = formatChildAge(dob);
+  if (age === 'Date unavailable' || age.startsWith('Expected')) return age;
+  return `${age} old`;
 }
 
 function GenderChip({ gender }) {
@@ -32,6 +28,8 @@ function StatusBadge({ status }) {
 }
 
 function ChildCard({ child }) {
+  const ageText = formatAge(child.date_of_birth);
+
   return (
     <div className="family__child-card">
       <div className="family__child-avatar">
@@ -39,7 +37,7 @@ function ChildCard({ child }) {
       </div>
       <div className="family__child-info">
         <p className="family__child-name">{child.full_name}</p>
-        <p className="family__child-meta">{formatAge(child.date_of_birth)} old</p>
+        <p className="family__child-meta">{ageText}</p>
       </div>
       <GenderChip gender={child.gender} />
     </div>
@@ -47,6 +45,7 @@ function ChildCard({ child }) {
 }
 
 function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }) {
+  const dobBounds = getDobBounds();
   const [formData, setFormData] = useState({ full_name: '', date_of_birth: '', gender: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -55,6 +54,14 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'date_of_birth') {
+      const result = validateChildDob(value, { required: false });
+      if (value && !result.valid) {
+        setErrors((prev) => ({ ...prev, date_of_birth: result.error }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
@@ -65,7 +72,8 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
 
     const newErrors = {};
     if (!formData.full_name.trim()) newErrors.full_name = 'Name is required';
-    if (!formData.date_of_birth) newErrors.date_of_birth = 'Date of birth is required';
+    const dobResult = validateChildDob(formData.date_of_birth);
+    if (!dobResult.valid) newErrors.date_of_birth = dobResult.error;
     if (!formData.gender) newErrors.gender = 'Gender is required';
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
 
@@ -125,6 +133,8 @@ function AddChildSheet({ children: existingChildren, profileId, onAdd, onClose }
                 id="fc-dob"
                 name="date_of_birth"
                 type="date"
+                min={dobBounds.min}
+                max={dobBounds.max}
                 value={formData.date_of_birth}
                 onChange={handleChange}
                 className={errors.date_of_birth ? 'family__input family__input--error' : 'family__input'}
@@ -280,13 +290,17 @@ function InviteSheet({ children, profileId, onAdd, onClose }) {
   );
 }
 
-export default function FamilyScreen({ profile, children: initialChildren = [], onBack }) {
+export default function FamilyScreen({ profile, children: initialChildren = [], onBack, onChildrenChange }) {
   const [localChildren, setLocalChildren] = useState(initialChildren);
   const [invites, setInvites] = useState([]);
   const [caregiverFamilies, setCaregiverFamilies] = useState([]);
   const [loadingInvites, setLoadingInvites] = useState(true);
   const [showAddChild, setShowAddChild] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+
+  useEffect(() => {
+    setLocalChildren(initialChildren);
+  }, [initialChildren]);
 
   useEffect(() => {
     if (!profile?.id) { setLoadingInvites(false); return; }
@@ -313,6 +327,7 @@ export default function FamilyScreen({ profile, children: initialChildren = [], 
 
   const handleChildAdded = (child) => {
     setLocalChildren((prev) => [...prev, child]);
+    onChildrenChange?.((currentChildren) => [...currentChildren, child]);
     setShowAddChild(false);
   };
 

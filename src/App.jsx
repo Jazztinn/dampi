@@ -7,6 +7,16 @@ import DampiChatModal from './components/ai/DampiChatModal.jsx';
 import AcceptInviteScreen from './screens/AcceptInvite/AcceptInviteScreen.jsx';
 import { getSupabaseBrowserClient } from './lib/supabase.js';
 
+const ONBOARDING_STORAGE_KEYS = [
+  'dampi.onboardingStep',
+  'dampi.onboardingData',
+  'dampi.pendingOnboarding',
+];
+
+function clearOnboardingStorage() {
+  ONBOARDING_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+}
+
 async function loadOnboardingAccount(supabase, session) {
   if (!session?.user) return null;
 
@@ -28,7 +38,15 @@ async function loadOnboardingAccount(supabase, session) {
   if (childrenError) throw childrenError;
   if (!children?.length) return null;
 
-  return { profile, child: children[0], children };
+  const { data: hmoCoverage, error: hmoError } = await supabase
+    .from('hmo_coverage')
+    .select('*')
+    .eq('profile_id', session.user.id)
+    .maybeSingle();
+
+  if (hmoError) throw hmoError;
+
+  return { profile, child: children[0], children, hmoCoverage };
 }
 
 export default function App() {
@@ -37,6 +55,7 @@ export default function App() {
   const [hasSession, setHasSession] = useState(false);
   const [authView, setAuthView] = useState('landing');
   const [accountError, setAccountError] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [tasks, setTasks] = useState({});
   const [pendingInviteToken, setPendingInviteToken] = useState(() => {
@@ -126,8 +145,8 @@ export default function App() {
     setPendingInviteToken(null);
   };
 
-  const handleOnboardingComplete = ({ profile, child }) => {
-    setAccount({ profile, child, children: child ? [child] : [] });
+  const handleOnboardingComplete = ({ profile, child, hmoCoverage }) => {
+    setAccount({ profile, child, children: child ? [child] : [], hmoCoverage });
     setAccountError('');
   };
 
@@ -139,14 +158,47 @@ export default function App() {
     });
   };
 
+  const handleHmoCoverageChange = (hmoCoverage) => {
+    setAccount((current) => {
+      if (!current) return current;
+
+      return { ...current, hmoCoverage };
+    });
+  };
+
+  const handleChildrenChange = (updater) => {
+    setAccount((current) => {
+      if (!current) return current;
+
+      const nextChildren = typeof updater === 'function'
+        ? updater(current.children || [])
+        : updater;
+      const children = Array.isArray(nextChildren) ? nextChildren : [];
+
+      return {
+        ...current,
+        child: children[0] || null,
+        children,
+      };
+    });
+  };
+
   const handleSignOut = async () => {
+    setSigningOut(true);
+    setAccountError('');
     try {
       const supabase = getSupabaseBrowserClient();
       await supabase.auth.signOut();
-    } catch {
+    } catch (error) {
+      setAccountError(error.message || 'Unable to sign out remotely. Local session was cleared.');
+    } finally {
+      clearOnboardingStorage();
       setAccount(null);
       setHasSession(false);
       setAuthView('landing');
+      setChatOpen(false);
+      setTasks({});
+      setSigningOut(false);
     }
   };
 
@@ -178,9 +230,13 @@ export default function App() {
           profile={account.profile}
           child={account.child}
           children={account.children}
+          hmoCoverage={account.hmoCoverage}
           onOpenAi={() => setChatOpen(true)}
           onSignOut={handleSignOut}
           onProfileChange={handleProfileChange}
+          onHmoCoverageChange={handleHmoCoverageChange}
+          onChildrenChange={handleChildrenChange}
+          signingOut={signingOut}
         />
         <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
         {accountError && <div className="app-error">{accountError}</div>}

@@ -103,6 +103,211 @@
   transform: translateY(1px);
 }
 
+.hmo-portal__coverage {
+  padding: 18px;
+  border: 1px solid rgba(77, 115, 108, 0.07);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.hmo-portal__coverage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hmo-portal__coverage-header h2 {
+  margin: 0 0 5px;
+  color: var(--dampi-text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.hmo-portal__coverage-header p {
+  margin: 0;
+  color: var(--dampi-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.hmo-portal__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 13px;
+  background: var(--sage-12);
+  color: var(--dampi-teal);
+  cursor: pointer;
+}
+
+.hmo-portal__coverage-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.hmo-portal__coverage-details div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(146, 187, 179, 0.09);
+}
+
+.hmo-portal__coverage-details span {
+  color: var(--dampi-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hmo-portal__coverage-details strong {
+  color: var(--dampi-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.hmo-portal__coverage-notes {
+  margin: 2px 0 0;
+  color: var(--dampi-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.hmo-portal__coverage-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.hmo-portal__coverage-form label {
+  color: var(--dampi-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hmo-portal__coverage-form input,
+.hmo-portal__coverage-form select,
+.hmo-portal__coverage-form textarea {
+  width: 100%;
+  border: 1px solid rgba(146, 187, 179, 0.28);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--dampi-text);
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 11px 12px;
+  outline: none;
+}
+
+.hmo-portal__coverage-form textarea {
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.hmo-portal__coverage-form input:focus,
+.hmo-portal__coverage-form select:focus,
+.hmo-portal__coverage-form textarea:focus {
+  border-color: var(--dampi-teal);
+  box-shadow: 0 0 0 3px rgba(146, 187, 179, 0.15);
+}
+
+.hmo-portal__error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.hmo-portal__save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--dampi-teal);
+  color: #fff;
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.hmo-portal__save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.hmo-portal__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.hmo-portal__action-card {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 1px solid rgba(77, 115, 108, 0.07);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  padding: 14px;
+  text-align: left;
+}
+
+.hmo-portal__action-card h3 {
+  margin: 0 0 4px;
+  color: var(--dampi-text);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.hmo-portal__action-card p {
+  margin: 0;
+  color: var(--dampi-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.hmo-portal__action-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: rgba(146, 187, 179, 0.17);
+  color: var(--dampi-teal);
+}
+
+.hmo-portal__action-icon--warm {
+  background: rgba(237, 161, 109, 0.15);
+  color: #b86a20;
+}
+
+.hmo-portal__action-icon--money {
+  background: rgba(77, 115, 108, 0.10);
+  color: var(--dampi-teal);
+}
+
 /* Encapsulated approval artwork. Remove this block with <ApprovalIllustration />. */
 .hmo-approval-art {
   position: relative;

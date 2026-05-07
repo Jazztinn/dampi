@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import WelcomeScreen from './WelcomeScreen.jsx';
 import CreateAccountScreen from './CreateAccountScreen.jsx';
 import AddChildScreen from './AddChildScreen.jsx';
+import HMOCoverageScreen from './HMOCoverageScreen.jsx';
 import InviteFamilyScreen from './InviteFamilyScreen.jsx';
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
@@ -31,7 +32,8 @@ function clearPendingOnboarding() {
 export default function OnboardingFlow({ onComplete, onInitialBack }) {
   const [step, setStep] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingStep');
-    return saved ? parseInt(saved, 10) : 0;
+    const parsed = saved ? parseInt(saved, 10) : 0;
+    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 4) : 0;
   });
   const [formData, setFormData] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingData');
@@ -43,6 +45,10 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       childName: '',
       childDOB: '',
       childGender: '',
+      hmoHasCoverage: '',
+      hmoProviderName: '',
+      hmoBenefitsTier: '',
+      hmoBenefitsNotes: '',
       familyEmail: '',
     };
   });
@@ -111,7 +117,24 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
 
     if (childError) throw childError;
 
-    const familyEmail = data.familyEmail.trim();
+    const hasHmo = data.hmoHasCoverage === 'yes';
+    const hmoPayload = {
+      profile_id: user.id,
+      has_hmo: hasHmo,
+      provider_name: hasHmo ? data.hmoProviderName?.trim() || null : null,
+      benefits_tier: hasHmo ? data.hmoBenefitsTier?.trim() || null : null,
+      benefits_notes: hasHmo ? data.hmoBenefitsNotes?.trim() || null : null,
+    };
+
+    const { data: hmoCoverage, error: hmoError } = await supabase
+      .from('hmo_coverage')
+      .upsert(hmoPayload, { onConflict: 'profile_id' })
+      .select()
+      .single();
+
+    if (hmoError) throw hmoError;
+
+    const familyEmail = data.familyEmail?.trim() || '';
     if (familyEmail) {
       const { error: inviteError } = await supabase
         .from('caregiver_invites')
@@ -135,7 +158,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
 
     clearPersistence();
     setPendingConfirmation(null);
-    onComplete && onComplete({ profile, child });
+    onComplete && onComplete({ profile, child, hmoCoverage });
     return true;
   };
 
@@ -160,7 +183,12 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
         throw new Error('A different account is signed in. Sign out and open the confirmation link for this email.');
       }
 
-      return await persistOnboardingAccount(supabase, user, pendingData);
+      clearPendingOnboarding();
+      setPendingConfirmation(null);
+      setFormData((current) => ({ ...current, ...pendingData, password: '' }));
+      setStep(2);
+      setSubmitError('');
+      return true;
     } catch (error) {
       setSubmitError(error.message || 'Unable to finish onboarding.');
       return false;
@@ -182,6 +210,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
     { id: 'welcome', label: 'Welcome' },
     { id: 'account', label: 'Create Account' },
     { id: 'child', label: 'Add Child' },
+    { id: 'hmo', label: 'HMO Coverage' },
     { id: 'family', label: 'Invite Family' },
   ];
 
@@ -252,7 +281,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
     try {
       const supabase = getSupabaseBrowserClient();
       const email = finalData.email.trim();
-      const familyEmail = finalData.familyEmail.trim();
+      const familyEmail = finalData.familyEmail?.trim() || '';
 
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
@@ -283,6 +312,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
       submitError={step === 1 ? submitError : ''}
     />,
     <AddChildScreen key="child" data={formData} onNext={handleNext} />,
+    <HMOCoverageScreen key="hmo" data={formData} onNext={handleNext} />,
     <InviteFamilyScreen
       key="family"
       data={formData}

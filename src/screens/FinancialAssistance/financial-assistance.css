@@ -142,12 +142,107 @@
   margin: 0 0 12px;
 }
 
+.profile__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile__section-header .profile__section-title {
+  margin: 0;
+}
+
+.profile__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(146, 187, 179, 0.12);
+  color: var(--dampi-teal);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.profile__edit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .profile__info-list {
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 24px;
   border: 1px solid rgba(77, 115, 108, 0.06);
+}
+
+.profile__edit-form {
+  display: grid;
+  gap: 9px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid rgba(77, 115, 108, 0.06);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.profile__edit-form label {
+  color: var(--dampi-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.profile__edit-form input {
+  width: 100%;
+  border: 1px solid rgba(146, 187, 179, 0.28);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--dampi-text);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 11px 12px;
+  outline: none;
+}
+
+.profile__edit-form input:focus {
+  border-color: var(--dampi-teal);
+  box-shadow: 0 0 0 3px rgba(146, 187, 179, 0.15);
+}
+
+.profile__form-error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.profile__save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--dampi-teal);
+  color: #fff;
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.profile__save-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .profile__info-row {

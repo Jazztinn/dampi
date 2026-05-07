@@ -181,6 +181,7 @@
 }
 
 .onboarding-form input,
+.onboarding-form textarea,
 .onboarding-select {
   width: 100%;
   padding: 12px 14px 12px 44px;
@@ -199,15 +200,25 @@
 }
 
 .onboarding-form input:focus,
+.onboarding-form textarea:focus,
 .onboarding-select:focus {
   outline: none;
   border-color: var(--dampi-teal);
   box-shadow: 0 0 0 3px rgba(146, 187, 179, 0.15);
 }
 
-.onboarding-form input.error {
+.onboarding-form input.error,
+.onboarding-form textarea.error,
+.onboarding-select.error {
   border-color: #c0392b;
   box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+}
+
+.onboarding-form textarea {
+  min-height: 92px;
+  resize: vertical;
+  padding-left: 14px;
+  line-height: 1.45;
 }
 
 .onboarding-select {

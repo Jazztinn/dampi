@@ -196,7 +196,10 @@ export default function App() {
         <LoginScreen onBack={() => setAuthView('landing')} />
       )}
       {showOnboarding && (
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
+        <OnboardingFlow
+          onComplete={handleOnboardingComplete}
+          onInitialBack={!hasSession ? () => setAuthView('landing') : null}
+        />
       )}
       {!showOnboarding && authView === 'landing' && (
         <AuthLandingScreen

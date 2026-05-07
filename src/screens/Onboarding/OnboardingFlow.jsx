@@ -28,7 +28,7 @@ function clearPendingOnboarding() {
   window.localStorage.removeItem(PENDING_ONBOARDING_KEY);
 }
 
-export default function OnboardingFlow({ onComplete }) {
+export default function OnboardingFlow({ onComplete, onInitialBack }) {
   const [step, setStep] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingStep');
     return saved ? parseInt(saved, 10) : 0;
@@ -338,7 +338,7 @@ export default function OnboardingFlow({ onComplete }) {
             ))}
           </div>
         }
-        onBack={step > 0 ? handleBack : null}
+        onBack={step > 0 ? handleBack : onInitialBack}
       />
 
       {/* Screen */}

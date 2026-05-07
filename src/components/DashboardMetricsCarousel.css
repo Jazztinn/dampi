@@ -31,7 +31,7 @@
 
 .dmc-scroll {
   display: flex;
-  gap: 4px;
+  gap: 0;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -47,6 +47,7 @@
 .dmc-snap-item {
   flex: none;
   width: 200px;
+  margin-right: -24px;
   scroll-snap-align: center;
   scroll-snap-stop: always;
   position: relative;
@@ -60,53 +61,46 @@
 }
 
 .dmc-card {
-  border-radius: 2rem;
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 2.5rem;
   padding: 16px;
-  color: #fff;
   display: flex;
   flex-direction: column;
   aspect-ratio: 4 / 4.8;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.04),
+    inset 0 4px 8px rgba(255, 255, 255, 1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(240, 240, 240, 1);
 }
 
-.dmc-card__header {
+.dmc-card__add {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px; /* Squircle appearance */
+  background: #f6f6f6;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
+  color: var(--dampi-text-muted);
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 1;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  line-height: 1.2;
-}
-
-.dmc-card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  margin-top: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.dmc-card__value {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+.dmc-card__add:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--dampi-text);
+  transform: scale(1.05);
 }
 
-.dmc-card__unit {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.95;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.dmc-card__add:active {
+  transform: scale(0.95);
 }
 

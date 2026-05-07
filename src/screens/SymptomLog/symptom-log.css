@@ -1242,6 +1242,119 @@
   border: 1px solid rgba(244, 67, 54, 0.15);
 }
 
+/* ── Assessment Stats Card ────────────────────────────── */
+
+.symptom-log__card--assessment-stats {
+  background: linear-gradient(135deg, rgba(146, 187, 179, 0.12) 0%, rgba(77, 115, 108, 0.06) 100%);
+  border: 1px solid rgba(77, 115, 108, 0.15);
+}
+
+.symptom-log__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+
+@media (min-width: 480px) {
+  .symptom-log__stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.symptom-log__stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(77, 115, 108, 0.08);
+  text-align: center;
+}
+
+.symptom-log__stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--dampi-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.symptom-log__stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--dampi-teal);
+  margin: 0;
+}
+
+/* ── Provider Export Card ──────────────────────────────── */
+
+.symptom-log__card--exports {
+  background: linear-gradient(135deg, rgba(237, 161, 109, 0.08) 0%, rgba(237, 161, 109, 0.04) 100%);
+  border: 1px solid rgba(237, 161, 109, 0.2);
+}
+
+.symptom-log__export-desc {
+  font-size: 0.82rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.symptom-log__export-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.symptom-log__export-btn {
+  flex: 1;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid rgba(237, 161, 109, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.symptom-log__export-btn:hover:not(.--copied) {
+  background: rgba(237, 161, 109, 0.08);
+  border-color: rgba(237, 161, 109, 0.4);
+}
+
+.symptom-log__export-btn.--copied {
+  background: rgba(46, 160, 67, 0.1);
+  border-color: rgba(46, 160, 67, 0.3);
+  color: #2e7d32;
+}
+
+.symptom-log__finding-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.symptom-log__finding-exam-ref {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--dampi-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
 /* ── Print stylesheet (Share Clinical PDF) ──────────────── */
 
 @media print {

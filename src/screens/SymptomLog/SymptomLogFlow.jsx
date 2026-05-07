@@ -12,11 +12,13 @@ import {
 import TopNavBar from '../../navigation/TopNavBar.jsx';
 import { callDampiChat } from '../../services/ai/dampiApi.js';
 import {
+  ANALYSIS_SYSTEM_PROMPT,
   EXAM_SYSTEM_PROMPT,
   SUMMARY_SYSTEM_PROMPT,
   extractJson,
   validateSummary,
   validatePlan,
+  validateAnalysis,
 } from './prompts.js';
 import { emptyDraft, loadDraft, saveDraft, clearDraft } from './draftStorage.js';
 import Step1Describe from './steps/Step1Describe.jsx';
@@ -25,6 +27,11 @@ import Step3Findings from './steps/Step3Findings.jsx';
 import Step4Summary from './steps/Step4Summary.jsx';
 import FlowHelpModal from './components/FlowHelpModal.jsx';
 import { formatChildAge } from '../../utils/dobValidation.js';
+import {
+  createAssessmentSession,
+  updateAssessmentSession,
+  generateProviderExports,
+} from '../../services/ai/assessmentAdapter.js';
 import './symptom-log.css';
 
 const STEP_COUNT = 4;
@@ -65,7 +72,21 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [helpOpen, setHelpOpen] = useState(false);
+  const [assessmentSession, setAssessmentSession] = useState(null);
   const saveTimer = useRef(null);
+
+  // Initialize assessment session on mount
+  useEffect(() => {
+    if (!assessmentSession && child?.id) {
+      const session = createAssessmentSession(
+        child?.full_name || 'Child',
+        child?.date_of_birth ? calcAge(child.date_of_birth) : null,
+        child?.id,
+        profile?.id || null
+      );
+      setAssessmentSession(session);
+    }
+  }, [child?.id, profile?.id, assessmentSession]);
 
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -100,31 +121,24 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
     setLoading(true);
     setError('');
     try {
-      const d = draft.describe;
-      const dur = durationText(d);
-      const userMessage = [
-        `Child: ${childName}${childAge ? `, ${childAge} old` : ''}${child?.gender ? `, ${child.gender}` : ''}`,
-        `Parent's description: ${d.description.trim()}`,
-        d.temperatureC ? `Temperature: ${d.temperatureC} °C` : null,
-        d.heartRate ? `Heart rate: ${d.heartRate} bpm` : null,
-        d.oxygenSat ? `Oxygen sat.: ${d.oxygenSat}%` : null,
-        dur ? `Duration: ${dur}` : null,
-        d.medicalHistory ? `Relevant medical history: ${d.medicalHistory}` : null,
-      ].filter(Boolean).join('\n');
-
-      const result = await callDampiChat([], userMessage, {
-        systemPrompt: EXAM_SYSTEM_PROMPT,
-        mode: 'fast',
+      // Step 1: Capture step 1 data in assessment session
+      let session = updateAssessmentSession(assessmentSession, 1, {
+        description: draft.describe.description.trim(),
+        temperatureC: draft.describe.temperatureC || '',
+        heartRate: draft.describe.heartRate || '',
+        oxygenSat: draft.describe.oxygenSat || '',
+        photos: draft.describe.photos || [],
       });
-      const rawText = result?.text || '';
-      let parsed;
-      try {
-        parsed = validatePlan(extractJson(rawText));
-      } catch (parseErr) {
-        console.error('AI Parse Error:', parseErr, 'Raw:', rawText);
-        throw new Error(`Dampi gave an invalid response format. Raw: ${rawText.slice(0, 100)}...`);
+
+      // Step 2 & 3: Dynamic exam and checklist are generated automatically in updateAssessmentSession
+      const plan = session.step2.plan;
+
+      if (!plan || !plan.instructions) {
+        throw new Error('Failed to generate examination plan');
       }
-      setDraft((prev) => ({ ...prev, plan: parsed, step: 1 }));
+
+      setAssessmentSession(session);
+      setDraft((prev) => ({ ...prev, plan, step: 1 }));
     } catch (err) {
       setError(err.message || 'Could not generate examination plan.');
     } finally {
@@ -136,29 +150,43 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
     setLoading(true);
     setError('');
     try {
-      const d = draft.describe;
+      // Step 3: Capture step 3 data in assessment session
+      let session = updateAssessmentSession(assessmentSession, 3, {
+        answers: draft.findings.answers,
+        severityRating: draft.findings.overallSeverity,
+        notes: draft.findings.notes || '',
+        photos: draft.findings.photos || [],
+      });
+
+      // Build session summary context for AI
       const examLines = draft.plan.checklist.map((q) => {
         const a = draft.findings.answers[q.id];
         const formatted = q.type === 'yesno' ? (a ? 'Yes' : 'No') : a;
         return `- ${q.question} → ${formatted}`;
       }).join('\n');
 
+      const isGuest = !profile?.id;
+
       const userMessage = [
         `Child profile: ${childName}${childAge ? `, ${childAge} old` : ''}${child?.gender ? `, ${child.gender}` : ''}`,
-        child?.weight ? `Weight: ${child.weight}` : null,
-        child?.blood_type ? `Blood type: ${child.blood_type}` : null,
+        !isGuest && child?.weight ? `Weight: ${child.weight}` : null,
+        !isGuest && child?.blood_type ? `Blood type: ${child.blood_type}` : null,
+        !isGuest && child?.health_insurance_number ? `HMO ID: ${child.health_insurance_number}` : null,
         profile?.full_name ? `Recorded by: ${profile.full_name}` : null,
+        `Guest User: ${isGuest}`,
         '',
-        `Parent's initial description: ${d.description.trim()}`,
-        d.temperatureC ? `Reported temperature: ${d.temperatureC} °C` : null,
-        d.heartRate ? `Heart rate: ${d.heartRate} bpm` : null,
-        d.oxygenSat ? `Oxygen sat.: ${d.oxygenSat}%` : null,
-        durationText(d) ? `Duration: ${durationText(d)}` : null,
-        d.medicalHistory ? `Medical history: ${d.medicalHistory}` : null,
+        `Assessment Context: ${JSON.stringify(session.metadata.context)}`,
+        `Parent's initial description: ${draft.describe.description.trim()}`,
+        draft.describe.temperatureC ? `Reported temperature: ${draft.describe.temperatureC} °C` : null,
+        draft.describe.heartRate ? `Heart rate: ${draft.describe.heartRate} bpm` : null,
+        draft.describe.oxygenSat ? `Oxygen sat.: ${draft.describe.oxygenSat}%` : null,
+        durationText(draft.describe) ? `Duration: ${durationText(draft.describe)}` : null,
+        !isGuest && draft.describe.medicalHistory ? `Medical history: ${draft.describe.medicalHistory}` : null,
+        !isGuest && child?.allergies ? `Allergies: ${child.allergies}` : null,
         '',
         'Home examination findings:',
         examLines,
-        `Overall severity (parent's gut feel, 0-10): ${draft.findings.overallSeverity}`,
+        `Overall severity (parent's assessment, 0-10): ${draft.findings.overallSeverity}`,
         draft.findings.notes ? `Additional notes: ${draft.findings.notes}` : null,
       ].filter(Boolean).join('\n');
 
@@ -173,7 +201,7 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
         parsed = validateSummary(extractJson(lastRaw));
       } catch {
         const retry = await callDampiChat(
-          [{ role: 'user', text: userMessage }, { role: 'assistant', text: lastRaw }],
+          [{ role: 'user', content: userMessage }, { role: 'assistant', content: lastRaw }],
           'Your previous response was not valid JSON in the required schema. Return ONLY the JSON object now, no prose. DO NOT use markdown code blocks.',
           { systemPrompt: SUMMARY_SYSTEM_PROMPT, mode: 'fast' },
         );
@@ -181,13 +209,31 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
         parsed = validateSummary(extractJson(lastRaw));
       }
 
+      // Step 4: Complete assessment session and generate exports
+      session = updateAssessmentSession(session, 4, {
+        exportReady: true,
+        exported: false,
+      });
+
       const reportMeta = {
         id: draft.summary?.reportId || genReportId(),
         date: new Date().toISOString(),
       };
+
+      // Generate provider exports using assessment context
+      const exports = generateProviderExports(session.step4.summary || {});
+
+      setAssessmentSession(session);
       setDraft((prev) => ({
         ...prev,
-        summary: { data: parsed, reportId: reportMeta.id, reportDate: reportMeta.date, rawError: null },
+        summary: {
+          data: parsed,
+          reportId: reportMeta.id,
+          reportDate: reportMeta.date,
+          rawError: null,
+          assessmentSession: session,
+          exports,
+        },
         step: 3,
       }));
     } catch (err) {
@@ -195,7 +241,7 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
         ...prev,
         summary: {
           data: null,
-          reportId: prev.summary?.reportId || genReportId(),
+          reportId: draft.summary?.reportId || genReportId(),
           reportDate: new Date().toISOString(),
           rawError: { message: err.message || 'Could not parse Dampi response.', raw: '' },
         },
@@ -224,6 +270,7 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
   const handleReset = () => {
     clearDraft();
     setDraft(emptyDraft());
+    setAssessmentSession(null);
     setError('');
   };
 
@@ -307,6 +354,8 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
           profile={profile}
           reportId={draft.summary?.reportId || ''}
           reportDate={formatReportDate(draft.summary?.reportDate)}
+          assessmentSession={draft.summary?.assessmentSession}
+          exports={draft.summary?.exports}
         />
       )}
 

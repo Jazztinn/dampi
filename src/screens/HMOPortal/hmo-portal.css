@@ -1,123 +1,605 @@
-/* ── HMO Portal Screen ────────────────────────────────────── */
-
 .hmo-portal {
-  background: var(--dampi-cream);
   min-height: 100vh;
-  padding: 0 20px;
+  background: var(--dampi-cream);
   color: var(--dampi-text);
 }
 
-/* ── Coverage Card ── */
-
-.hmo-portal__coverage-card {
-  background: var(--dampi-sage);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 24px;
+.hmo-portal .top-nav--inner {
+  background: transparent;
 }
 
-.hmo-portal__coverage-label {
-  font-size: 0.68rem;
+.hmo-portal .top-nav__back {
+  width: 44px;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: rgba(146, 187, 179, 0.18);
+  border: 1px solid rgba(77, 115, 108, 0.08);
+  box-shadow: var(--shadow-xs);
+}
+
+.hmo-portal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 16px 20px 28px;
+}
+
+.hmo-portal__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  overflow: hidden;
+  padding: 22px 22px 24px;
+  border: 1px solid rgba(77, 115, 108, 0.07);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-md);
+}
+
+.hmo-portal__eyebrow {
+  margin: 0 0 10px;
+  color: var(--dampi-warm);
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 6px;
 }
 
-.hmo-portal__coverage-status {
+.hmo-portal__hero h1 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--dampi-text);
   font-size: 1.3rem;
   font-weight: 800;
-  color: #fff;
-  margin: 0 0 4px;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
-.hmo-portal__coverage-meta {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 14px;
+.hmo-portal__intro {
+  max-width: 32ch;
+  margin: 14px 0 18px;
+  color: var(--dampi-text-muted);
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-.hmo-portal__coverage-badge {
+.hmo-portal__intro strong {
+  color: var(--dampi-teal);
+  font-weight: 800;
+}
+
+.hmo-portal__cta {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.hmo-portal__coverage-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-/* ── Benefits List ── */
-
-.hmo-portal__section-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--dampi-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 12px;
-}
-
-.hmo-portal__benefits {
-  display: flex;
-  flex-direction: column;
+  justify-content: center;
   gap: 8px;
-  margin-bottom: 28px;
+  width: min(100%, 210px);
+  min-height: 46px;
+  border: none;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
+    var(--dampi-teal);
+  color: #fff;
+  box-shadow: var(--shadow-cta);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 
-.hmo-portal__benefit-item {
-  background: #fff;
+.hmo-portal__cta:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0)),
+    var(--primary-hover);
+  box-shadow: var(--shadow-lg);
+}
+
+.hmo-portal__cta:active {
+  transform: translateY(1px);
+}
+
+/* Encapsulated approval artwork. Remove this block with <ApprovalIllustration />. */
+.hmo-approval-art {
+  position: relative;
+  align-self: center;
+  width: min(100%, 286px);
+  aspect-ratio: 1.08;
+  margin: 0 auto;
+}
+
+.hmo-approval-art__blob {
+  position: absolute;
+  inset: 12% 4% 5% 2%;
+  border-radius: 35% 42% 32% 44%;
+  background: rgba(146, 187, 179, 0.16);
+  transform: rotate(-8deg);
+}
+
+.hmo-approval-art__clipboard {
+  position: absolute;
+  right: 17%;
+  top: 26%;
+  width: 42%;
+  height: 55%;
+  border: 8px solid var(--dampi-teal);
   border-radius: 12px;
-  padding: 14px;
+  background: #fffdf9;
+  box-shadow: 0 10px 22px rgba(77, 115, 108, 0.2);
+  transform: rotate(1deg);
+}
+
+.hmo-approval-art__clip {
+  position: absolute;
+  left: 50%;
+  top: -27px;
+  width: 76px;
+  height: 42px;
+  border-radius: 10px 10px 7px 7px;
+  background: var(--dampi-warm);
+  box-shadow: inset 0 -5px 0 rgba(196, 111, 62, 0.18), 0 3px 6px rgba(77, 115, 108, 0.16);
+  transform: translateX(-50%);
+}
+
+.hmo-approval-art__clip span {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 14px;
+  height: 14px;
+  border: 5px solid #fff8f0;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.hmo-approval-art__row {
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid rgba(77, 115, 108, 0.06);
+  margin: 27px 16px 0;
+  color: var(--dampi-sage);
 }
 
-.hmo-portal__benefit-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(146, 187, 179, 0.12);
+.hmo-approval-art__row span {
+  display: block;
+  width: 58px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(107, 133, 128, 0.24);
+}
+
+.hmo-approval-art__row:nth-child(4) span {
+  width: 42px;
+}
+
+.hmo-approval-art__shield {
+  position: absolute;
+  right: 1%;
+  bottom: 8%;
+  display: grid;
+  place-items: center;
+  width: 90px;
+  height: 104px;
+  color: #fff;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0)),
+    #7fb5a8;
+  clip-path: polygon(50% 0%, 93% 16%, 88% 70%, 50% 100%, 12% 70%, 7% 16%);
+  filter: drop-shadow(0 8px 12px rgba(77, 115, 108, 0.2));
+}
+
+.hmo-approval-art__heart,
+.hmo-approval-art__sparkle {
+  position: absolute;
+  color: var(--dampi-warm);
+}
+
+.hmo-approval-art__heart {
+  left: 7%;
+  top: 41%;
+  font-size: 2rem;
+  transform: rotate(-8deg);
+}
+
+.hmo-approval-art__sparkle {
+  right: 16%;
+  top: 9%;
+  width: 30px;
+  height: 30px;
+}
+
+.hmo-approval-art__sparkle::before,
+.hmo-approval-art__sparkle::after {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  content: "";
+  background: currentColor;
+  border-radius: 999px;
+}
+
+.hmo-approval-art__sparkle::before {
+  width: 8px;
+  height: 30px;
+}
+
+.hmo-approval-art__sparkle::after {
+  width: 30px;
+  height: 8px;
+}
+
+.hmo-approval-art__plant {
+  position: absolute;
+  width: 44px;
+  height: 68px;
+}
+
+.hmo-approval-art__plant::before {
+  position: absolute;
+  left: 21px;
+  top: 8px;
+  width: 3px;
+  height: 54px;
+  content: "";
+  border-radius: 999px;
+  background: rgba(77, 115, 108, 0.46);
+  transform: rotate(18deg);
+}
+
+.hmo-approval-art__plant span {
+  position: absolute;
+  width: 18px;
+  height: 32px;
+  border-radius: 50% 50% 50% 8px;
+  background: rgba(111, 161, 149, 0.48);
+}
+
+.hmo-approval-art__plant span:nth-child(1) {
+  left: 6px;
+  top: 16px;
+  transform: rotate(-54deg);
+}
+
+.hmo-approval-art__plant span:nth-child(2) {
+  right: 2px;
+  top: 30px;
+  transform: rotate(33deg);
+}
+
+.hmo-approval-art__plant span:nth-child(3) {
+  left: 14px;
+  bottom: 2px;
+  transform: rotate(-34deg);
+}
+
+.hmo-approval-art__plant--left {
+  left: 0;
+  bottom: 2%;
+  transform: scale(0.78) rotate(-18deg);
+}
+
+.hmo-approval-art__plant--right {
+  right: -2%;
+  top: 33%;
+  transform: scale(0.7) rotate(16deg);
+}
+
+.hmo-portal__prep,
+.hmo-portal__note {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 16px;
+  border: 1px solid rgba(77, 115, 108, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-sm);
+}
+
+.hmo-portal__prep {
+  padding: 14px;
+}
+
+.hmo-portal__prep-icon,
+.hmo-portal__step-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(146, 187, 179, 0.17);
   color: var(--dampi-teal);
 }
 
-.hmo-portal__benefit-info {
-  flex: 1;
+.hmo-portal__prep-icon {
+  width: 68px;
+  height: 68px;
 }
 
-.hmo-portal__benefit-name {
+.hmo-portal__prep-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.hmo-portal__prep h2,
+.hmo-portal__steps h2,
+.hmo-portal__step h3 {
+  margin: 0;
+  color: #103f42;
+  letter-spacing: 0;
+}
+
+.hmo-portal__prep h2 {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--dampi-text);
-  margin: 0 0 2px;
 }
 
-.hmo-portal__benefit-desc {
-  font-size: 0.72rem;
-  color: var(--dampi-text-muted);
+.hmo-portal__prep p,
+.hmo-portal__step p,
+.hmo-portal__note p {
   margin: 0;
+  color: var(--dampi-text-muted);
+  line-height: 1.45;
 }
 
-.hmo-portal__benefit-limit {
-  font-size: 0.72rem;
+.hmo-portal__prep p {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.hmo-portal__prep-docs {
+  position: relative;
+  display: none;
+  width: 82px;
+  height: 64px;
+  flex: 0 0 auto;
+}
+
+.hmo-portal__id-card,
+.hmo-portal__hmo-card {
+  position: absolute;
+  border: 2px solid rgba(77, 115, 108, 0.35);
+  border-radius: 5px;
+  background: #fbfffc;
+  box-shadow: var(--shadow-xs);
+}
+
+.hmo-portal__id-card {
+  left: 0;
+  top: 2px;
+  width: 56px;
+  height: 38px;
+}
+
+.hmo-portal__id-card span {
+  position: absolute;
+  left: 9px;
+  top: 11px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--dampi-teal);
+}
+
+.hmo-portal__id-card i {
+  position: absolute;
+  right: 7px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(77, 115, 108, 0.3);
+}
+
+.hmo-portal__id-card i:nth-child(2) {
+  top: 11px;
+  width: 20px;
+}
+
+.hmo-portal__id-card i:nth-child(3) {
+  top: 21px;
+  width: 28px;
+}
+
+.hmo-portal__hmo-card {
+  right: 0;
+  bottom: 0;
+  width: 54px;
+  height: 42px;
+  padding: 6px 7px;
+  color: #fff;
+  background: var(--dampi-sage);
+}
+
+.hmo-portal__hmo-card b {
+  display: block;
+  font-size: 0.64rem;
+  line-height: 1;
+}
+
+.hmo-portal__hmo-card strong {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.hmo-portal__hmo-card i {
+  position: absolute;
+  right: 8px;
+  bottom: 12px;
+  width: 20px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.hmo-portal__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hmo-portal__steps h2 {
+  font-size: 1rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.hmo-portal__timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hmo-portal__step {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.hmo-portal__step:not(:last-child) .hmo-portal__step-marker::after {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  width: 3px;
+  height: 62px;
+  content: "";
+  border-radius: 999px;
+  background: rgba(146, 187, 179, 0.55);
+  transform: translateX(-50%);
+}
+
+.hmo-portal__step-marker {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.hmo-portal__step-marker span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--dampi-sage);
+  font-size: 1.2rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-xs);
+}
+
+.hmo-portal__step-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 112px;
+  padding: 16px;
+  border: 1px solid rgba(77, 115, 108, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-sm);
+}
+
+.hmo-portal__step-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.hmo-portal__step h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.hmo-portal__step p {
+  margin-top: 5px;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.hmo-portal__note {
+  position: relative;
+  overflow: hidden;
+  padding: 16px 46px 16px 14px;
+}
+
+.hmo-portal__note-shield {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 44px;
+  color: #fff;
+  background: var(--dampi-teal);
+  clip-path: polygon(50% 0%, 92% 17%, 86% 70%, 50% 100%, 14% 70%, 8% 17%);
+}
+
+.hmo-portal__note p {
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.hmo-portal__note strong {
   color: var(--dampi-teal);
-  white-space: nowrap;
+  font-weight: 800;
+}
+
+.hmo-portal__note-heart {
+  position: absolute;
+  right: 16px;
+  bottom: 15px;
+  color: var(--dampi-warm);
+  font-size: 1.7rem;
+  line-height: 1;
+  transform: rotate(-8deg);
+}
+
+@media (min-width: 390px) {
+  .hmo-portal__hero {
+    padding: 22px 22px 24px;
+  }
+
+  .hmo-portal__prep-docs {
+    display: block;
+  }
+}
+
+@media (min-width: 410px) {
+  .hmo-portal__hero {
+    grid-template-columns: minmax(0, 1fr) 44%;
+    align-items: center;
+  }
+
+  .hmo-approval-art {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .hmo-portal__content {
+    padding-inline: 14px;
+  }
+
+  .hmo-portal__hero,
+  .hmo-portal__prep {
+    border-radius: 22px;
+    padding-inline: 18px;
+  }
+
+  .hmo-portal__step {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .hmo-portal__step-card {
+    grid-template-columns: 54px minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  .hmo-portal__step-icon {
+    width: 50px;
+    height: 50px;
+  }
 }

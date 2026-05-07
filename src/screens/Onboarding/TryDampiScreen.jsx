@@ -16,7 +16,7 @@ export default function TryDampiScreen({ onNext }) {
     {
       id: uid(),
       role: 'assistant',
-      text: 'Kamusta! Ako si Dampi. Subukan mo akong tanungin tungkol sa kalusugan ng iyong anak. 👋',
+      text: 'Kumusta ka? I am Dampi, your friendly child health assistant. Subukan mo akong tanungin tungkol sa kalusugan ng iyong anak.',
     },
   ]);
   const [input, setInput] = useState('');
@@ -100,7 +100,7 @@ export default function TryDampiScreen({ onNext }) {
   return (
     <div className="onboarding-screen-content">
       <div className="onboarding-header">
-        <h2 className="brand-font">Try Dampi</h2>
+        <h2 className="brand-font">Try dampi</h2>
         <p>Chat with Dampi before you sign up</p>
       </div>
 
@@ -108,8 +108,7 @@ export default function TryDampiScreen({ onNext }) {
       <div className="try-chat">
         {/* Header */}
         <div className="try-chat__header">
-          <img src={dampiLogo} alt="Dampi" className="try-chat__logo" />
-          <span className="try-chat__name">Dampi</span>
+          <span className="try-chat__name"></span>
         </div>
 
         {/* Body wrapper to contain messages and overlay */}

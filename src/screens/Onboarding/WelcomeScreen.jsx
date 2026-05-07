@@ -20,7 +20,7 @@ export default function WelcomeScreen({ onNext }) {
         <div className="feature">
           <Users size={32} />
           <h3>Family Together</h3>
-          <p>Invite caregivers to help track health</p>
+          <p>Invite family and caregivers to help track health</p>
         </div>
         <div className="feature">
           <Heart size={32} />
@@ -33,9 +33,22 @@ export default function WelcomeScreen({ onNext }) {
         Get Started
       </button>
 
-      <p className="welcome-legal">
-        By continuing, you agree to our Terms of Service and Privacy Policy
-      </p>
+<p className="welcome-legal" style={{ color: '#6b7280', fontSize: '14px' }}>
+  By continuing, you agree to our{" "}
+  <a 
+    href="https://docs.google.com/document/d/1aR-ZZ1d5Tvc24P88FT3IoZ-30XIbBR4lEEM3rwhqVo0/edit?tab=t.0" 
+    target="_blank" 
+    rel="noopener noreferrer"
+    style={{ 
+      color: '#00a4ea', 
+      textDecoration: 'underline', 
+      textUnderlineOffset: '3px',
+      marginLeft: '4px' 
+    }}
+  >
+    Terms of Service and Privacy Policy
+  </a>
+</p>
     </div>
   );
 }

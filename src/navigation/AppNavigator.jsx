@@ -18,10 +18,22 @@ const SCREENS = {
 };
 
 // Screens that take over the full app shell (no global bottom nav).
-const FULLSCREEN_FLOW = new Set(['hmo-log-flow']); 
+const FULLSCREEN_FLOW = new Set();
 
-export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut, onProfileChange }) {
+export default function AppNavigator({
+  profile,
+  child,
+  children = [],
+  hmoCoverage,
+  onOpenAi,
+  onSignOut,
+  onProfileChange,
+  onHmoCoverageChange,
+  onChildrenChange,
+  signingOut = false,
+}) {
   const [currentScreen, setCurrentScreen] = useState('home');
+  const [screenHistory, setScreenHistory] = useState([]);
   const [showSymptomLog, setShowSymptomLog] = useState(false);
   const contentAreaRef = useRef(null);
 
@@ -34,14 +46,39 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
     }
   }, [currentScreen, showSymptomLog]);
 
-  // Allow both the dedicated tab AND the home screen shortcut to trigger the flow
+  const navigateTo = (screen) => {
+    if (screen === 'symptoms') {
+      setShowSymptomLog(true);
+      return;
+    }
+
+    setShowSymptomLog(false);
+    if (currentScreen === screen) return;
+
+    setScreenHistory((history) => [...history, currentScreen].slice(-12));
+    setCurrentScreen(screen);
+  };
+
+  const goBack = () => {
+    setScreenHistory((history) => {
+      const nextHistory = [...history];
+      const previous = nextHistory.pop() || 'home';
+      setCurrentScreen(previous);
+      return nextHistory;
+    });
+  };
+
+  const openSymptomLog = () => {
+    setShowSymptomLog(true);
+  };
+
   if (showSymptomLog) {
     return (
       <SymptomLogScreen
         profile={profile}
         child={child}
         children={children}
-        onBack={() => setShowSymptomLog(false)}
+        onExit={() => setShowSymptomLog(false)}
       />
     );
   }
@@ -56,18 +93,22 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
           profile={profile}
           child={child}
           children={children}
+          hmoCoverage={hmoCoverage}
           onOpenAi={onOpenAi}
           onSignOut={onSignOut}
           onProfileChange={onProfileChange}
-          onNavigateToSymptoms={() => setCurrentScreen('symptoms')}
-          onExit={() => setCurrentScreen('home')}
-          onBack={() => setCurrentScreen('home')}
+          onHmoCoverageChange={onHmoCoverageChange}
+          onChildrenChange={onChildrenChange}
+          signingOut={signingOut}
+          onNavigateToSymptoms={openSymptomLog}
+          onExit={() => navigateTo('home')}
+          onBack={goBack}
         />
       </div>
       {!isFullscreen && (
         <BottomNav
           active={currentScreen}
-          setActive={setCurrentScreen}
+          setActive={navigateTo}
           openChatModal={onOpenAi}
         />
       )}

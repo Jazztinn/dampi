@@ -20,7 +20,7 @@ const SUGGESTIONS = [
   { icon: CalendarPlus, label: "Plan Clinic Visit", prompt: "Help me plan a clinic visit for my child. Ask what the visit is for, preferred date, location or doctor, and what documents or notes I should bring. If I ask you to schedule a reminder, propose the task first." },
   { icon: ShieldCheck, label: "Log Symptoms", prompt: "Help me log my child's symptoms. Ask about the symptom type, severity, when it started, and any other relevant details like temperature or associated symptoms." },
   { icon: Pill, label: "Medicine Reminder", prompt: "Help me set up a medicine reminder. Ask for the medicine name, dose, timing, start date, and any instructions. Propose the task first and wait for my approval before adding it." },
-  { icon: ListChecks, label: "Review Tasks", prompt: "Review my upcoming Dampi tasks and help me prioritize what needs attention. If you suggest new tasks, propose them first and wait for my approval before adding them." },
+  { icon: ListChecks, label: "HMO Documents", prompt: "Help me prepare HMO or clinic documents for my child. Ask which request I am working on, what documents I already have, what is missing, and whether I need help drafting a checklist for the visit." },
 ];
 
 const CHAT_PLACEHOLDER = "Message Dampi…";
@@ -381,6 +381,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef(0);
   const dragStartH = useRef(SNAP_MID);
+  const dragPointerId = useRef(null);
   const containerRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const closeTimerRef = useRef(null);
@@ -452,18 +453,22 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   useEffect(() => { scrollToBottom(); }, [messages]);
 
   /* ---- drag handlers ---- */
-  const getY = (e) => (e.touches ? e.touches[0].clientY : e.clientY);
-
   const onDragStart = useCallback((e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    dragPointerId.current = e.pointerId;
     setIsDragging(true);
-    dragStartY.current = getY(e);
+    dragStartY.current = e.clientY;
     dragStartH.current = sheetHeight;
   }, [sheetHeight]);
 
   const onDragMove = useCallback((e) => {
     if (!isDragging || !containerRef.current) return;
-    const parentH = containerRef.current.parentElement.clientHeight;
-    const dy = dragStartY.current - getY(e);
+    if (dragPointerId.current !== null && e.pointerId !== dragPointerId.current) return;
+    e.preventDefault();
+    const parentH = containerRef.current.parentElement?.clientHeight || window.innerHeight;
+    const dy = dragStartY.current - e.clientY;
     const newH = clamp(dragStartH.current + dy / parentH, 0.25, 0.95);
     setSheetHeight(newH);
   }, [isDragging]);
@@ -471,34 +476,21 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const snapTo = useCallback((h) => {
     const snaps = [SNAP_MIN, SNAP_MID, SNAP_MAX];
     // if dragged below minimum, close
-    if (h < 0.28) { requestClose(); return; }
+    if (h < 0.22) { requestClose(); return; }
     // find nearest snap
     let best = snaps[0];
     for (const s of snaps) if (Math.abs(s - h) < Math.abs(best - h)) best = s;
     setSheetHeight(best);
   }, [requestClose]);
 
-  const onDragEnd = useCallback(() => {
+  const onDragEnd = useCallback((e) => {
     if (!isDragging) return;
+    if (e?.pointerId && dragPointerId.current !== null && e.pointerId !== dragPointerId.current) return;
+    e?.currentTarget?.releasePointerCapture?.(dragPointerId.current);
+    dragPointerId.current = null;
     setIsDragging(false);
     snapTo(sheetHeight);
   }, [isDragging, sheetHeight, snapTo]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-    const onMove = (e) => onDragMove(e);
-    const onUp = () => onDragEnd();
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    window.addEventListener("touchmove", onMove, { passive: true });
-    window.addEventListener("touchend", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend", onUp);
-    };
-  }, [isDragging, onDragMove, onDragEnd]);
 
   useEffect(() => {
     if (!chats.some((chat) => chat.id === activeChatId) && chats.length > 0) {
@@ -788,8 +780,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
           <div
             className="chat-header-title"
             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'grab' }}
-            onMouseDown={onDragStart}
-            onTouchStart={onDragStart}
+            onPointerDown={onDragStart}
+            onPointerMove={onDragMove}
+            onPointerUp={onDragEnd}
+            onPointerCancel={onDragEnd}
           >
             <div className="chat-header-title-stack">
               <div className="chat-sheet-notch">

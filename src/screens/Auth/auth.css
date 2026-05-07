@@ -184,3 +184,9 @@
 .profile__sign-out-btn:active {
   transform: scale(0.98);
 }
+
+.profile__sign-out-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}

@@ -11,6 +11,7 @@
     rgba(77, 115, 108, 0.18);
   animation: chatFadeIn 0.2s ease-out;
   backdrop-filter: blur(2px);
+  overscroll-behavior: contain;
 }
 
 .chat-sheet-overlay.closing {
@@ -37,6 +38,7 @@
   transition: height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: height;
   animation: chatSlideUp 0.3s ease-out;
+  overscroll-behavior: contain;
 }
 
 .chat-sheet.closing {
@@ -111,6 +113,7 @@
   border: 1px solid rgba(255, 255, 255, 0.72);
   border-bottom: 0;
   box-shadow: 0 -12px 32px rgba(77, 115, 108, 0.30);
+  overscroll-behavior: contain;
 }
 
 /* ===== Header ===== */
@@ -132,6 +135,8 @@
   justify-content: center;
   gap: 10px;
   color: var(--text);
+  touch-action: none;
+  user-select: none;
 }
 
 .chat-header-logo-wrap {
@@ -389,6 +394,8 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .chat-message {

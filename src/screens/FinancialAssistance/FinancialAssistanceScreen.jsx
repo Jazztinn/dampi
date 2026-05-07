@@ -1,25 +1,8 @@
-import { useState } from 'react';
-import { Phone, Calendar, Baby, FileText, ChevronRight, LogOut, ImagePlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Phone, Calendar, Baby, LogOut, ImagePlus, Edit3, Save, X } from 'lucide-react';
 import TopNavBar, { getInitials } from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './financial-assistance.css';
-
-const ACTIONS = [
-  {
-    id: 1,
-    iconClass: 'sage',
-    Icon: FileText,
-    title: 'Financial Assistance',
-    desc: 'Review available support options for your household.',
-  },
-  {
-    id: 2,
-    iconClass: 'warm',
-    Icon: FileText,
-    title: 'Document Requests',
-    desc: 'Prepare documents tied to your Dampi profile.',
-  },
-];
 
 function formatDate(date) {
   if (!date) return 'Not available';
@@ -36,9 +19,24 @@ function formatRole(role) {
     : 'Caregiver';
 }
 
-export default function FinancialAssistanceScreen({ profile, child, children = [], onBack, onSignOut, onProfileChange }) {
+export default function FinancialAssistanceScreen({
+  profile,
+  child,
+  children = [],
+  onBack,
+  onSignOut,
+  onProfileChange,
+  signingOut = false,
+}) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileForm, setProfileForm] = useState({
+    full_name: profile?.full_name || '',
+    phone: profile?.phone || '',
+  });
   const fullName = profile?.full_name || 'Dampi caregiver';
   const avatarInputId = profile?.id ? `profile-avatar-${profile.id}` : 'profile-avatar-input';
   const childCount = children.length || (child ? 1 : 0);
@@ -63,6 +61,68 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
       value: formatDate(profile?.created_at),
     },
   ];
+
+  useEffect(() => {
+    setProfileForm({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+    });
+  }, [profile?.full_name, profile?.phone]);
+
+  const handleProfileFieldChange = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((current) => ({ ...current, [name]: value }));
+    setProfileError('');
+  };
+
+  const cancelProfileEdit = () => {
+    setProfileForm({
+      full_name: profile?.full_name || '',
+      phone: profile?.phone || '',
+    });
+    setProfileError('');
+    setEditingProfile(false);
+  };
+
+  const handleProfileSave = async (event) => {
+    event.preventDefault();
+    if (!profile?.id || savingProfile) return;
+
+    const nextName = profileForm.full_name.trim();
+    const nextPhone = profileForm.phone.trim();
+
+    if (!nextName) {
+      setProfileError('Name is required.');
+      return;
+    }
+
+    if (!nextPhone) {
+      setProfileError('Phone number is required.');
+      return;
+    }
+
+    setSavingProfile(true);
+    setProfileError('');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: updatedProfile, error } = await supabase
+        .from('profiles')
+        .update({ full_name: nextName, phone: nextPhone })
+        .eq('id', profile.id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      onProfileChange?.(updatedProfile);
+      setEditingProfile(false);
+    } catch (error) {
+      setProfileError(error.message || 'Unable to update profile.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handleAvatarChange = async (event) => {
     const file = event.target.files?.[0];
@@ -122,7 +182,7 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
 
   return (
     <div className="profile">
-      <TopNavBar variant="inner" title="My Profile" onBack={onBack} />
+      <TopNavBar variant="inner" title="Settings" onBack={onBack} />
 
       <div className="profile__identity">
         <label
@@ -160,41 +220,70 @@ export default function FinancialAssistanceScreen({ profile, child, children = [
 
       {avatarError && <div className="profile__upload-error" role="status">{avatarError}</div>}
 
-      <p className="profile__section-title">Personal Information</p>
-      <div className="profile__info-list">
-        {infoRows.map(({ id, Icon, label, value }) => (
-          <div key={id} className="profile__info-row">
-            <div className="profile__info-icon">
-              <Icon size={16} strokeWidth={2} />
-            </div>
-            <div>
-              <p className="profile__info-label">{label}</p>
-              <p className="profile__info-value">{value}</p>
-            </div>
-          </div>
-        ))}
+      <div className="profile__section-header">
+        <p className="profile__section-title">Account Information</p>
+        {!editingProfile ? (
+          <button type="button" className="profile__edit-btn" onClick={() => setEditingProfile(true)}>
+            <Edit3 size={14} />
+            Edit
+          </button>
+        ) : (
+          <button type="button" className="profile__edit-btn" onClick={cancelProfileEdit} disabled={savingProfile}>
+            <X size={15} />
+            Cancel
+          </button>
+        )}
       </div>
 
-      <p className="profile__section-title">Assistance</p>
-      <div className="profile__actions">
-        {ACTIONS.map(({ id, iconClass, Icon, title, desc }) => (
-          <button key={id} className="profile__action-card">
-            <div className={`profile__action-icon profile__action-icon--${iconClass}`}>
-              <Icon size={20} strokeWidth={2} />
-            </div>
-            <div className="profile__action-text">
-              <p className="profile__action-title">{title}</p>
-              <p className="profile__action-desc">{desc}</p>
-            </div>
-            <ChevronRight size={18} color="var(--dampi-text-muted)" strokeWidth={2} />
+      {editingProfile ? (
+        <form className="profile__edit-form" onSubmit={handleProfileSave}>
+          <label htmlFor="profile-full-name">Name</label>
+          <input
+            id="profile-full-name"
+            name="full_name"
+            type="text"
+            value={profileForm.full_name}
+            onChange={handleProfileFieldChange}
+            disabled={savingProfile}
+          />
+
+          <label htmlFor="profile-phone">Phone</label>
+          <input
+            id="profile-phone"
+            name="phone"
+            type="tel"
+            value={profileForm.phone}
+            onChange={handleProfileFieldChange}
+            disabled={savingProfile}
+          />
+
+          {profileError && <p className="profile__form-error">{profileError}</p>}
+
+          <button type="submit" className="profile__save-btn" disabled={savingProfile}>
+            <Save size={16} />
+            {savingProfile ? 'Saving...' : 'Save Changes'}
           </button>
-        ))}
-      </div>
+        </form>
+      ) : (
+        <div className="profile__info-list">
+          {infoRows.map(({ id, Icon, label, value }) => (
+            <div key={id} className="profile__info-row">
+              <div className="profile__info-icon">
+                <Icon size={16} strokeWidth={2} />
+              </div>
+              <div>
+                <p className="profile__info-label">{label}</p>
+                <p className="profile__info-value">{value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="profile__sign-out-row">
-        <button className="profile__sign-out-btn" onClick={onSignOut}>
+        <button type="button" className="profile__sign-out-btn" onClick={onSignOut} disabled={signingOut}>
           <LogOut size={18} strokeWidth={2} />
-          Sign Out
+          {signingOut ? 'Signing Out...' : 'Sign Out'}
         </button>
       </div>
     </div>

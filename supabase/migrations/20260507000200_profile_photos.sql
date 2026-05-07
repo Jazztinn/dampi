@@ -1,5 +1,5 @@
 alter table public.profiles
-  add column avatar_url text;
+  add column if not exists avatar_url text;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -14,6 +14,11 @@ set
   public = excluded.public,
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Anyone can read profile photos" on storage.objects;
+drop policy if exists "Users can upload their own profile photos" on storage.objects;
+drop policy if exists "Users can update their own profile photos" on storage.objects;
+drop policy if exists "Users can delete their own profile photos" on storage.objects;
 
 create policy "Anyone can read profile photos"
   on storage.objects for select

@@ -1,16 +1,27 @@
 import { Baby, Calendar, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { getDobBounds, validateChildDob } from '../../utils/dobValidation.js';
 
 export default function AddChildScreen({ data, onNext }) {
+  const dobBounds = getDobBounds();
+  const initialDob = validateChildDob(data.childDOB, { required: false }).valid ? data.childDOB || '' : '';
   const [formData, setFormData] = useState({
     childName: data.childName || '',
-    childDOB: data.childDOB || '',
+    childDOB: initialDob,
     childGender: data.childGender || '',
   });
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'childDOB') {
+      const result = validateChildDob(value, { required: false });
+      if (value && !result.valid) {
+        setErrors({ ...errors, childDOB: result.error });
+        return;
+      }
+    }
+
     setFormData({ ...formData, [name]: value });
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -22,7 +33,8 @@ export default function AddChildScreen({ data, onNext }) {
     const newErrors = {};
 
     if (!formData.childName) newErrors.childName = 'Child name is required';
-    if (!formData.childDOB) newErrors.childDOB = 'Date of birth is required';
+    const dobResult = validateChildDob(formData.childDOB);
+    if (!dobResult.valid) newErrors.childDOB = dobResult.error;
     if (!formData.childGender) newErrors.childGender = 'Gender is required';
 
     if (Object.keys(newErrors).length > 0) {
@@ -66,6 +78,8 @@ export default function AddChildScreen({ data, onNext }) {
               id="childDOB"
               type="date"
               name="childDOB"
+              min={dobBounds.min}
+              max={dobBounds.max}
               value={formData.childDOB}
               onChange={handleChange}
               className={errors.childDOB ? 'error' : ''}

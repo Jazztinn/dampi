@@ -18,10 +18,26 @@ function mapMessage(row) {
   return {
     id: row.id,
     role: row.role,
-    text: row.content || '',
+    text: normalizeVisibleChatText(row.content || ''),
     attachments: normalizeAttachments(row.attachments),
     questions: normalizeQuestions(row.questions),
   };
+}
+
+function normalizeVisibleChatText(text) {
+  const raw = typeof text === 'string' ? text.trim() : '';
+  if (!raw) return '';
+
+  try {
+    const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/gi, ''));
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && typeof parsed.message === 'string') {
+      return parsed.message.trim();
+    }
+  } catch {
+    /* not a JSON envelope */
+  }
+
+  return text;
 }
 
 function mapConversation(row, messages = []) {

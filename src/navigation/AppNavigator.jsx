@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import BottomNav from '../components/BottomNav.jsx';
 import HomeScreen from '../screens/Home/HomeScreen.jsx';
 import FamilyScreen from '../screens/Family/FamilyScreen.jsx';
@@ -31,10 +31,12 @@ export default function AppNavigator({
   onHmoCoverageChange,
   onChildrenChange,
   signingOut = false,
+  symptomLogRequest = null,
 }) {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [screenHistory, setScreenHistory] = useState([]);
   const [showSymptomLog, setShowSymptomLog] = useState(false);
+  const [symptomLogChildId, setSymptomLogChildId] = useState(null);
   const contentAreaRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -46,8 +48,16 @@ export default function AppNavigator({
     }
   }, [currentScreen, showSymptomLog]);
 
+  useEffect(() => {
+    if (symptomLogRequest) {
+      setSymptomLogChildId(symptomLogRequest.childId || null);
+      setShowSymptomLog(true);
+    }
+  }, [symptomLogRequest]);
+
   const navigateTo = (screen) => {
     if (screen === 'symptoms') {
+      setSymptomLogChildId(null);
       setShowSymptomLog(true);
       return;
     }
@@ -69,14 +79,17 @@ export default function AppNavigator({
   };
 
   const openSymptomLog = () => {
+    setSymptomLogChildId(null);
     setShowSymptomLog(true);
   };
 
   if (showSymptomLog) {
+    const symptomLogChild = children.find((item) => item.id === symptomLogChildId) || child;
+
     return (
       <SymptomLogScreen
         profile={profile}
-        child={child}
+        child={symptomLogChild}
         children={children}
         onExit={() => setShowSymptomLog(false)}
       />

@@ -58,6 +58,7 @@ export default function App() {
   const [signingOut, setSigningOut] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [tasks, setTasks] = useState({});
+  const [symptomLogRequest, setSymptomLogRequest] = useState(null);
   const [pendingInviteToken, setPendingInviteToken] = useState(() => {
     const urlToken = new URLSearchParams(window.location.search).get('invite');
     return urlToken || localStorage.getItem('dampi.pendingInviteToken') || null;
@@ -237,8 +238,18 @@ export default function App() {
           onHmoCoverageChange={handleHmoCoverageChange}
           onChildrenChange={handleChildrenChange}
           signingOut={signingOut}
+          symptomLogRequest={symptomLogRequest}
         />
-        <DampiChatModal isOpen={chatOpen} onClose={() => setChatOpen(false)} tasks={tasks} setTasks={setTasks} />
+        <DampiChatModal
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          tasks={tasks}
+          setTasks={setTasks}
+          profile={account.profile}
+          child={account.child}
+          children={account.children}
+          onOpenSymptomLogDraft={(payload = {}) => setSymptomLogRequest({ id: Date.now(), ...payload })}
+        />
         {accountError && <div className="app-error">{accountError}</div>}
       </div>
     );

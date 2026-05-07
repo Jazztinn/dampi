@@ -134,20 +134,7 @@ export default function TryDampiScreen({ onNext }) {
           </div>
 
           {/* Curtain overlay — fades in after 2nd response */}
-          {locked && (
-            <div className="try-chat__curtain">
-              <div className="try-chat__cta">
-                <img src={dampiLogo} alt="Dampi" className="try-chat__cta-logo" />
-                <p className="try-chat__cta-headline">Sign up to continue using Dampi</p>
-                <p className="try-chat__cta-sub">
-                  Keep all your chats, symptom logs, and health history.
-                </p>
-                <button className="onboarding-cta try-chat__cta-btn" onClick={() => onNext()}>
-                  Create Free Account
-                </button>
-              </div>
-            </div>
-          )}
+          {locked && <div className="try-chat__curtain" />}
         </div>
 
         {/* Input */}
@@ -171,6 +158,19 @@ export default function TryDampiScreen({ onNext }) {
           </button>
         </div>
       </div>
+
+      {locked && (
+        <div className="try-chat__cta">
+          <img src={dampiLogo} alt="Dampi" className="try-chat__cta-logo" />
+          <p className="try-chat__cta-headline">Sign up to continue using Dampi</p>
+          <p className="try-chat__cta-sub">
+            Keep all your chats, symptom logs, and health history.
+          </p>
+          <button className="onboarding-cta try-chat__cta-btn" onClick={() => onNext()}>
+            Create Free Account
+          </button>
+        </div>
+      )}
 
       {sentCount === 0 && (
         <button className="onboarding-secondary" onClick={() => onNext()}>

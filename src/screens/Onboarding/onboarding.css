@@ -750,15 +750,13 @@
 }
 
 .try-chat__cta {
-  position: relative;
-  z-index: 1; /* sits above the ::before / ::after layers */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   text-align: center;
-  padding-bottom: 8px;
   width: 100%;
+  animation: curtainFadeIn 0.5s ease both;
 }
 
 .try-chat__cta-logo {

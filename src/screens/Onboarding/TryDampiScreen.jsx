@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Lock } from 'lucide-react';
 import dampiLogo from '../../assets/dampi.svg';
 import { streamDampiChat } from '../../services/ai/dampiApi.js';
 import './onboarding.css';
@@ -118,42 +118,45 @@ export default function TryDampiScreen({ onNext }) {
           )}
         </div>
 
-        {/* Messages */}
-        <div className="try-chat__messages" ref={listRef}>
-          {messages.map(msg => (
-            <div key={msg.id} className={`try-chat__msg try-chat__msg--${msg.role}`}>
-              {msg.role === 'assistant' && (
-                <img src={dampiLogo} alt="" className="try-chat__avatar" />
-              )}
-              <div className="try-chat__bubble">
-                {msg.pending ? <span className="try-chat__dots">···</span> : msg.text}
+        {/* Body wrapper to contain messages and overlay */}
+        <div className="try-chat__body">
+          {/* Messages */}
+          <div className="try-chat__messages" ref={listRef}>
+            {messages.map(msg => (
+              <div key={msg.id} className={`try-chat__msg try-chat__msg--${msg.role}`}>
+                {msg.role === 'assistant' && (
+                  <img src={dampiLogo} alt="" className="try-chat__avatar" />
+                )}
+                <div className="try-chat__bubble">
+                  {msg.pending ? <span className="try-chat__dots">···</span> : msg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Curtain overlay — fades in after 2nd response */}
+          {locked && (
+            <div className="try-chat__curtain">
+              <div className="try-chat__cta">
+                <img src={dampiLogo} alt="Dampi" className="try-chat__cta-logo" />
+                <p className="try-chat__cta-headline">Sign up to continue using Dampi</p>
+                <p className="try-chat__cta-sub">
+                  Keep all your chats, symptom logs, and health history.
+                </p>
+                <button className="onboarding-cta try-chat__cta-btn" onClick={() => onNext()}>
+                  Create Free Account
+                </button>
               </div>
             </div>
-          ))}
+          )}
         </div>
-
-        {/* Curtain overlay — fades in after 2nd response */}
-        {locked && (
-          <div className="try-chat__curtain">
-            <div className="try-chat__cta">
-              <img src={dampiLogo} alt="Dampi" className="try-chat__cta-logo" />
-              <p className="try-chat__cta-headline">Sign up to continue using Dampi</p>
-              <p className="try-chat__cta-sub">
-                Keep all your chats, symptom logs, and health history.
-              </p>
-              <button className="onboarding-cta try-chat__cta-btn" onClick={() => onNext()}>
-                Create Free Account
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Input */}
         <div className="try-chat__input-row">
           <input
             type="text"
             className="try-chat__input"
-            placeholder={locked ? 'Sign up to continue…' : 'Ask Dampi…'}
+            placeholder={locked ? 'Chat locked' : 'Ask Dampi…'}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && send()}
@@ -163,9 +166,9 @@ export default function TryDampiScreen({ onNext }) {
             className="try-chat__send"
             onClick={send}
             disabled={!input.trim() || loading || locked}
-            aria-label="Send"
+            aria-label={locked ? 'Locked' : 'Send'}
           >
-            <Send size={15} />
+            {locked ? <Lock size={15} /> : <Send size={15} />}
           </button>
         </div>
       </div>

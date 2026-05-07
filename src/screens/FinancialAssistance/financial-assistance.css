@@ -201,19 +201,21 @@
 
 .profile__edit-form input {
   width: 100%;
-  border: 1px solid rgba(146, 187, 179, 0.28);
+  border: none;
   border-radius: 10px;
-  background: #fff;
+  background: rgba(0, 0, 0, 0.03);
   color: var(--dampi-text);
   font: inherit;
   font-size: 0.85rem;
   padding: 11px 12px;
   outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-.profile__edit-form input:focus {
-  border-color: var(--dampi-teal);
-  box-shadow: 0 0 0 3px rgba(146, 187, 179, 0.15);
+.profile__edit-form input:focus,
+.profile__edit-form input:focus-visible {
+  outline: none;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .profile__form-error {

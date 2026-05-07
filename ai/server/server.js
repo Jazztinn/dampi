@@ -22,15 +22,15 @@ const PORT = process.env.PORT || 3001;
 const PROVIDER_API_KEY = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
 const AVAILABLE_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-flash-latest',
   'gemini-2.0-flash',
-  'gemini-2.5-pro',
+  'gemini-1.5-flash',
+  'gemini-flash-latest',
+  'gemini-1.5-pro',
   'gemini-pro-latest',
 ];
 
 const FAST_MODELS = AVAILABLE_MODELS.slice(0, 3);
-const FULL_MODELS = ['gemini-2.5-pro', 'gemini-pro-latest', 'gemini-2.5-flash'];
+const FULL_MODELS = ['gemini-1.5-pro', 'gemini-pro-latest', 'gemini-1.5-flash', 'gemini-2.0-flash'];
 const VALID_MODES = new Set(['fast', 'auto', 'default']);
 const VALID_PURPOSES = new Set(['chat', 'title']);
 const STRUCTURED_CHAT_SCHEMA = {
@@ -225,15 +225,23 @@ function getGenerationConfig(mode, prompt, purpose) {
   }
 
   const useFastProfile = mode === 'fast' || (mode === 'auto' && !isComplexPrompt(prompt));
+  const isSymptomLog = prompt.includes('EXAM_SYSTEM_PROMPT') || prompt.includes('SUMMARY_SYSTEM_PROMPT') || prompt.includes('instructions":') || prompt.includes('chiefComplaint":');
 
   const generationConfig = {
-    maxOutputTokens: useFastProfile ? 600 : 1000,
+    maxOutputTokens: (useFastProfile && !isSymptomLog) ? 600 : 2048,
     temperature: useFastProfile ? 0.5 : 0.8,
   };
 
   if (purpose === 'chat') {
-    generationConfig.responseMimeType = 'application/json';
-    generationConfig.responseSchema = STRUCTURED_CHAT_SCHEMA;
+    // Only apply the default schema if we aren't in a specialized Symptom Log flow.
+    // specialised flows define their own structure in their system prompts.
+    if (!isSymptomLog) {
+      generationConfig.responseMimeType = 'application/json';
+      generationConfig.responseSchema = STRUCTURED_CHAT_SCHEMA;
+    } else {
+      // Still enforce JSON mode for reliability, but let the prompt guide the schema
+      generationConfig.responseMimeType = 'application/json';
+    }
   }
 
   return generationConfig;

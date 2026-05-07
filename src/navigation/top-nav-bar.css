@@ -115,3 +115,29 @@
 .top-nav__filler {
   min-width: 28px;
 }
+
+.top-nav__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 28px;
+}
+
+.symptom-log__help-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--dampi-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.symptom-log__help-btn:hover {
+  background: rgba(146, 187, 179, 0.18);
+  color: var(--dampi-teal);
+}

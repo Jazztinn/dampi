@@ -32,7 +32,11 @@ export default function TopNavBar({ variant, title, onBack, extra, transparent }
           <div className="top-nav__center">{title}</div>
         )}
         
-        <div className="top-nav__filler" aria-hidden="true" />
+        {extra ? (
+          <div className="top-nav__right">{extra}</div>
+        ) : (
+          <div className="top-nav__filler" aria-hidden="true" />
+        )}
       </div>
     );
   }

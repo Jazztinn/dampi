@@ -33,6 +33,10 @@
   scroll-behavior: smooth;
 }
 
+.app-container--fullscreen .content-area {
+  padding-bottom: 24px;
+}
+
 /* Hide scrollbar visually while keeping scroll behaviour */
 .content-area::-webkit-scrollbar {
   display: none;

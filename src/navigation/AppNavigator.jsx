@@ -11,10 +11,14 @@ import './app-navigator.css';
 const SCREENS = {
   home: HomeScreen,
   documents: DocumentsScreen,
-  symptoms: FamilyScreen,
+  symptoms: SymptomLogScreen,
   hmo: HMOPortalScreen,
+  family: FamilyScreen,
   profile: FinancialAssistanceScreen,
 };
+
+// Screens that take over the full app shell (no global bottom nav).
+const FULLSCREEN_FLOW = new Set(['hmo-log-flow']); 
 
 export default function AppNavigator({ profile, child, children = [], onOpenAi, onSignOut, onProfileChange }) {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -30,6 +34,7 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
     }
   }, [currentScreen, showSymptomLog]);
 
+  // Allow both the dedicated tab AND the home screen shortcut to trigger the flow
   if (showSymptomLog) {
     return (
       <SymptomLogScreen
@@ -41,10 +46,11 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
     );
   }
 
-  const Screen = SCREENS[currentScreen] ?? HomeScreen;
+  const Screen = SCREENS[currentScreen] || HomeScreen;
+  const isFullscreen = FULLSCREEN_FLOW.has(currentScreen);
 
   return (
-    <div className="app-container">
+    <div className={`app-container${isFullscreen ? ' app-container--fullscreen' : ''}`}>
       <div className="content-area" ref={contentAreaRef}>
         <Screen
           profile={profile}
@@ -53,14 +59,18 @@ export default function AppNavigator({ profile, child, children = [], onOpenAi, 
           onOpenAi={onOpenAi}
           onSignOut={onSignOut}
           onProfileChange={onProfileChange}
-          onNavigateToSymptoms={() => setShowSymptomLog(true)}
+          onNavigateToSymptoms={() => setCurrentScreen('symptoms')}
+          onExit={() => setCurrentScreen('home')}
+          onBack={() => setCurrentScreen('home')}
         />
       </div>
-      <BottomNav
-        active={currentScreen}
-        setActive={setCurrentScreen}
-        openChatModal={onOpenAi}
-      />
+      {!isFullscreen && (
+        <BottomNav
+          active={currentScreen}
+          setActive={setCurrentScreen}
+          openChatModal={onOpenAi}
+        />
+      )}
     </div>
   );
 }

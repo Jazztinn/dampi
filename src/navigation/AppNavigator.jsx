@@ -83,44 +83,41 @@ export default function AppNavigator({
     setShowSymptomLog(true);
   };
 
-  if (showSymptomLog) {
-    const symptomLogChild = children.find((item) => item.id === symptomLogChildId) || child;
-
-    return (
-      <SymptomLogScreen
-        profile={profile}
-        child={symptomLogChild}
-        children={children}
-        onExit={() => setShowSymptomLog(false)}
-      />
-    );
-  }
-
   const Screen = SCREENS[currentScreen] || HomeScreen;
   const isFullscreen = FULLSCREEN_FLOW.has(currentScreen);
+  const symptomLogChild = children.find((item) => item.id === symptomLogChildId) || child;
 
   return (
     <div className={`app-container${isFullscreen ? ' app-container--fullscreen' : ''}`}>
       <div className="content-area" ref={contentAreaRef}>
-        <Screen
-          profile={profile}
-          child={child}
-          children={children}
-          hmoCoverage={hmoCoverage}
-          onOpenAi={onOpenAi}
-          onSignOut={onSignOut}
-          onProfileChange={onProfileChange}
-          onHmoCoverageChange={onHmoCoverageChange}
-          onChildrenChange={onChildrenChange}
-          signingOut={signingOut}
-          onNavigateToSymptoms={openSymptomLog}
-          onExit={() => navigateTo('home')}
-          onBack={goBack}
-        />
+        {showSymptomLog ? (
+          <SymptomLogScreen
+            profile={profile}
+            child={symptomLogChild}
+            children={children}
+            onExit={() => setShowSymptomLog(false)}
+          />
+        ) : (
+          <Screen
+            profile={profile}
+            child={child}
+            children={children}
+            hmoCoverage={hmoCoverage}
+            onOpenAi={onOpenAi}
+            onSignOut={onSignOut}
+            onProfileChange={onProfileChange}
+            onHmoCoverageChange={onHmoCoverageChange}
+            onChildrenChange={onChildrenChange}
+            signingOut={signingOut}
+            onNavigateToSymptoms={openSymptomLog}
+            onExit={() => navigateTo('home')}
+            onBack={goBack}
+          />
+        )}
       </div>
       {!isFullscreen && (
         <BottomNav
-          active={currentScreen}
+          active={showSymptomLog ? 'symptoms' : currentScreen}
           setActive={navigateTo}
           openChatModal={onOpenAi}
         />

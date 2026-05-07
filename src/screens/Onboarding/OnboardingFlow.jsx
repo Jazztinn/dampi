@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import WelcomeScreen from './WelcomeScreen.jsx';
+import TryDampiScreen from './TryDampiScreen.jsx';
 import CreateAccountScreen from './CreateAccountScreen.jsx';
 import AddChildScreen from './AddChildScreen.jsx';
 import HMOCoverageScreen from './HMOCoverageScreen.jsx';
@@ -33,7 +34,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
   const [step, setStep] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingStep');
     const parsed = saved ? parseInt(saved, 10) : 0;
-    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 4) : 0;
+    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), 5) : 0;
   });
   const [formData, setFormData] = useState(() => {
     const saved = window.localStorage.getItem('dampi.onboardingData');
@@ -208,6 +209,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
 
   const steps = [
     { id: 'welcome', label: 'Welcome' },
+    { id: 'trydampi', label: 'Try Dampi' },
     { id: 'account', label: 'Create Account' },
     { id: 'child', label: 'Add Child' },
     { id: 'hmo', label: 'HMO Coverage' },
@@ -218,7 +220,7 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
     const nextData = { ...formData, ...newData };
     setFormData(nextData);
 
-    if (step === 1) {
+    if (step === 2) {
       setIsSubmitting(true);
       setSubmitError('');
 
@@ -304,12 +306,13 @@ export default function OnboardingFlow({ onComplete, onInitialBack }) {
 
   const screens = [
     <WelcomeScreen key="welcome" onNext={handleNext} />,
+    <TryDampiScreen key="trydampi" onNext={handleNext} />,
     <CreateAccountScreen
       key="account"
       data={formData}
       onNext={handleNext}
       isSubmitting={isSubmitting}
-      submitError={step === 1 ? submitError : ''}
+      submitError={step === 2 ? submitError : ''}
     />,
     <AddChildScreen key="child" data={formData} onNext={handleNext} />,
     <HMOCoverageScreen key="hmo" data={formData} onNext={handleNext} />,

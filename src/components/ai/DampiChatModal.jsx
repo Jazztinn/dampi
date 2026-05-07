@@ -406,6 +406,8 @@ export default function ChatModal({
   child = null,
   children = [],
   onOpenSymptomLogDraft,
+  trialMode = false,
+  onTrialExhausted,
 }) {
   const nextChatIdRef = useRef(1);
   const nextMessageIdRef = useRef(1);
@@ -442,6 +444,8 @@ export default function ChatModal({
   const [quickLog, setQuickLog] = useState(() => loadQuickLog(accountChildren));
   const [quickLogExtracting, setQuickLogExtracting] = useState(false);
   const [quickLogSummarizing, setQuickLogSummarizing] = useState(false);
+  const [trialLocked, setTrialLocked] = useState(false);
+  const trialCountRef = useRef(0);
   const [quickLogSaving, setQuickLogSaving] = useState(false);
   const fileInputRef = useRef(null);
   const activeStreamRef = useRef(null);
@@ -971,7 +975,7 @@ export default function ChatModal({
 
   /* ---- chat logic ---- */
   const send = async (text, options = {}) => {
-    if (loading || historyLoading) return;
+    if (loading || historyLoading || trialLocked) return;
 
     stopVoiceRecording(true);
     setVoiceError("");
@@ -1006,9 +1010,26 @@ export default function ChatModal({
     if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
 
     try {
-      const persistedChat = await ensureAiChatConversation(chatAtSend);
-      const chatIdAtSend = persistedChat.id;
-      durableChatId = chatIdAtSend;
+      let chatIdAtSend;
+      if (trialMode) {
+        chatIdAtSend = originalChatIdAtSend;
+      } else {
+        const persistedChat = await ensureAiChatConversation(chatAtSend);
+        chatIdAtSend = persistedChat.id;
+        durableChatId = chatIdAtSend;
+        if (chatIdAtSend !== originalChatIdAtSend) {
+          setChats((prev) => prev.map((chat) => (
+            chat.id === originalChatIdAtSend
+              ? { ...chat, id: chatIdAtSend, title: persistedChat.title }
+              : chat
+          )));
+          setActiveChatId(chatIdAtSend);
+        }
+        if (seededTitle) {
+          setChatTitle(chatIdAtSend, seededTitle);
+        }
+      }
+
       const abortController = new AbortController();
       activeStreamRef.current = {
         abortController,
@@ -1016,19 +1037,8 @@ export default function ChatModal({
         pendingId,
         reason: "stream",
       };
-      if (chatIdAtSend !== originalChatIdAtSend) {
-        setChats((prev) => prev.map((chat) => (
-          chat.id === originalChatIdAtSend
-            ? { ...chat, id: chatIdAtSend, title: persistedChat.title }
-            : chat
-        )));
-        setActiveChatId(chatIdAtSend);
-      }
-      if (seededTitle) {
-        setChatTitle(chatIdAtSend, seededTitle);
-      }
 
-      const savedUserEntry = await appendAiChatMessage(chatIdAtSend, draftUserEntry);
+      const savedUserEntry = trialMode ? null : await appendAiChatMessage(chatIdAtSend, draftUserEntry);
       const visibleUserEntry = savedUserEntry || draftUserEntry;
 
       // Build history including the new user message for the API call
@@ -1078,7 +1088,7 @@ export default function ChatModal({
         quickStartSeed: quickStartOffer ? requestText : "",
         taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
       };
-      const savedAssistantEntry = await appendAiChatMessage(chatIdAtSend, assistantEntry);
+      const savedAssistantEntry = trialMode ? null : await appendAiChatMessage(chatIdAtSend, assistantEntry);
       const visibleAssistantEntry = {
         ...(savedAssistantEntry || assistantEntry),
         pending: false,
@@ -1097,9 +1107,27 @@ export default function ChatModal({
         return updated;
       }, chatIdAtSend);
 
-      const messagesForTitle = [...historyForApi, { id: pendingId, role: "assistant", text: assistantText }];
-      if ((chatAtSend?.title || "New Chat") === "New Chat" && messagesForTitle.filter((m) => m.role === "assistant").length === 1) {
-        generateTitle(messagesForTitle).then((t) => setChatTitle(chatIdAtSend, t));
+      if (!trialMode) {
+        const messagesForTitle = [...historyForApi, { id: pendingId, role: "assistant", text: assistantText }];
+        if ((chatAtSend?.title || "New Chat") === "New Chat" && messagesForTitle.filter((m) => m.role === "assistant").length === 1) {
+          generateTitle(messagesForTitle).then((t) => setChatTitle(chatIdAtSend, t));
+        }
+      }
+
+      if (trialMode) {
+        const newCount = trialCountRef.current + 1;
+        trialCountRef.current = newCount;
+        if (newCount >= 2) {
+          const lockMsgId = createMessageId("trial-lock");
+          setTimeout(() => {
+            setMessages((prev) => [...prev, {
+              id: lockMsgId,
+              role: "assistant",
+              text: "Nakita mo na ang kakayahan ng Dampi! I-sign up para mapatuloy ang iyong karanasan at mapanatili ang lahat ng iyong mga tala.",
+            }]);
+            setTimeout(() => setTrialLocked(true), 700);
+          }, 300);
+        }
       }
 
       if (!options.skipQuickExtraction && quickLogAtSend.status === QUICK_LOG_STATUS.capture && userMessage) {
@@ -1240,11 +1268,31 @@ export default function ChatModal({
         style={{ height: `${sheetHeight * 100}%` }}
       >
         <div className="chat-sheet-body">
+        {/* Trial curtain — rendered when user hits the 2-message limit */}
+        {trialLocked && (
+          <div className="chat-trial-curtain">
+            <div className="chat-trial-cta">
+              <img src={dampiIcon} alt="Dampi" className="chat-trial-cta__logo" />
+              <p className="chat-trial-cta__headline">Sign up to continue using Dampi</p>
+              <p className="chat-trial-cta__sub">Keep all your chats, symptom logs, and health history.</p>
+              <button
+                className="onboarding-cta chat-trial-cta__btn"
+                onClick={() => onTrialExhausted?.()}
+              >
+                Create Free Account
+              </button>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="chat-modal-header">
-          <button className="chat-header-btn" onClick={() => setShowHistory((v) => !v)} aria-label={showHistory ? "Close chat history" : "Open chat history"}>
-            <Menu size={20} />
-          </button>
+          {trialMode ? (
+            <div className="chat-header-btn" aria-hidden="true" />
+          ) : (
+            <button className="chat-header-btn" onClick={() => setShowHistory((v) => !v)} aria-label={showHistory ? "Close chat history" : "Open chat history"}>
+              <Menu size={20} />
+            </button>
+          )}
           <div
             className="chat-header-title"
             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'grab' }}
@@ -1580,17 +1628,17 @@ export default function ChatModal({
             <input
               type="text"
               className="chat-input"
-              placeholder={CHAT_PLACEHOLDER}
+              placeholder={trialLocked ? "Sign up to continue…" : CHAT_PLACEHOLDER}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && send()}
-              disabled={loading || historyLoading}
+              onKeyDown={(e) => e.key === "Enter" && !loading && !historyLoading && !trialLocked && send()}
+              disabled={loading || historyLoading || trialLocked}
             />
             <button
               type="button"
               className={`chat-voice-btn${voiceListening ? " chat-voice-btn--listening" : ""}`}
               onClick={handleVoiceToggle}
-              disabled={!voiceRecorderSupported || loading || historyLoading || voiceTranscribing}
+              disabled={!voiceRecorderSupported || loading || historyLoading || voiceTranscribing || trialLocked}
               aria-label={
                 !voiceRecorderSupported
                   ? "Voice dictation unavailable"
@@ -1621,7 +1669,7 @@ export default function ChatModal({
                 }
                 send();
               }}
-              disabled={historyLoading || (!loading && !input.trim() && attachments.length === 0)}
+              disabled={historyLoading || trialLocked || (!loading && !input.trim() && attachments.length === 0)}
             >
               {loading ? <Square size={18} /> : <Send size={18} />}
             </button>

@@ -1,14 +1,14 @@
 import { Heart, Users, ClipboardList } from 'lucide-react';
+import dampiLogo from '../../assets/dampi.svg';
 
 export default function WelcomeScreen({ onNext }) {
   return (
     <div className="onboarding-screen-content">
       <div className="welcome-header">
-        <div className="welcome-logo">
-          <Heart size={48} strokeWidth={1.5} />
+        <div className="welcome-logo welcome-logo--svg">
+          <img src={dampiLogo} alt="Dampi" className="welcome-logo-img" />
         </div>
         <h1 className="welcome-title">Dampi</h1>
-        <p className="welcome-subtitle">Family Health Journal</p>
       </div>
 
       <div className="welcome-features">

@@ -33,7 +33,10 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
   const [recentLogs, setRecentLogs] = useState([]);
 
   useEffect(() => {
-    loadSymptomLogs(null, 5).then(setRecentLogs).catch(() => {});
+    const refreshLogs = () => loadSymptomLogs(null, 5).then(setRecentLogs).catch(() => {});
+    refreshLogs();
+    window.addEventListener('dampi:symptom-log-saved', refreshLogs);
+    return () => window.removeEventListener('dampi:symptom-log-saved', refreshLogs);
   }, []);
 
   const childCount = children.length || (child ? 1 : 0);

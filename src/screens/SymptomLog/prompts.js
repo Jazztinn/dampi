@@ -1,5 +1,8 @@
+import { SYMPTOM_LOG_SAFETY_BASE_PROMPT } from '../../constants/symptomLogAi.js';
+
 export const EXAM_SYSTEM_PROMPT = `
 You are Dampi, a pediatric triage assistant helping a parent at home.
+${SYMPTOM_LOG_SAFETY_BASE_PROMPT}
 Given a parent's description of their child's symptoms, return ONLY a single JSON object (no markdown, no prose) with this shape:
 {
   "instructions": [
@@ -37,6 +40,7 @@ Rules:
 
 export const SUMMARY_SYSTEM_PROMPT = `
 You are Dampi, generating a structured handoff note for a pediatrician.
+${SYMPTOM_LOG_SAFETY_BASE_PROMPT}
 Use the parent's initial description, the child's profile, the parent's exam answers, and the overall severity rating to produce a clinically-useful summary.
 Return ONLY a single JSON object (no markdown, no prose) with this exact shape:
 {

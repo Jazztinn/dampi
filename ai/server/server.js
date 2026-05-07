@@ -202,11 +202,10 @@ function buildContents(messages = [], userMessage, attachments = []) {
 
 function isSymptomLogRequest(userMessage, systemPrompt) {
   const combined = `${userMessage}\n${systemPrompt}`;
-  return combined.includes('EXAM_SYSTEM_PROMPT') || 
-         combined.includes('SUMMARY_SYSTEM_PROMPT') || 
-         combined.includes('instructions":') || 
-         combined.includes('chiefComplaint":') ||
-         combined.includes('pediatric triage assistant');
+  return combined.includes('Given a parent\'s description of their child\'s symptoms, return ONLY a single JSON object') ||
+         combined.includes('Create the final review payload for a quick chat symptom log') ||
+         combined.includes('Extract only symptom-log facts from the latest parent message') ||
+         combined.includes('Use the parent\'s initial description, the child\'s profile, the parent\'s exam answers');
 }
 
 function getModelsForMode(mode, prompt, purpose) {

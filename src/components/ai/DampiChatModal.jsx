@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import dampiIcon from "../../assets/dampi.svg";
 import { callDampiChat, streamDampiChat, transcribeDampiAudio } from "../../services/ai/dampiApi.js";
+import { createSymptomLog, completeSymptomLog } from "../../services/symptomLog/symptomLogPersistence.js";
 import {
   appendAiChatMessage,
   createLocalChat,
@@ -13,6 +14,22 @@ import {
   updateAiChatConversationTitle,
 } from "../../services/ai/chatPersistence.js";
 import { CHAT_SYSTEM_PROMPT, CHAT_STRUCTURED_RESPONSE_PROMPT, CHAT_CONTEXT_CONFIG } from "../../constants/dampiAi.js";
+import { QUICK_LOG_EXTRACTION_PROMPT, QUICK_LOG_SUMMARY_PROMPT } from "../../constants/symptomLogAi.js";
+import { extractJson } from "../../screens/SymptomLog/prompts.js";
+import QuickSymptomLogPanel from "./QuickSymptomLogPanel.jsx";
+import {
+  buildQuickLogSummaryPayload,
+  clearQuickLog,
+  createQuickLogPdfAttachment,
+  emptyQuickLog,
+  getQuickLogMissingRequired,
+  loadQuickLog,
+  mergeExtraction,
+  normalizeQuickLog,
+  QUICK_LOG_STATUS,
+  saveQuickLog,
+  saveQuickLogToFullDraft,
+} from "./quickSymptomLog.js";
 import "../../styles/dampi-chat.css";
 
 const SUGGESTIONS = [
@@ -301,7 +318,95 @@ function generateFallbackTitle(userMessage, attachments = []) {
   return "New Chat";
 }
 
-export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
+function shouldOfferQuickLog(text) {
+  const normalized = String(text || "").toLowerCase();
+  if (normalized.length < 10) return false;
+  return /\b(fever|cough|rash|vomit|diarrhea|pain|headache|stomach|breath|wheeze|symptom|sick|temperature|lagnat|ubo|suka|rashes)\b/i.test(normalized);
+}
+
+function buildExtractionRequest(quickLog, latestMessage) {
+  return [
+    "Existing quick-log draft:",
+    JSON.stringify({
+      chiefComplaint: quickLog.chiefComplaint,
+      duration: quickLog.duration,
+      severity: quickLog.severity,
+      temperature: quickLog.temperature,
+      heartRate: quickLog.heartRate,
+      oxygenSat: quickLog.oxygenSat,
+      associatedSymptoms: quickLog.associatedSymptoms,
+      medicationsGiven: quickLog.medicationsGiven,
+      medicalHistory: quickLog.medicalHistory,
+      parentNotes: quickLog.parentNotes,
+    }),
+    "",
+    "Latest parent message:",
+    latestMessage,
+  ].join("\n");
+}
+
+function buildSummaryRequest(quickLog, children = [], profile = null) {
+  const child = children.find((item) => item.id === quickLog.selectedChildId);
+  return [
+    "Quick symptom log draft:",
+    JSON.stringify({
+      child: child ? {
+        name: child.full_name,
+        dateOfBirth: child.date_of_birth,
+        gender: child.gender,
+        weight: child.weight,
+        bloodType: child.blood_type,
+      } : null,
+      recordedBy: profile?.full_name || "",
+      chiefComplaint: quickLog.chiefComplaint,
+      duration: quickLog.duration,
+      severity: quickLog.severity,
+      temperature: quickLog.temperature,
+      heartRate: quickLog.heartRate,
+      oxygenSat: quickLog.oxygenSat,
+      associatedSymptoms: quickLog.associatedSymptoms,
+      medicationsGiven: quickLog.medicationsGiven,
+      medicalHistory: quickLog.medicalHistory,
+      parentNotes: quickLog.parentNotes,
+    }),
+  ].join("\n");
+}
+
+function normalizeSummaryResult(raw) {
+  return {
+    summaryText: typeof raw?.summaryText === "string" ? raw.summaryText.trim() : "",
+    redFlags: Array.isArray(raw?.redFlags) ? raw.redFlags.map((item) => String(item || "").trim()).filter(Boolean) : [],
+    recommendedNextSteps: Array.isArray(raw?.recommendedNextSteps) ? raw.recommendedNextSteps.map((item) => String(item || "").trim()).filter(Boolean) : [],
+    missingInformation: Array.isArray(raw?.missingInformation) ? raw.missingInformation.map((item) => String(item || "").trim()).filter(Boolean) : [],
+  };
+}
+
+function normalizeVisibleChatText(text) {
+  const raw = typeof text === "string" ? text.trim() : "";
+  if (!raw) return "";
+
+  try {
+    const parsed = JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/gi, ""));
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && typeof parsed.message === "string") {
+      return parsed.message.trim();
+    }
+  } catch {
+    /* not a JSON envelope */
+  }
+
+  return text;
+}
+
+export default function ChatModal({
+  isOpen,
+  onClose,
+  tasks = {},
+  setTasks,
+  profile = null,
+  child = null,
+  children = [],
+  onOpenSymptomLogDraft,
+}) {
   const nextChatIdRef = useRef(1);
   const nextMessageIdRef = useRef(1);
 
@@ -330,6 +435,14 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const [voiceListening, setVoiceListening] = useState(false);
   const [voiceTranscribing, setVoiceTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState("");
+  const accountChildren = useMemo(() => {
+    if (Array.isArray(children) && children.length > 0) return children;
+    return child ? [child] : [];
+  }, [child, children]);
+  const [quickLog, setQuickLog] = useState(() => loadQuickLog(accountChildren));
+  const [quickLogExtracting, setQuickLogExtracting] = useState(false);
+  const [quickLogSummarizing, setQuickLogSummarizing] = useState(false);
+  const [quickLogSaving, setQuickLogSaving] = useState(false);
   const fileInputRef = useRef(null);
   const activeStreamRef = useRef(null);
   const voiceRecorderSupported = useMemo(() => isVoiceRecordingSupported(), []);
@@ -348,6 +461,14 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     () => `${CHAT_SYSTEM_PROMPT}\n\n${CHAT_STRUCTURED_RESPONSE_PROMPT}\n\n${taskCalendarContext}`,
     [taskCalendarContext]
   );
+
+  useEffect(() => {
+    setQuickLog((current) => normalizeQuickLog(current, accountChildren));
+  }, [accountChildren]);
+
+  useEffect(() => {
+    saveQuickLog(quickLog);
+  }, [quickLog]);
 
   const setMessages = (updater, chatId = activeChatId) => {
     setChats((prev) =>
@@ -480,6 +601,162 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     }
   }, [historyLoading, loading, stopVoiceRecording, voiceListening, voiceRecorderMimeType, voiceRecorderSupported, voiceTranscribing]);
 
+  /* drag state */
+  const [sheetHeight, setSheetHeight] = useState(SNAP_MID); // fraction 0-1
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartH = useRef(SNAP_MID);
+  const dragPointerId = useRef(null);
+  const containerRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const closeTimerRef = useRef(null);
+
+  const updateQuickLog = useCallback((patch) => {
+    setQuickLog((current) => ({
+      ...current,
+      ...patch,
+      status: patch.status || current.status,
+      error: patch.error !== undefined ? patch.error : "",
+    }));
+  }, []);
+
+  const startQuickLog = useCallback((seed = {}) => {
+    setQuickLog((current) => ({
+      ...emptyQuickLog(accountChildren),
+      ...current,
+      ...seed,
+      status: QUICK_LOG_STATUS.capture,
+      expanded: true,
+      error: "",
+    }));
+    if (sheetHeight < SNAP_MID) setSheetHeight(SNAP_MID);
+  }, [accountChildren, sheetHeight]);
+
+  const discardQuickLog = useCallback(() => {
+    clearQuickLog();
+    setQuickLog(emptyQuickLog(accountChildren));
+  }, [accountChildren]);
+
+  const ensurePersistedActiveChat = useCallback(async () => {
+    const chatAtSave = chats.find((c) => c.id === activeChatId) || activeChat;
+    const originalId = chatAtSave?.id || activeChatId;
+    const persistedChat = await ensureAiChatConversation(chatAtSave);
+    if (persistedChat.id !== originalId) {
+      setChats((prev) => prev.map((chat) => (
+        chat.id === originalId
+          ? { ...chat, id: persistedChat.id, title: persistedChat.title }
+          : chat
+      )));
+      setActiveChatId(persistedChat.id);
+    }
+    return persistedChat.id;
+  }, [activeChat, activeChatId, chats]);
+
+  const extractQuickLogFromMessage = useCallback(async (latestMessage, baseQuickLog = quickLog) => {
+    if (baseQuickLog.status !== QUICK_LOG_STATUS.capture) return;
+    setQuickLogExtracting(true);
+    try {
+      const response = await callDampiChat([], buildExtractionRequest(baseQuickLog, latestMessage), {
+        mode: "fast",
+        systemPrompt: QUICK_LOG_EXTRACTION_PROMPT,
+      });
+      const rawText = response?.text || "";
+      const extracted = extractJson(rawText);
+      setQuickLog((current) => mergeExtraction({ ...current, error: "" }, extracted));
+    } catch (error) {
+      console.error(error);
+      setQuickLog((current) => ({
+        ...current,
+        error: "I could not update the symptom log from that message. You can edit the fields directly.",
+      }));
+    } finally {
+      setQuickLogExtracting(false);
+    }
+  }, [quickLog]);
+
+  const reviewQuickLog = useCallback(async () => {
+    if (quickLogSummarizing) return;
+    setQuickLogSummarizing(true);
+    try {
+      const response = await callDampiChat([], buildSummaryRequest(quickLog, accountChildren, profile), {
+        mode: "fast",
+        systemPrompt: QUICK_LOG_SUMMARY_PROMPT,
+      });
+      const parsed = normalizeSummaryResult(extractJson(response?.text || ""));
+      setQuickLog((current) => ({
+        ...current,
+        ...parsed,
+        status: QUICK_LOG_STATUS.review,
+        expanded: true,
+        error: "",
+      }));
+    } catch (error) {
+      console.error(error);
+      setQuickLog((current) => ({
+        ...current,
+        status: QUICK_LOG_STATUS.review,
+        expanded: true,
+        summaryText: current.summaryText || [
+          current.chiefComplaint,
+          current.duration ? `Duration: ${current.duration}` : "",
+          current.severity ? `Severity: ${current.severity}` : "",
+          current.parentNotes,
+        ].filter(Boolean).join("\n"),
+        error: "Dampi could not generate a structured summary. Review and edit the captured fields before saving.",
+      }));
+    } finally {
+      setQuickLogSummarizing(false);
+    }
+  }, [accountChildren, profile, quickLog, quickLogSummarizing]);
+
+  const saveQuickSymptomLog = useCallback(async () => {
+    const missing = getQuickLogMissingRequired(quickLog);
+    if (quickLogSaving || missing.length > 0) return;
+    setQuickLogSaving(true);
+    try {
+      const conversationId = await ensurePersistedActiveChat();
+      const created = quickLog.createdLogId
+        ? { id: quickLog.createdLogId }
+        : await createSymptomLog(quickLog.selectedChildId, conversationId);
+      setQuickLog((current) => ({ ...current, createdLogId: created.id, conversationId }));
+      const summary = buildQuickLogSummaryPayload({ ...quickLog, conversationId }, accountChildren, profile);
+      const completed = await completeSymptomLog(created.id, {
+        summary,
+        summaryText: quickLog.summaryText,
+        chiefComplaint: quickLog.chiefComplaint,
+      });
+      const pdfAttachment = createQuickLogPdfAttachment(summary, completed.id);
+      const pdfMessage = {
+        id: createMessageId("assistant-symptom-pdf"),
+        role: "assistant",
+        text: "I prepared a PDF copy of the symptom log.",
+        attachments: [pdfAttachment],
+      };
+      const savedPdfMessage = await appendAiChatMessage(conversationId, pdfMessage);
+      setMessages((prev) => [...prev, savedPdfMessage || pdfMessage], conversationId);
+      window.dispatchEvent(new CustomEvent("dampi:symptom-log-saved", { detail: { id: completed.id } }));
+      setQuickLog((current) => ({
+        ...current,
+        status: QUICK_LOG_STATUS.saved,
+        expanded: true,
+        conversationId,
+        createdLogId: null,
+        savedLogId: completed.id,
+        savedAt: completed.completed_at || new Date().toISOString(),
+        error: "",
+      }));
+    } catch (error) {
+      console.error(error);
+      setQuickLog((current) => ({
+        ...current,
+        createdLogId: current.createdLogId,
+        error: error.message || "Unable to save symptom log. Try again.",
+      }));
+    } finally {
+      setQuickLogSaving(false);
+    }
+  }, [accountChildren, ensurePersistedActiveChat, profile, quickLog, quickLogSaving]);
+
   const sendQuestionReply = (questionKey) => {
     const reply = (questionDrafts[questionKey] || "").trim();
     if (!reply || loading || historyLoading) return;
@@ -531,16 +808,6 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     setMessages((prev) => [...prev, savedConfirmationEntry || confirmationEntry], chatId);
   };
 
-  /* drag state */
-  const [sheetHeight, setSheetHeight] = useState(SNAP_MID); // fraction 0-1
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartY = useRef(0);
-  const dragStartH = useRef(SNAP_MID);
-  const dragPointerId = useRef(null);
-  const containerRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const closeTimerRef = useRef(null);
-
   const requestClose = useCallback(() => {
     if (isClosing) return;
     activeStreamRef.current?.abortController?.abort();
@@ -553,6 +820,17 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       onClose();
     }, 260);
   }, [isClosing, onClose, stopVoiceRecording]);
+
+  const openFullSymptomLog = useCallback(() => {
+    if (quickLog.status !== QUICK_LOG_STATUS.inactive) {
+      saveQuickLogToFullDraft(quickLog);
+    }
+    onOpenSymptomLogDraft?.({
+      childId: quickLog.selectedChildId || null,
+      savedLogId: quickLog.savedLogId || null,
+    });
+    requestClose();
+  }, [onOpenSymptomLogDraft, quickLog, requestClose]);
 
   /* reset height when modal opens */
   useEffect(() => {
@@ -692,7 +970,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   }, []);
 
   /* ---- chat logic ---- */
-  const send = async (text) => {
+  const send = async (text, options = {}) => {
     if (loading || historyLoading) return;
 
     stopVoiceRecording(true);
@@ -707,6 +985,7 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
     const requestText = userMessage || "Describe the attached file(s).";
     const originalChatIdAtSend = activeChatId;
     const chatAtSend = chats.find((c) => c.id === originalChatIdAtSend);
+    const quickLogAtSend = options.quickLogAtSend || quickLog;
     const draftUserEntry = {
       id: createMessageId("user"),
       role: "user",
@@ -777,10 +1056,11 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const structuredActions = typeof response === "object" && response
         ? normalizeTaskActions(response.taskActions)
         : null;
-      const visibleText = responseText || "";
+      const visibleText = normalizeVisibleChatText(responseText || "");
       const createTasks = structuredActions ? structuredActions.createTasks : [];
       const askQuestions = structuredActions ? structuredActions.askQuestions : [];
       const proposedTasks = typeof setTasks === "function" ? createTasks : [];
+      const quickStartOffer = quickLogAtSend.status === QUICK_LOG_STATUS.inactive && shouldOfferQuickLog(requestText);
       const taskApprovalLine = proposedTasks.length > 0
         ? `\n\nProposed ${formatTaskCount(proposedTasks.length)}:\n${proposedTasks.map(formatTaskSummaryForText).join("\n")}\n\nApprove before I add ${proposedTasks.length === 1 ? "it" : "them"} to your calendar.`
         : "";
@@ -794,6 +1074,8 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         text: assistantText,
         questions: askQuestions,
         proposedTasks,
+        quickStartOffer,
+        quickStartSeed: quickStartOffer ? requestText : "",
         taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
       };
       const savedAssistantEntry = await appendAiChatMessage(chatIdAtSend, assistantEntry);
@@ -801,6 +1083,8 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
         ...(savedAssistantEntry || assistantEntry),
         pending: false,
         proposedTasks,
+        quickStartOffer,
+        quickStartSeed: quickStartOffer ? requestText : "",
         taskApprovalStatus: proposedTasks.length > 0 ? "pending" : undefined,
       };
 
@@ -816,6 +1100,10 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
       const messagesForTitle = [...historyForApi, { id: pendingId, role: "assistant", text: assistantText }];
       if ((chatAtSend?.title || "New Chat") === "New Chat" && messagesForTitle.filter((m) => m.role === "assistant").length === 1) {
         generateTitle(messagesForTitle).then((t) => setChatTitle(chatIdAtSend, t));
+      }
+
+      if (!options.skipQuickExtraction && quickLogAtSend.status === QUICK_LOG_STATUS.capture && userMessage) {
+        extractQuickLogFromMessage(userMessage, quickLogAtSend);
       }
     } catch (err) {
       if (err?.name === "AbortError") {
@@ -929,6 +1217,14 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
   const handleSuggestion = (label) => {
     if (loading || historyLoading) return;
     const suggestion = SUGGESTIONS.find((item) => item.label === label);
+    if (label === "Log Symptoms") {
+      startQuickLog();
+      send(suggestion?.prompt || label, {
+        quickLogAtSend: { ...quickLog, status: QUICK_LOG_STATUS.capture },
+        skipQuickExtraction: true,
+      });
+      return;
+    }
     send(suggestion?.prompt || label);
   };
 
@@ -1072,7 +1368,18 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                     {msg.attachments.map((a, i) => (
                       a.preview
                         ? <img key={i} src={a.preview} alt={a.name} className="chat-attach-thumb" />
-                        : <span key={i} className="chat-attach-file">📎 {a.name}</span>
+                        : a.download && a.data && a.mime
+                          ? (
+                            <a
+                              key={i}
+                              className="chat-attach-file chat-attach-file--download"
+                              href={`data:${a.mime};base64,${a.data}`}
+                              download={a.name || "attachment.pdf"}
+                            >
+                              Download {a.name || "attachment"}
+                            </a>
+                          )
+                          : <span key={i} className="chat-attach-file">📎 {a.name}</span>
                     ))}
                   </div>
                 )}
@@ -1180,6 +1487,21 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
                         )}
                       </div>
                     )}
+                    {msg.quickStartOffer && quickLog.status === QUICK_LOG_STATUS.inactive && (
+                      <div className="chat-quick-log-offer">
+                        <div>
+                          <strong>Turn this into a symptom log?</strong>
+                          <span>I can keep a structured draft while we continue chatting.</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="chat-task-approval-btn"
+                          onClick={() => startQuickLog({ chiefComplaint: msg.quickStartSeed || "" })}
+                        >
+                          Start quick log
+                        </button>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -1218,6 +1540,23 @@ export default function ChatModal({ isOpen, onClose, tasks = {}, setTasks }) {
             )}
           </div>
         </div>
+
+        <QuickSymptomLogPanel
+          quickLog={quickLog}
+          children={accountChildren}
+          extracting={quickLogExtracting}
+          summarizing={quickLogSummarizing}
+          saving={quickLogSaving}
+          onUpdate={updateQuickLog}
+          onStart={() => startQuickLog()}
+          onDiscard={discardQuickLog}
+          onToggleExpanded={() => updateQuickLog({ expanded: !quickLog.expanded })}
+          onReview={reviewQuickLog}
+          onEdit={() => updateQuickLog({ status: QUICK_LOG_STATUS.capture, expanded: true })}
+          onSave={saveQuickSymptomLog}
+          onOpenFull={openFullSymptomLog}
+          onNewLog={() => setQuickLog({ ...emptyQuickLog(accountChildren), status: QUICK_LOG_STATUS.capture, expanded: true })}
+        />
 
         {/* Input */}
         <div className="chat-modal-input-area">

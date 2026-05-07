@@ -172,16 +172,6 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
           ))}
         </div>
       </section>
-
-      <section className="home__section">
-        <div className="home__emergency">
-          <AlertTriangle size={20} />
-          <div>
-            <h4 className="home__emergency-title">Need Urgent Help?</h4>
-            <p className="home__emergency-sub">Call 911 or go to the nearest emergency room.</p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

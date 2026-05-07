@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Heart, Activity, Shield, Pill } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import './DashboardMetricsCarousel.css';
 
 const CARD_WIDTH = 200;
@@ -12,38 +12,9 @@ const DashboardMetricsCarousel = () => {
   const isTeleporting = useRef(false);
 
   const metrics = [
-    {
-      id: 'symptoms',
-      Icon: Heart,
-      label: 'Symptom Log',
-      value: '0',
-      unit: 'Logs',
-      color: 'rgba(140, 179, 105, 0.7)',
-    },
-    {
-      id: 'growth',
-      Icon: Activity,
-      label: 'Growth Track',
-      value: '--',
-      unit: 'Not tracked',
-      color: 'rgba(255, 115, 69, 0.7)',
-    },
-    {
-      id: 'vaccines',
-      Icon: Shield,
-      label: 'Vaccines',
-      value: '--',
-      unit: 'Not tracked',
-      color: 'rgba(144, 116, 255, 0.7)',
-    },
-    {
-      id: 'medications',
-      Icon: Pill,
-      label: 'Medications',
-      value: '--',
-      unit: 'Not tracked',
-      color: 'rgba(88, 154, 255, 0.7)',
-    },
+    { id: 'card-1' },
+    { id: 'card-2' },
+    { id: 'card-3' },
   ];
 
   // Tripled array for infinite scroll: [prev] [current] [next]
@@ -134,15 +105,10 @@ const DashboardMetricsCarousel = () => {
               ref={(el) => (cardRefs.current[i] = el)}
               className="dmc-card-inner"
             >
-              <div className="dmc-card" style={{ backgroundColor: metric.color }}>
-                <div className="dmc-card__header">
-                  <metric.Icon size={16} strokeWidth={2.5} />
-                  {metric.label}
-                </div>
-                <div className="dmc-card__body">
-                  <span className="dmc-card__value">{metric.value}</span>
-                  <span className="dmc-card__unit">{metric.unit}</span>
-                </div>
+              <div className="dmc-card">
+                <button className="dmc-card__add" aria-label="Add">
+                  <Plus size={18} strokeWidth={2.5} />
+                </button>
               </div>
             </div>
           </div>

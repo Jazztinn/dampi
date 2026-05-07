@@ -6,7 +6,7 @@ import './onboarding.css';
 
 const TRIAL_SYSTEM_PROMPT = `You are Dampi, a warm and caring Filipino child health assistant. Help parents with questions about their child's health, symptoms, medicines, and wellbeing. Be empathetic, concise (2-3 sentences max per reply), and practical. Respond in the same language the user writes in — Filipino/Tagalog or English.`;
 
-const MAX_MESSAGES = 2;
+const MAX_MESSAGES = 1;
 
 let _msgId = 0;
 const uid = () => `m${++_msgId}`;
@@ -110,11 +110,6 @@ export default function TryDampiScreen({ onNext }) {
         <div className="try-chat__header">
           <img src={dampiLogo} alt="Dampi" className="try-chat__logo" />
           <span className="try-chat__name">Dampi</span>
-          {!locked && (
-            <span className="try-chat__badge">
-              {remaining === 0 ? 'Trial ended' : `${remaining} free message${remaining === 1 ? '' : 's'} left`}
-            </span>
-          )}
         </div>
 
         {/* Body wrapper to contain messages and overlay */}

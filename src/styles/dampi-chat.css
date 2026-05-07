@@ -140,6 +140,19 @@
   user-select: none;
 }
 
+.chat-header-title-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-header-active-title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .chat-header-logo-wrap {
   display: grid;
   place-items: center;

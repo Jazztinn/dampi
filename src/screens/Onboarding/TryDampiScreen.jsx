@@ -141,7 +141,7 @@ export default function TryDampiScreen({ onNext }) {
               <p className="try-chat__cta-sub">
                 Keep all your chats, symptom logs, and health history.
               </p>
-              <button className="onboarding-cta try-chat__cta-btn" onClick={onNext}>
+              <button className="onboarding-cta try-chat__cta-btn" onClick={() => onNext()}>
                 Create Free Account
               </button>
             </div>
@@ -170,7 +170,7 @@ export default function TryDampiScreen({ onNext }) {
         </div>
       </div>
 
-      <button className="onboarding-secondary" onClick={onNext}>
+      <button className="onboarding-secondary" onClick={() => onNext()}>
         Skip for now
       </button>
     </div>

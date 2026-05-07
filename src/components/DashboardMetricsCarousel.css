@@ -1,7 +1,7 @@
 .dmc-wrapper {
   position: relative;
   width: 100%;
-  padding: 8px 0;
+  padding: 8px 0 20px;
 }
 
 .dmc-fade {
@@ -11,20 +11,18 @@
   width: 80px;
   pointer-events: none;
   z-index: 10;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
 
 .dmc-fade--left {
   left: 0;
-  background: linear-gradient(to right, rgba(245, 243, 237, 0.2) 10%, transparent);
+  background: linear-gradient(to right, var(--dampi-cream) 10%, transparent);
   -webkit-mask-image: linear-gradient(to right, black 20%, transparent);
   mask-image: linear-gradient(to right, black 20%, transparent);
 }
 
 .dmc-fade--right {
   right: 0;
-  background: linear-gradient(to left, rgba(245, 243, 237, 0.2) 10%, transparent);
+  background: linear-gradient(to left, var(--dampi-cream) 10%, transparent);
   -webkit-mask-image: linear-gradient(to left, black 20%, transparent);
   mask-image: linear-gradient(to left, black 20%, transparent);
 }
@@ -37,7 +35,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 24px calc(50% - 100px) 40px;
+  padding: 24px calc(50% - 100px) 70px;
 }
 
 .dmc-scroll::-webkit-scrollbar {

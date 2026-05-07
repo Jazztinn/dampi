@@ -26,7 +26,6 @@ export default function FinancialAssistanceScreen({
   onBack,
   onSignOut,
   onProfileChange,
-  onChildrenChange,
   signingOut = false,
 }) {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -37,7 +36,6 @@ export default function FinancialAssistanceScreen({
   const [profileForm, setProfileForm] = useState({
     full_name: profile?.full_name || '',
     phone: profile?.phone || '',
-    child_name: child?.full_name || '',
   });
   const fullName = profile?.full_name || 'Dampi caregiver';
   const avatarInputId = profile?.id ? `profile-avatar-${profile.id}` : 'profile-avatar-input';
@@ -68,7 +66,6 @@ export default function FinancialAssistanceScreen({
     setProfileForm({
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
-      child_name: child?.full_name || '',
     });
   }, [profile?.full_name, profile?.phone, child?.full_name]);
 
@@ -82,7 +79,6 @@ export default function FinancialAssistanceScreen({
     setProfileForm({
       full_name: profile?.full_name || '',
       phone: profile?.phone || '',
-      child_name: child?.full_name || '',
     });
     setProfileError('');
     setEditingProfile(false);
@@ -94,7 +90,6 @@ export default function FinancialAssistanceScreen({
 
     const nextName = profileForm.full_name.trim();
     const nextPhone = profileForm.phone.trim();
-    const nextChildName = profileForm.child_name.trim();
 
     if (!nextName) {
       setProfileError('Name is required.');
@@ -103,11 +98,6 @@ export default function FinancialAssistanceScreen({
 
     if (!nextPhone) {
       setProfileError('Phone number is required.');
-      return;
-    }
-    
-    if (!nextChildName && child) {
-      setProfileError('Child name is required.');
       return;
     }
 
@@ -124,21 +114,6 @@ export default function FinancialAssistanceScreen({
         .single();
 
       if (error) throw error;
-      
-      if (child && child.id && nextChildName !== child.full_name) {
-        const { data: updatedChildData, error: childError } = await supabase
-          .from('children')
-          .update({ full_name: nextChildName })
-          .eq('id', child.id)
-          .select('*')
-          .single();
-          
-        if (childError) throw childError;
-        
-        onChildrenChange?.((prevChildren) => {
-          return prevChildren.map((c) => c.id === child.id ? updatedChildData : c);
-        });
-      }
 
       onProfileChange?.(updatedProfile);
       setEditingProfile(false);
@@ -207,7 +182,7 @@ export default function FinancialAssistanceScreen({
 
   return (
     <div className="profile">
-      <TopNavBar variant="inner" title="Settings" onBack={onBack} />
+      <TopNavBar variant="inner" title="Settings" />
 
       <div className="profile__identity">
         <label
@@ -235,7 +210,7 @@ export default function FinancialAssistanceScreen({
           </span>
           <span className="sr-only">Add profile photo</span>
         </label>
-        <div>
+        <div className="profile__identity-copy">
           <p className="profile__name">{fullName}</p>
           <p className="profile__meta">
             {formatRole(profile?.role)}
@@ -281,21 +256,6 @@ export default function FinancialAssistanceScreen({
             onChange={handleProfileFieldChange}
             disabled={savingProfile}
           />
-
-          {child && (
-            <>
-              <label htmlFor="profile-child-name">Child's Name</label>
-              <input
-                id="profile-child-name"
-                name="child_name"
-                type="text"
-                value={profileForm.child_name}
-                onChange={handleProfileFieldChange}
-                disabled={savingProfile}
-              />
-            </>
-          )}
-
           {profileError && <p className="profile__form-error">{profileError}</p>}
 
           <button type="submit" className="profile__save-btn" disabled={savingProfile}>

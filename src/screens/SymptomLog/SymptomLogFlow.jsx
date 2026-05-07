@@ -121,8 +121,19 @@ export default function SymptomLogFlow({ onExit, profile, child }) {
       try {
         parsed = validatePlan(extractJson(rawText));
       } catch (parseErr) {
-        console.error('AI Parse Error:', parseErr, 'Raw:', rawText);
-        throw new Error(`Dampi gave an invalid response format. Raw: ${rawText.slice(0, 100)}...`);
+        console.warn('AI Parse Error, retrying plan JSON repair:', parseErr, 'Raw:', rawText);
+        const retry = await callDampiChat(
+          [{ role: 'user', text: userMessage }, { role: 'assistant', text: rawText }],
+          'Your previous response was not valid JSON in the required schema. Return ONLY one complete JSON object now, no prose. Include instructions, checklist, and redFlags. DO NOT use markdown code blocks.',
+          { systemPrompt: EXAM_SYSTEM_PROMPT, mode: 'fast' },
+        );
+        const retryRawText = retry?.text || '';
+        try {
+          parsed = validatePlan(extractJson(retryRawText));
+        } catch (retryParseErr) {
+          console.error('AI Parse Error:', retryParseErr, 'Raw:', retryRawText);
+          throw new Error('Dampi gave an invalid response format. Please try again.');
+        }
       }
       setDraft((prev) => ({ ...prev, plan: parsed, step: 1 }));
     } catch (err) {

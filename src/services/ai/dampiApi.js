@@ -157,6 +157,19 @@ export async function callDampiChat(messages, userMessage, config = {}) {
   return purpose === 'title' ? data.text : data;
 }
 
+export async function transcribeDampiAudio(attachment) {
+  const data = await callChatApi({
+    messages: [],
+    userMessage: 'Transcribe this audio exactly. Return only the spoken words. If there is no clear speech, return an empty string.',
+    attachments: normalizeAttachments([attachment]),
+    mode: 'fast',
+    purpose: 'transcription',
+    systemPrompt: '',
+  });
+
+  return typeof data.text === 'string' ? data.text.trim() : '';
+}
+
 export async function streamDampiChat(messages, userMessage, config = {}) {
   const data = await streamChatApi({
     messages: normalizeMessages(messages),

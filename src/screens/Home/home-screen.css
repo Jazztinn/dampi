@@ -221,6 +221,137 @@
   padding: 0;
 }
 
+.home__add-widget {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(146, 187, 179, 0.15);
+  color: var(--dampi-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.home__add-widget:hover {
+  background: rgba(146, 187, 179, 0.25);
+  transform: scale(1.05);
+}
+
+/* ── Widget Picker Modal ── */
+
+.home__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 59, 56, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.home__widget-picker {
+  width: 100%;
+  max-width: 500px;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 40px;
+  animation: slideUp 0.3s ease-out;
+}
+
+.home__picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.home__picker-header h4 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--dampi-text);
+}
+
+.home__picker-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-text-muted);
+  cursor: pointer;
+}
+
+.home__picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.home__picker-item {
+  position: relative;
+  background: #f8fafa;
+  border: 1.5px solid rgba(146, 187, 179, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.home__picker-item.active {
+  background: rgba(146, 187, 179, 0.08);
+  border-color: var(--dampi-teal);
+}
+
+.home__picker-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dampi-teal);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.home__picker-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--dampi-text);
+}
+
+.home__picker-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--dampi-teal);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s ease;
+}
+
+.home__picker-item.active .home__picker-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 /* ── Log Cards ── */
 
 .home__log-card {

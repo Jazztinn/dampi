@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Phone, Calendar, Baby, LogOut, ImagePlus, Edit3, Save, X, Mail } from 'lucide-react';
+import { Phone, Calendar, Baby, LogOut, ImagePlus, Edit3, Save, X, Mail, Search } from 'lucide-react';
 import TopNavBar, { getInitials } from '../../navigation/TopNavBar.jsx';
 import { getSupabaseBrowserClient } from '../../lib/supabase.js';
 import './financial-assistance.css';
@@ -47,6 +47,28 @@ export default function FinancialAssistanceScreen({
   
   const isEmailVerified = profile?.id?.endsWith('@google.com'); // Simple check
 
+  const handleVerifyEmail = async () => {
+    if (!profile?.id || savingProfile) return;
+    setSavingProfile(true);
+    setProfileError('');
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) throw new Error('No email found to verify.');
+      
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: session.user.email,
+      });
+      if (error) throw error;
+      alert(`Verification email sent to ${session.user.email}`);
+    } catch (error) {
+      setProfileError(error.message || 'Unable to send verification email.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   const infoRows = [
     {
       id: 'member-since',
@@ -62,6 +84,7 @@ export default function FinancialAssistanceScreen({
       Icon: Mail,
       label: 'Verify your email',
       value: 'Connect your email for better security.',
+      onClick: handleVerifyEmail,
     });
   }
 
@@ -251,83 +274,74 @@ export default function FinancialAssistanceScreen({
 
       <div className="profile__section-header">
         <p className="profile__section-title">Account Information</p>
-        {!editingProfile ? (
-          <button type="button" className="profile__edit-btn" onClick={() => setEditingProfile(true)}>
-            <Edit3 size={14} />
-            Edit
-          </button>
-        ) : (
-          <button type="button" className="profile__edit-btn" onClick={cancelProfileEdit} disabled={savingProfile}>
-            <X size={15} />
-            Cancel
-          </button>
-        )}
       </div>
 
-      {editingProfile ? (
-        <form className="profile__edit-form" onSubmit={handleProfileSave}>
-          <label htmlFor="profile-full-name">Name</label>
-          <input
-            id="profile-full-name"
-            name="full_name"
-            type="text"
-            value={profileForm.full_name}
-            onChange={handleProfileFieldChange}
-            disabled={savingProfile}
-          />
-
-          <label htmlFor="profile-phone">Phone</label>
-          <input
-            id="profile-phone"
-            name="phone"
-            type="tel"
-            value={profileForm.phone}
-            onChange={handleProfileFieldChange}
-            disabled={savingProfile}
-          />
-
-          {profileError && <p className="profile__form-error">{profileError}</p>}
-
-          <button type="submit" className="profile__save-btn" disabled={savingProfile}>
-            <Save size={16} />
-            {savingProfile ? 'Saving...' : 'Save Changes'}
-          </button>
-        </form>
-      ) : (
-        <div className="profile__info-list">
-          {infoRows.map(({ id, Icon, label, value }) => (
-            <div key={id} className="profile__info-row">
-              <div className="profile__info-icon">
-                <Icon size={16} strokeWidth={2} />
-              </div>
-              <div>
-                <p className="profile__info-label">{label}</p>
-                <p className="profile__info-value">{value}</p>
-              </div>
-            </div>
-          ))}
+      <div className="profile__info-list">
+        <div className="profile__info-row">
+          <div className="profile__info-icon">
+            <Edit3 size={16} strokeWidth={2} />
+          </div>
+          <div className="profile__info-content">
+            <p className="profile__info-label">Full Name</p>
+            <p className="profile__info-value">{profile?.full_name || 'Not set'}</p>
+          </div>
         </div>
-      )}
+        <div className="profile__info-row">
+          <div className="profile__info-icon">
+            <Phone size={16} strokeWidth={2} />
+          </div>
+          <div className="profile__info-content">
+            <p className="profile__info-label">Phone Number</p>
+            <p className="profile__info-value">{profile?.phone || 'Not set'}</p>
+          </div>
+        </div>
+        {infoRows.map(({ id, Icon, label, value, onClick }) => (
+          <div 
+            key={id} 
+            className={`profile__info-row${onClick ? ' profile__info-row--clickable' : ''}`}
+            onClick={onClick}
+            role={onClick ? 'button' : undefined}
+          >
+            <div className="profile__info-icon">
+              <Icon size={16} strokeWidth={2} />
+            </div>
+            <div className="profile__info-content">
+              <p className="profile__info-label">{label}</p>
+              <p className="profile__info-value">{value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {profileError && <p className="profile__form-error" style={{ marginBottom: '16px' }}>{profileError}</p>}
 
       <div className="profile__section-header">
-        <p className="profile__section-title">Settings</p>
+        <p className="profile__section-title">Privacy & Discovery</p>
       </div>
 
-      <label className="profile__setting-row" htmlFor="family-discoverable">
-        <input
-          id="family-discoverable"
-          type="checkbox"
-          checked={discoverable}
-          onChange={handleDiscoverableChange}
-          disabled={savingDiscoverable}
-        />
-        <span>
-          <strong>Show me in caregiver search</strong>
-          <small>Other Dampi users can find your name and send care-circle requests.</small>
-        </span>
-      </label>
+      <div className="profile__info-list">
+        <label className="profile__setting-row" htmlFor="family-discoverable">
+          <div className="profile__info-icon">
+            <Search size={16} strokeWidth={2} />
+          </div>
+          <div className="profile__setting-content">
+            <strong>Show me in caregiver search</strong>
+            <small>Allow other Dampi users to find your profile and send requests.</small>
+          </div>
+          <div className="profile__switch">
+            <input
+              id="family-discoverable"
+              type="checkbox"
+              checked={discoverable}
+              onChange={handleDiscoverableChange}
+              disabled={savingDiscoverable}
+            />
+            <span className="profile__switch-slider" />
+          </div>
+        </label>
+      </div>
 
-      <div className="profile__sign-out-row">
+      <div className="profile__sign-out-row" style={{ marginTop: '48px', paddingBottom: '60px' }}>
         <button type="button" className="profile__sign-out-btn" onClick={onSignOut} disabled={signingOut}>
           <LogOut size={18} strokeWidth={2} />
           {signingOut ? 'Signing Out...' : 'Sign Out'}

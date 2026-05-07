@@ -137,6 +137,7 @@ export default function AppNavigator({
             onNavigateToSymptoms={openSymptomLog}
             onNavigateToChildRegistration={openChildRegistration}
             onNavigateToAddChild={onNavigateToAddChild}
+            onNavigateToProfile={() => navigateTo('profile')}
             onExit={() => navigateTo('home')}
             onBack={goBack}
           />

@@ -74,24 +74,29 @@ export default function ChildRegistrationFlow({ childId, onExit, onComplete }) {
 
         if (childError) throw childError;
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('marital_status, employment_occupation, home_address')
-          .eq('id', child.primary_guardian_id)
-          .single();
+        let profileData = {};
+        if (child.primary_guardian_id) {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('marital_status, employment_occupation, home_address')
+            .eq('id', child.primary_guardian_id)
+            .maybeSingle();
 
-        if (profileError) throw profileError;
+          if (!profileError && profile) {
+            profileData = profile;
+          }
+        }
 
-        setFormData({
-          ...formData,
+        setFormData(prev => ({
+          ...prev,
           ...child,
-          ...profile,
+          ...profileData,
           emergency_contacts: child.emergency_contacts || [],
           school_name: child.school_info?.name || '',
           school_grade: child.school_info?.grade || '',
           teacher_contact: child.school_info?.teacher_contact || '',
           languages_spoken: child.languages_spoken || [],
-        });
+        }));
       } catch (err) {
         setError('Failed to load child data.');
       } finally {
@@ -345,48 +350,52 @@ export default function ChildRegistrationFlow({ childId, onExit, onComplete }) {
         {step === 3 && (
           <div className="child-reg__form">
             <p className="child-reg__sub">Add at least 2 alternate contacts.</p>
-            {formData.emergency_contacts.map((contact, i) => (
-              <div key={i} className="child-reg__contact-card">
-                <div className="contact-card__header">
-                  <span>Contact #{i + 1}</span>
-                  <button type="button" onClick={() => removeEmergencyContact(i)} className="remove-btn">
-                    <Trash2 size={14} />
-                  </button>
+            <div className="child-reg__contacts-list">
+              {formData.emergency_contacts.map((contact, i) => (
+                <div key={i} className="child-reg__contact-card">
+                  <div className="contact-card__header">
+                    <span>Contact #{i + 1}</span>
+                    <button type="button" onClick={() => removeEmergencyContact(i)} className="remove-btn" aria-label="Remove contact">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="contact-card__body">
+                    <input 
+                      type="text" 
+                      placeholder="Name" 
+                      value={contact.name} 
+                      onChange={(e) => updateEmergencyContact(i, 'name', e.target.value)} 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Relationship" 
+                      value={contact.relationship} 
+                      onChange={(e) => updateEmergencyContact(i, 'relationship', e.target.value)} 
+                    />
+                    <input 
+                      type="tel" 
+                      placeholder="Phone" 
+                      value={contact.phone} 
+                      onChange={(e) => updateEmergencyContact(i, 'phone', e.target.value)} 
+                    />
+                    
+                    <label className="child-reg__checkbox-row">
+                      <div className="child-reg__checkbox-wrapper">
+                        <input 
+                          type="checkbox" 
+                          checked={contact.can_pick_up} 
+                          onChange={(e) => updateEmergencyContact(i, 'can_pick_up', e.target.checked)} 
+                        />
+                        <span className="child-reg__checkmark" />
+                      </div>
+                      <span className="child-reg__checkbox-label">Authorized to pick up child</span>
+                    </label>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <input 
-                    type="text" 
-                    placeholder="Name" 
-                    value={contact.name} 
-                    onChange={(e) => updateEmergencyContact(i, 'name', e.target.value)} 
-                  />
-                </div>
-                <div className="form-row">
-                  <input 
-                    type="text" 
-                    placeholder="Relationship" 
-                    value={contact.relationship} 
-                    onChange={(e) => updateEmergencyContact(i, 'relationship', e.target.value)} 
-                  />
-                  <input 
-                    type="tel" 
-                    placeholder="Phone" 
-                    value={contact.phone} 
-                    onChange={(e) => updateEmergencyContact(i, 'phone', e.target.value)} 
-                  />
-                </div>
-                <label className="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    checked={contact.can_pick_up} 
-                    onChange={(e) => updateEmergencyContact(i, 'can_pick_up', e.target.checked)} 
-                  />
-                  Authorized to pick up child
-                </label>
-              </div>
-            ))}
+              ))}
+            </div>
             <button type="button" className="add-contact-btn" onClick={addEmergencyContact}>
-              <Plus size={16} /> Add Emergency Contact
+              <Plus size={18} /> Add Emergency Contact
             </button>
             <div className="form-group mt-4">
               <label>Custody / Legal Arrangements</label>

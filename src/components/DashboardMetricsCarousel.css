@@ -74,15 +74,11 @@
   border: 1px solid rgba(240, 240, 240, 1);
 }
 
-.dmc-card__add {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px; /* Squircle appearance */
+.dmc-card__add-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: #f6f6f6;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
   color: var(--dampi-text-muted);
   display: flex;
   align-items: center;
@@ -92,13 +88,123 @@
   transition: all 0.2s ease;
 }
 
-.dmc-card__add:hover {
+.dmc-card__add-btn:hover {
   background: rgba(0, 0, 0, 0.08);
   color: var(--dampi-text);
-  transform: scale(1.05);
 }
 
-.dmc-card__add:active {
-  transform: scale(0.95);
+/* ── Photo Card ── */
+
+.dmc-card__photo-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 2rem;
+  overflow: hidden;
 }
+
+.dmc-card__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dmc-card__photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(146, 187, 179, 0.15);
+  color: var(--dampi-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dmc-card__photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dmc-card__photo-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dmc-card__photo-edit {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Metric Card Content ── */
+
+.dmc-card__content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dmc-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.dmc-card__icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dmc-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.dmc-card__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--dampi-text);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.dmc-card__subtitle {
+  font-size: 0.72rem;
+  color: var(--dampi-text-muted);
+  margin: 0;
+}
+
+.dmc-card__spacer {
+  flex: 1;
+}
+
+.dmc-card__value {
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
 

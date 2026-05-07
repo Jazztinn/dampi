@@ -6,7 +6,13 @@ import {
   Wind,
   FileText,
   Baby,
+  Plus,
+  X,
   CheckCircle2,
+  Activity,
+  Ruler,
+  Pill,
+  Calendar,
 } from 'lucide-react';
 import TopNavBar, { getFirstName, getInitials } from '../../navigation/TopNavBar.jsx';
 import DashboardMetricsCarousel from '../../components/DashboardMetricsCarousel.jsx';
@@ -19,20 +25,42 @@ const HEALTH_TIPS = [
   { id: 3, Icon: Wind, title: 'Fresh Air', body: 'Keep rooms ventilated and dress warmly, but avoid overheating.' },
 ];
 
+const AVAILABLE_WIDGETS = [
+  { id: 'vitals', title: 'Last Vitals', Icon: Activity, type: 'metric' },
+  { id: 'growth', title: 'Growth', Icon: Ruler, type: 'metric' },
+  { id: 'meds', title: 'Medications', Icon: Pill, type: 'metric' },
+  { id: 'appointments', title: 'Upcoming', Icon: Calendar, type: 'metric' },
+];
+
 function pluralize(count, singular, plural = `${singular}s`) {
   return count === 1 ? singular : plural;
 }
 
-export default function HomeScreen({ profile, child, children = [], onNavigateToSymptoms, onNavigateToChildRegistration }) {
+export default function HomeScreen({ 
+  profile, 
+  child, 
+  children = [], 
+  onNavigateToSymptoms, 
+  onNavigateToChildRegistration, 
+  onChildrenChange 
+}) {
   const [recentLogs, setRecentLogs] = useState([]);
   const [totalLogCount, setTotalLogCount] = useState(0);
+  const [activeWidgets, setActiveWidgets] = useState(() => {
+    const saved = localStorage.getItem('dampi.activeWidgets');
+    return saved ? JSON.parse(saved) : ['vitals', 'growth'];
+  });
+  const [showWidgetPicker, setShowWidgetPicker] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('dampi.activeWidgets', JSON.stringify(activeWidgets));
+  }, [activeWidgets]);
 
   useEffect(() => {
     const refreshLogs = async () => {
       try {
         const logs = await loadSymptomLogs(null, 5);
         setRecentLogs(logs || []);
-        // Fetch total count
         const allLogs = await loadSymptomLogs(null, 1000);
         setTotalLogCount(allLogs?.length || 0);
       } catch (err) {
@@ -48,8 +76,15 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
   const childCount = children.length || (child ? 1 : 0);
   const firstName = getFirstName(profile?.full_name);
   const greeting = firstName ? `Hi, ${firstName}!` : 'Hi there!';
-  const firstChildName = child?.full_name || children[0]?.full_name || 'your child';
-  const isRegistrationIncomplete = child && !child.registration_completed;
+  const activeChild = child || children[0];
+  const firstChildName = activeChild?.full_name || 'your child';
+  const isRegistrationIncomplete = activeChild && !activeChild.registration_completed;
+
+  const toggleWidget = (id) => {
+    setActiveWidgets(prev => 
+      prev.includes(id) ? prev.filter(w => w !== id) : [...prev, id]
+    );
+  };
 
   const avatar = (
     <div className="topbar-avatar" aria-label="Profile">
@@ -98,7 +133,7 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
         {isRegistrationIncomplete && (
           <>
             <div className="home__card-divider" />
-            <div className="home__registration-reminder" onClick={() => onNavigateToChildRegistration?.(child.id)}>
+            <div className="home__registration-reminder" onClick={() => onNavigateToChildRegistration?.(activeChild.id)}>
               <div className="home__registration-content">
                 <div className="home__registration-icon">
                   <AlertTriangle size={18} />
@@ -119,9 +154,53 @@ export default function HomeScreen({ profile, child, children = [], onNavigateTo
       <section className="home__section home__section--carousel">
         <div className="home__section-header">
           <h3 className="home__section-title brand-font">Dashboard Widgets</h3>
+          <button 
+            className="home__add-widget" 
+            onClick={() => setShowWidgetPicker(true)}
+            aria-label="Add widget"
+          >
+            <Plus size={18} />
+          </button>
         </div>
-        <DashboardMetricsCarousel />
+        <DashboardMetricsCarousel 
+          profile={profile} 
+          child={activeChild} 
+          children={children} 
+          onChildrenChange={onChildrenChange}
+          activeWidgetIds={activeWidgets}
+          recentLogs={recentLogs}
+        />
       </section>
+
+      {showWidgetPicker && (
+        <div className="home__modal-overlay" onClick={() => setShowWidgetPicker(false)}>
+          <div className="home__widget-picker" onClick={e => e.stopPropagation()}>
+            <div className="home__picker-header">
+              <h4 className="brand-font">Choose Widgets</h4>
+              <button className="home__picker-close" onClick={() => setShowWidgetPicker(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="home__picker-grid">
+              {AVAILABLE_WIDGETS.map(w => (
+                <button 
+                  key={w.id} 
+                  className={`home__picker-item ${activeWidgets.includes(w.id) ? 'active' : ''}`}
+                  onClick={() => toggleWidget(w.id)}
+                >
+                  <div className="home__picker-icon">
+                    <w.Icon size={20} />
+                  </div>
+                  <span className="home__picker-label">{w.title}</span>
+                  <div className="home__picker-check">
+                    <CheckCircle2 size={16} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="home__section">
         <div className="home__section-header">

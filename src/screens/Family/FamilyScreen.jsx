@@ -357,6 +357,7 @@ export default function FamilyScreen({
   onChildrenChange,
   onProfileChange,
   onNavigateToAddChild,
+  onNavigateToChildRegistration,
 }) {
   const [localChildren, setLocalChildren] = useState(initialChildren);
   const [invites, setInvites] = useState([]);
@@ -450,7 +451,7 @@ export default function FamilyScreen({
     if (incompleteChild) {
       if (profile?.onboarding_completed) {
         // If parent onboarding is complete, navigate to complete child's registration
-        onNavigateToAddChild?.(incompleteChild.id);
+        onNavigateToChildRegistration?.(incompleteChild.id);
       } else {
         // If parent onboarding is NOT complete, alert them
         alert("Please complete your own registration before finishing child registration.");

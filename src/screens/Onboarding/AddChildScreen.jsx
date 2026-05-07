@@ -14,17 +14,27 @@ export default function AddChildScreen({ data, onNext }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
+
     if (name === 'childDOB') {
-      const result = validateChildDob(value, { required: false });
-      if (value && !result.valid) {
-        setErrors({ ...errors, childDOB: result.error });
-        return;
+      // Only validate if we have a potentially complete date string (YYYY-MM-DD)
+      if (value.length >= 10) {
+        const result = validateChildDob(value, { required: false });
+        if (!result.valid) {
+          setErrors(prev => ({ ...prev, childDOB: result.error }));
+        } else {
+          setErrors(prev => ({ ...prev, childDOB: '' }));
+        }
+      } else {
+        // Clear error while typing a partial date
+        setErrors(prev => ({ ...prev, childDOB: '' }));
       }
+      return;
     }
 
-    setFormData({ ...formData, [name]: value });
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 

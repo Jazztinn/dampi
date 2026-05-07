@@ -116,15 +116,21 @@
   margin-bottom: 8px;
 }
 
+.child-reg__contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .child-reg__contact-card {
   background: #fff;
   border: 1px solid rgba(77, 115, 108, 0.1);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .contact-card__header {
@@ -132,10 +138,88 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--dampi-text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
+
+.contact-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.child-reg__checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 0;
+  user-select: none;
+}
+
+.child-reg__checkbox-wrapper {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.child-reg__checkbox-wrapper input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.child-reg__checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: rgba(0, 0, 0, 0.03);
+  border: 1.5px solid rgba(77, 115, 108, 0.2);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.child-reg__checkbox-row:hover .child-reg__checkmark {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.child-reg__checkbox-wrapper input:checked ~ .child-reg__checkmark {
+  background-color: var(--dampi-teal);
+  border-color: var(--dampi-teal);
+}
+
+.child-reg__checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.child-reg__checkbox-wrapper input:checked ~ .child-reg__checkmark:after {
+  display: block;
+}
+
+.child-reg__checkbox-wrapper .child-reg__checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.child-reg__checkbox-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--dampi-text);
+}
+
 
 .remove-btn {
   background: none;

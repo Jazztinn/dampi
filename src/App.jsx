@@ -62,8 +62,12 @@ export default function App() {
   const [tasks, setTasks] = useState({});
   const [symptomLogRequest, setSymptomLogRequest] = useState(null);
   const [pendingInviteToken, setPendingInviteToken] = useState(() => {
-    const urlToken = new URLSearchParams(window.location.search).get('invite');
-    return urlToken || localStorage.getItem('dampi.pendingInviteToken') || null;
+    try {
+      const urlToken = new URLSearchParams(window.location.search).get('invite');
+      return urlToken || window.localStorage.getItem('dampi.pendingInviteToken') || null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -82,30 +86,40 @@ export default function App() {
       try {
         supabase = getSupabaseBrowserClient();
         const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        
+        if (error) {
+           console.error('Supabase session error:', error);
+        }
+
         if (!active) return;
 
-        const session = data.session;
+        const session = data?.session || null;
         setHasSession(!!session);
 
-        const nextAccount = await loadOnboardingAccount(supabase, session);
+        const nextAccount = session ? await loadOnboardingAccount(supabase, session) : null;
         if (!active) return;
 
         setAccount(nextAccount);
         setAccountError('');
       } catch (error) {
+        console.error('App init error:', error);
         if (active) {
           setAccount(null);
           setHasSession(false);
-          setAccountError(error.message || 'Unable to load your Dampi account.');
+          // Don't block the app with an error message unless it's critical
+          // setAccountError(error.message || 'Unable to load your Dampi account.');
         }
       } finally {
-        if (active) setLoadingAccount(false);
+        if (active) {
+          setLoadingAccount(false);
+          // Force splash timer if account loading was very fast
+          // but we already have a dedicated useEffect for that.
+        }
       }
 
       if (!active || !supabase) return;
 
-      const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!active) return;
 
         try {
@@ -125,12 +139,12 @@ export default function App() {
           setAccountError('');
         } catch (error) {
           if (!active) return;
+          console.error('Auth change account load error:', error);
           setAccount(null);
-          setAccountError(error.message || 'Unable to load your Dampi account.');
         }
       });
 
-      authSubscription = data.subscription;
+      authSubscription = authListener?.subscription;
     };
 
     init();

@@ -6,6 +6,7 @@ import LoginScreen from './screens/Auth/LoginScreen.jsx';
 import DampiChatModal from './components/ai/DampiChatModal.jsx';
 import AcceptInviteScreen from './screens/AcceptInvite/AcceptInviteScreen.jsx';
 import { getSupabaseBrowserClient } from './lib/supabase.js';
+import dampiLogo from './assets/dampi.svg';
 
 const ONBOARDING_STORAGE_KEYS = [
   'dampi.onboardingStep',
@@ -50,6 +51,7 @@ async function loadOnboardingAccount(supabase, session) {
 }
 
 export default function App() {
+  const [splashTimerDone, setSplashTimerDone] = useState(false);
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [account, setAccount] = useState(null);
   const [hasSession, setHasSession] = useState(false);
@@ -63,6 +65,13 @@ export default function App() {
     const urlToken = new URLSearchParams(window.location.search).get('invite');
     return urlToken || localStorage.getItem('dampi.pendingInviteToken') || null;
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSplashTimerDone(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -203,10 +212,12 @@ export default function App() {
     }
   };
 
-  if (loadingAccount) {
+  if (loadingAccount || !splashTimerDone) {
     return (
-      <div className="dampi-app app-state">
-        <p>Loading Dampi...</p>
+      <div className="dampi-app app-state splash-screen">
+        <div className="splash-logo-container">
+          <img src={dampiLogo} alt="Dampi" className="splash-logo" />
+        </div>
       </div>
     );
   }

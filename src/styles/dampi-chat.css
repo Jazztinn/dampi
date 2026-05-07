@@ -1172,10 +1172,22 @@
   box-shadow: var(--shadow-sm);
 }
 
+.chat-modal-input-area--voice-active {
+  border-color: rgba(237, 161, 109, 0.30);
+  background: rgba(237, 161, 109, 0.14);
+  box-shadow: 0 8px 24px rgba(237, 161, 109, 0.16);
+}
+
 .chat-input-row {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.chat-modal-input-area--voice-active .chat-input-row::before {
+  content: "";
+  flex: 1;
+  min-height: 44px;
 }
 
 .chat-input {
@@ -1198,6 +1210,28 @@
 .chat-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.chat-voice-input-visualization {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.chat-voice-input-visualization .chat-voice-visualizer {
+  width: 100%;
+  height: 100%;
 }
 
 .chat-voice-btn {
@@ -1256,6 +1290,51 @@
   color: var(--danger);
 }
 
+.chat-voice-visualizer {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 1vw, 7px);
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+}
+
+.chat-voice-visualizer span {
+  width: clamp(4px, 1vw, 7px);
+  height: 42%;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.86;
+  transform: scaleY(var(--voice-bar-scale, 0.3));
+  transform-origin: center;
+  transition: transform 0.08s ease-out;
+}
+
+.chat-voice-visualizer--transcribing span {
+  animation: chatVoiceBar 0.9s ease-in-out infinite;
+  animation-delay: var(--voice-bar-delay);
+}
+
+@keyframes chatVoiceBar {
+  0%, 100% { transform: scaleY(0.28); opacity: 0.58; }
+  50% { transform: scaleY(0.88); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-voice-btn--listening,
+  .chat-voice-visualizer--transcribing span {
+    animation: none;
+  }
+
+  .chat-voice-visualizer span {
+    transition: none;
+  }
+}
+
 .chat-send-btn {
   width: 48px;
   height: 48px;
@@ -1307,6 +1386,11 @@
   background: var(--sage-12);
   border-color: var(--primary);
   transform: translateY(-1px);
+}
+
+.chat-attach-action--voice-spacer {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Scrollbar */

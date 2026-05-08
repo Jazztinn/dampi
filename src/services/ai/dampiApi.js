@@ -1,6 +1,13 @@
 import { CHAT_SYSTEM_PROMPT } from '../../constants/dampiAi.js';
+import * as GeminiApi from './geminiApi.js';
 
 const API_PROXY = (import.meta.env.VITE_AI_PROXY_URL || '').replace(/\/$/, '');
+const USE_GEMINI_DIRECT = !API_PROXY && import.meta.env.VITE_AI_API_KEY;
+
+// For GitHub Pages or when no local proxy is available, use direct Gemini API
+if (USE_GEMINI_DIRECT) {
+  console.log('Using direct Gemini API for AI calls');
+}
 
 function normalizeMode(mode) {
   return mode === 'fast' || mode === 'auto' ? mode : 'default';
@@ -143,6 +150,10 @@ async function streamChatApi(payload, onEvent, signal) {
 }
 
 export async function callDampiChat(messages, userMessage, config = {}) {
+  if (USE_GEMINI_DIRECT) {
+    return GeminiApi.callGeminiChat(messages, userMessage, config);
+  }
+
   const purpose = config.purpose === 'title' ? 'title' : 'chat';
 
   const data = await callChatApi({
@@ -158,6 +169,10 @@ export async function callDampiChat(messages, userMessage, config = {}) {
 }
 
 export async function transcribeDampiAudio(attachment) {
+  if (USE_GEMINI_DIRECT) {
+    return GeminiApi.transcribeGeminiAudio(attachment);
+  }
+
   const data = await callChatApi({
     messages: [],
     userMessage: 'Transcribe this audio exactly. Return only the spoken words. If there is no clear speech, return an empty string.',
@@ -171,6 +186,10 @@ export async function transcribeDampiAudio(attachment) {
 }
 
 export async function streamDampiChat(messages, userMessage, config = {}) {
+  if (USE_GEMINI_DIRECT) {
+    return GeminiApi.streamGeminiChat(messages, userMessage, config);
+  }
+
   const data = await streamChatApi({
     messages: normalizeMessages(messages),
     userMessage: typeof userMessage === 'string' ? userMessage : '',

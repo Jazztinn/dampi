@@ -228,14 +228,22 @@ Located in `src/services/ai/assessmentContext.js` (to be created):
 
 ## 🌐 Deployment
 
+For the deployed application to function correctly, the AI backend server (`ai/server/server.js`) must be running on a public hosting provider (e.g., Heroku, Render, Fly.io).
+
+Before building the frontend for production, you must set the `VITE_AI_PROXY_URL` environment variable to the public URL of your deployed backend.
+
+Example `.env.production` file:
+```
+VITE_AI_PROXY_URL=https://your-deployed-ai-server.com
+```
+
 ### GitHub Pages
 
-The app is automatically deployed to GitHub Pages on every push to `main`:
+The app is automatically deployed to GitHub Pages on every push to `main`.
 
-```bash
-git push origin main
-# Actions workflow triggers → builds and deploys to https://jazztinn.github.io/dampi/
-```
+**Important**: Before your GitHub Actions workflow runs, ensure you have configured the `VITE_AI_PROXY_URL` in your repository's secrets so the build process can create a production-ready application that points to your live backend.
+
+See the main [Deployment](#-deployment) section for more details.
 
 **Configuration**:
 - `vite.config.js` includes `base: '/dampi/'` for correct asset paths

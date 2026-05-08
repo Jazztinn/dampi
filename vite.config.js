@@ -15,10 +15,13 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:3001',
           changeOrigin: true,
+          // Optional proxy - won't throw error if backend is unavailable
+          ws: true,
         },
         '/health': {
           target: env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:3001',
           changeOrigin: true,
+          ws: true,
         },
       },
     },
